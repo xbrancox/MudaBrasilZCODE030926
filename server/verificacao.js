@@ -25,8 +25,7 @@ const AUTHORIZED_DOMAINS = [
   'tse.jus.br'
 ];
 
-// Tokens de confirmação em memória (em prod usar DB)
-const pendingVerifications = new Map(); // token -> { politicianId, email, expiresAt }
+const pendingVerifications = new Map();
 
 function isAuthorizedDomain(email) {
   if (!email || typeof email !== 'string') return null;
@@ -44,10 +43,6 @@ function normalizeEmail(email) {
   return String(email || '').toLowerCase().trim();
 }
 
-/**
- * Inicia processo de verificação de um político.
- * Retorna token de confirmação (que deve ser enviado por e-mail).
- */
 function startVerification(politicianId, email) {
   const politician = db.getPolitician(politicianId);
   if (!politician) throw new Error('Político não encontrado: ' + politicianId);
@@ -58,9 +53,8 @@ function startVerification(politicianId, email) {
     throw new Error('Domínio não autorizado. Use: ' + AUTHORIZED_DOMAINS.join(', '));
   }
 
-  // Gera token único
   const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24h
+  const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
 
   pendingVerifications.set(token, {
     politicianId,
@@ -82,9 +76,6 @@ function startVerification(politicianId, email) {
   };
 }
 
-/**
- * Confirma a verificação de um político via token.
- */
 function confirmVerification(token) {
   const entry = pendingVerifications.get(token);
   if (!entry) throw new Error('Token inválido ou expirado.');
@@ -93,7 +84,6 @@ function confirmVerification(token) {
     throw new Error('Token expirado. Solicite uma nova verificação.');
   }
 
-  // Ativa selo
   db.setVerification({
     politicianId: entry.politicianId,
     verified: true,
@@ -114,13 +104,8 @@ function confirmVerification(token) {
   };
 }
 
-/**
- * Auto-verifica políticos com base em dados públicos que contenham
- * e-mail institucional. Chamado durante a ingestão de dados.
- */
 function autoVerifyFromPublicData(politician) {
   if (!politician) return null;
-  // Procura e-mail em campos conhecidos
   const emailFields = ['email', 'email_institucional', 'emailOficial', 'contact_email'];
   for (const field of emailFields) {
     const email = politician[field];
@@ -141,38 +126,23 @@ function autoVerifyFromPublicData(politician) {
   return null;
 }
 
-/**
- * Lista domínios autorizados (para a UI).
- */
 function getAuthorizedDomains() {
   return [...AUTHORIZED_DOMAINS];
 }
 
-/**
- * Verifica se um político está verificado.
- */
 function isVerified(politicianId) {
   const v = db.getVerification(politicianId);
   return !!(v && v.verified);
 }
 
-/**
- * Retorna detalhes completos da verificação de um político.
- */
 function getVerificationDetails(politicianId) {
   return db.getVerification(politicianId);
 }
 
-/**
- * Lista todos os políticos verificados (com seus dados).
- */
 function getAllVerified() {
   return db.getVerifiedPoliticians();
 }
 
-/**
- * Estatísticas de verificação.
- */
 function getStats() {
   const all = db.getAllPoliticians();
   const verifications = db.getAllVerifications();
@@ -186,12 +156,7 @@ function getStats() {
       byDomain[d] = (byDomain[d] || 0) + 1;
     }
   }
-  return {
-    total,
-    verified,
-    pending: total - verified,
-    byDomain
-  };
+  return { total, verified, pending: total - verified, byDomain };
 }
 
 module.exports = {

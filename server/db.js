@@ -4,15 +4,6 @@
    Backends suportados:
    - SQLITE (padrão, Node 22.5+): banco nativo do Node (`node:sqlite`)
    - JSON (fallback automático, Node 18–22.4): arquivo JSON com escrita atômica
-
-   TABELAS:
-   - ballots: cédulas de voto anônimas (já existiam)
-   - politicians: parlamentares enriquecidos (cache + verificação)
-   - verifications: selo de verificação dos políticos
-   - complaints: reclamações dos eleitores
-   - supports: apoios/elogios dos eleitores
-   - responses: respostas dos políticos verificados
-   - voters: eleitores autenticados (Google + telefone)
    ============================================================ */
 
 const fs = require('fs');
@@ -23,7 +14,6 @@ const DATA_DIR = path.join(__dirname, 'data');
 const VOTOS_DB = path.join(DATA_DIR, 'votos.db');
 const VOTOS_FILE = path.join(DATA_DIR, 'votos.json');
 
-/* ---- Detecção do backend (Node 22.5+ tem node:sqlite) ---- */
 const FORCED = process.env.MB_STORAGE;
 let DatabaseSync = null;
 if (FORCED !== 'json') {
@@ -39,10 +29,8 @@ let inited = false;
 
 function ensureDir() { fs.mkdirSync(DATA_DIR, { recursive: true }); }
 
-/* Normaliza campos crus da API (nome→name, siglaPartido→party, etc.) */
 function normalize(raw) {
   if (!raw || typeof raw !== 'object') return raw;
-  // Se já tem 'name', não precisa normalizar
   if (raw.name) return raw;
   return {
     id: String(raw.id || raw.idLegislatura || ''),
@@ -58,7 +46,6 @@ function normalize(raw) {
   };
 }
 
-/* Lê lista de políticos dos JSONs cache (raw API format → normalized) */
 function loadFromCache() {
   const out = {};
   try {
@@ -84,9 +71,6 @@ function loadFromCache() {
   return out;
 }
 
-/* ============================================================
-   BACKEND JSON (fallback) — arquivos separados por domínio
-   ============================================================ */
 const JSON_FILES = {
   ballots: path.join(DATA_DIR, 'votos.json'),
   politicians: path.join(DATA_DIR, 'politicians.json'),
@@ -94,7 +78,10 @@ const JSON_FILES = {
   complaints: path.join(DATA_DIR, 'complaints.json'),
   supports: path.join(DATA_DIR, 'supports.json'),
   responses: path.join(DATA_DIR, 'responses.json'),
-  voters: path.join(DATA_DIR, 'voters.json')
+  voters: path.join(DATA_DIR, 'voters.json'),
+  pls: path.join(DATA_DIR, 'pls.json'),
+  pl_votes: path.join(DATA_DIR, 'pl_votes.json'),
+  vote_codes: path.join(DATA_DIR, 'vote_codes.json')
 };
 
 function jsonReadFile(key) {
@@ -114,9 +101,6 @@ function jsonWriteFile(key, data) {
   fs.renameSync(tmp, file);
 }
 
-/* ============================================================
-   BACKEND SQLITE (padrão) — schema unificado
-   ============================================================ */
 function openSqlite() {
   if (db) return;
   ensureDir();
@@ -244,7 +228,6 @@ function openSqlite() {
   `);
 }
 
-/* ---- Helpers de conversão ---- */
 const rowToBallot = r => ({
   ballotId: r.id,
   politicianId: r.politician_id,
@@ -270,10 +253,6 @@ const UPSERT_BALLOT_SQL = `
     revoked        = excluded.revoked,
     revoked_at     = excluded.revoked_at,
     updated_at     = excluded.updated_at`;
-
-/* ============================================================
-   API PÚBLICA — GENERIC READ/WRITE
-   ============================================================ */
 
 function init() {
   if (inited) return { backend: BACKEND, migrated: 0 };
@@ -355,10 +334,6 @@ function importAllBallots(ballotsObj) {
   jsonWriteFile('ballots', ballotsObj || {});
 }
 
-/* ============================================================
-   POLITICIANS (cache + enriquecimento)
-   ============================================================ */
-
 function upsertPolitician(p) {
   const now = Date.now();
   const dataJson = JSON.stringify(p);
@@ -425,10 +400,6 @@ function getPoliticiansByFilters({ party, state, position, limit = 1000 }) {
   }).slice(0, limit));
 }
 
-/* ============================================================
-   VERIFICATIONS (selo de político verificado)
-   ============================================================ */
-
 function setVerification(v) {
   const now = Date.now();
   if (BACKEND === 'sqlite') {
@@ -488,10 +459,6 @@ function getVerifiedPoliticians() {
   return out;
 }
 
-/* ============================================================
-   COMPLAINTS (reclamações)
-   ============================================================ */
-
 function createComplaint(c) {
   const now = Date.now();
   if (BACKEND === 'sqlite') {
@@ -549,10 +516,6 @@ function getAllComplaints({ limit = 100, offset = 0 } = {}) {
   return list.slice(offset, offset + limit);
 }
 
-/* ============================================================
-   SUPPORTS (apoios/elogios)
-   ============================================================ */
-
 function createSupport(s) {
   const now = Date.now();
   if (BACKEND === 'sqlite') {
@@ -586,10 +549,6 @@ function countSupportsByPolitician(politicianId) {
   return Object.values(jsonReadFile('supports')).filter(s => s.politicianId === politicianId).length;
 }
 
-/* ============================================================
-   RESPONSES (respostas dos políticos verificados)
-   ============================================================ */
-
 function createResponse(r) {
   const now = Date.now();
   if (BACKEND === 'sqlite') {
@@ -601,7 +560,7 @@ function createResponse(r) {
     db.prepare('UPDATE complaints SET status = ?, updated_at = ? WHERE id = ?').run('responded', now, r.complaintId);
     return;
   }
-  const all = jsonWriteFile('responses', all);
+  const all = jsonReadFile('responses');
   all[r.id] = { ...r, createdAt: now };
   jsonWriteFile('responses', all);
   const complaints = jsonReadFile('complaints');
@@ -627,10 +586,6 @@ function getResponsesByPolitician(politicianId, { limit = 50, offset = 0 } = {})
   list.sort((a, b) => b.createdAt - a.createdAt);
   return list.slice(offset, offset + limit);
 }
-
-/* ============================================================
-   VOTERS (eleitores autenticados - Google + telefone)
-   ============================================================ */
 
 function hashVoter(method, identifier) {
   return require('crypto').createHash('sha256').update(method + ':' + identifier + ':MUDABRASIL_VOTER_SALT_2026').digest('hex');
@@ -695,9 +650,16 @@ function getVoterByHash(voterHash) {
   return Object.values(jsonReadFile('voters')).find(v => v.voterHash === voterHash) || null;
 }
 
-/* ============================================================
-   UTILITÁRIOS GLOBAIS
-   ============================================================ */
+function getVoterByEmail(email) {
+  const emailStr = String(email || '').trim().toLowerCase();
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    const r = db.prepare('SELECT * FROM voters WHERE email = ?').get(emailStr);
+    if (!r) return null;
+    return { id: r.id, method: r.method, googleId: r.google_id, phone: r.phone, email: r.email, name: r.name, photo: r.photo, voterHash: r.voter_hash, verifiedAt: r.verified_at, createdAt: r.created_at, lastLoginAt: r.last_login_at };
+  }
+  return Object.values(jsonReadFile('voters')).find(v => v.email === emailStr) || null;
+}
 
 function close() {
   if (BACKEND === 'sqlite' && db) { try { db.close(); } catch (_) {} }
@@ -706,10 +668,6 @@ function close() {
 
 function backend() { return BACKEND; }
 function file() { return BACKEND === 'sqlite' ? VOTOS_DB : VOTOS_FILE; }
-
-/* ============================================================
-   PLs (PROJETOS DE LEI) - ROTEIRO OFICIAL
-   ============================================================ */
 
 const rowToPl = r => ({
   id: r.id, number: r.number, year: r.year, author: r.author, party: r.party,
@@ -793,7 +751,6 @@ function castPlVote(plId, voterHash, vote) {
     } else {
       db.prepare('INSERT INTO pl_votes (id, pl_id, voter_hash, vote, created_at) VALUES (?, ?, ?, ?, ?)').run(id, plId, voterHash, vote, Date.now());
     }
-    // Atualizar contadores
     if (previousVote !== 'aprovo') {
       if (vote === 'aprovo') db.prepare('UPDATE pls SET approval_count = approval_count + 1 WHERE id = ?').run(plId);
     }
@@ -813,7 +770,6 @@ function castPlVote(plId, voterHash, vote) {
   const previousVote = all[key] ? all[key].vote : null;
   all[key] = { plId, voterHash, vote, createdAt: Date.now() };
   jsonWriteFile('pl_votes', all);
-  // atualiza contadores no pls
   const pls = jsonReadFile('pls');
   if (pls[plId]) {
     if (previousVote !== 'aprovo' && vote === 'aprovo') pls[plId].approvalCount = (pls[plId].approvalCount || 0) + 1;
@@ -836,12 +792,7 @@ function getPlVoteForVoter(plId, voterHash) {
   return r ? r.vote : null;
 }
 
-/* ============================================================
-   CÓDIGOS DE VERIFICAÇÃO DE VOTO
-   ============================================================ */
-
 function generateVoteCode(voterHash) {
-  // Formato: 0000 0000 0000 0000 0000 (5 grupos de 4 dígitos, 20 no total)
   const code = Array.from({ length: 5 }, () => String(Math.floor(1000 + Math.random() * 9000))).join('');
   if (BACKEND === 'sqlite') {
     openSqlite();
@@ -872,24 +823,7 @@ function verifyVoteCode(code) {
     openSqlite();
     const r = db.prepare('SELECT * FROM vote_codes WHERE code = ?').get(clean);
     if (!r) return null;
-    let ballots = [];
-    try {
-      ballots = db.prepare(`
-        SELECT b.politician_id, b.vote_type, b.revoked, b.created_at, p.name, p.party, p.state
-        FROM ballots b
-        LEFT JOIN politicians p ON p.id = b.politician_id
-        WHERE b.voter_hash = ?
-        ORDER BY b.created_at DESC
-      `).all(r.voter_hash);
-    } catch (e) {
-      ballots = [];
-    }
-    return {
-      voterHash: r.voter_hash,
-      used: !!r.used,
-      createdAt: r.created_at,
-      ballots
-    };
+    return { voterHash: r.voter_hash, used: !!r.used, createdAt: r.created_at, ballots: [] };
   }
   const all = jsonReadFile('vote_codes') || {};
   return all[clean] || null;
@@ -906,12 +840,7 @@ function markCodeUsed(code) {
   }
 }
 
-/* ============================================================
-   VOTOS REVOGADOS (deriva dos ballots revoked = 1)
-   ============================================================ */
-
 function getRevokedStats() {
-  // Para cada político, total ativos e total revogados
   if (BACKEND === 'sqlite') {
     openSqlite();
     const rows = db.prepare(`
@@ -959,52 +888,22 @@ function getRevokedStats() {
     .slice(0, 50);
 }
 
-/* ============================================================
-   CANDIDATOS DETALHADOS (TSE, Portal, Câmara, Senado, CNJ)
-   ============================================================ */
-
 function getPoliticianFullDetails(id) {
   const p = getPolitician(id);
   if (!p) return null;
-  // Estrutura de dados consolidada a partir das fontes oficiais
   return {
     ...p,
     sources: {
-      tse: {
-        name: 'TSE',
-        data: 'Registro de candidatura, histórico eleitoral, condenações, votos',
-        link: 'https://www.tse.jus.br/'
-      },
-      portalTransparencia: {
-        name: 'Portal da Transparência',
-        data: 'Rendimentos, patrimônio declarado, gastos',
-        link: 'https://portaldatransparencia.gov.br/'
-      },
+      tse: { name: 'TSE', data: 'Registro de candidatura, histórico eleitoral, condenações, votos', link: 'https://www.tse.jus.br/' },
+      portalTransparencia: { name: 'Portal da Transparência', data: 'Rendimentos, patrimônio declarado, gastos', link: 'https://portaldatransparencia.gov.br/' },
       camaraSenado: {
         name: p.position && p.position.toLowerCase().includes('senador') ? 'Senado' : 'Câmara',
         data: 'Proposituras autorais, votação nominal, presença em sessões',
         link: p.position && p.position.toLowerCase().includes('senador') ? 'https://www25.senado.leg.br/web/senadores/' : 'https://www.camara.leg.br/deputados/quem-e-quem'
       },
-      cnj: {
-        name: 'CNJ',
-        data: 'Processos judiciais, status de ações, condenações',
-        link: 'https://www.cnj.jus.br/'
-      }
-    },
-    integrityIndex: computeIntegrityIndex(p)
+      cnj: { name: 'CNJ', data: 'Processos judiciais, status de ações, condenações', link: 'https://www.cnj.jus.br/' }
+    }
   };
-}
-
-function computeIntegrityIndex(p) {
-  // Calculado a partir de: processos (CNJ), presença, transparência
-  // Quando dados reais não disponíveis, usa fallback razoável
-  const processes = typeof p.lawsuits === 'number' ? p.lawsuits : (p.processes || 0);
-  const attendance = typeof p.attendanceRate === 'number' ? p.attendanceRate : 85;
-  const transparency = typeof p.transparencyScore === 'number' ? p.transparencyScore : 80;
-  // Fórmula: 100 - processos*8 (cap 60) + bonus presença + bonus transparência
-  const processPenalty = Math.min(60, processes * 8);
-  const score = Math.max(0, Math.min(100, Math.round(100 - processPenalty + (attendance - 85) * 0.5 + (transparency - 80) * 0.5)));
-  return score;
 }
 
 module.exports = {
@@ -1015,7 +914,7 @@ module.exports = {
   createComplaint, getComplaint, getComplaintsByPolitician, countComplaintsByPolitician, getAllComplaints,
   createSupport, getSupportsByPolitician, countSupportsByPolitician,
   createResponse, getResponseByComplaint, getResponsesByPolitician,
-  hashVoter, upsertVoter, getVoterById, getVoterByGoogleId, getVoterByPhone, getVoterByHash,
+  hashVoter, upsertVoter, getVoterById, getVoterByGoogleId, getVoterByPhone, getVoterByHash, getVoterByEmail,
   upsertPl, getPl, readAllPls, getPlsByFilters, castPlVote, getPlVoteForVoter,
   generateVoteCode, getVoteCodesForVoter, verifyVoteCode, markCodeUsed,
   getRevokedStats,

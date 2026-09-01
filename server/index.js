@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL - SERVIDOR (frontend + API de dados públicos + VOTO)
+   MUDABRASIL — SERVIDOR (frontend + API de dados públicos + VOTO)
    ------------------------------------------------------------
    Um único comando sobe o site inteiro e a API:
 
@@ -40,15 +40,11 @@ const reclamacoes = require('./reclamacoes');
 const ROOT = path.join(__dirname, '..');
 const PORT = process.env.PORT || 8080;
 
-/* ---- Armazenamento de votos (SQLite nativo; JSON em Node antigo) ---- */
 const { migrated } = db.init();
 const STORAGE_LABEL = db.backend() === 'sqlite'
   ? 'SQLite nativo (votos.db)'
   : 'arquivo JSON (votos.json — Node sem node:sqlite)';
 
-/* ---- Atualização automática dos dados públicos (cron in-process) ----
-   Rebusca a Câmara a cada N horas (MB_REFRESH_HOURS, padrão 24).
-   .unref() impede que o timer segure o processo aberto em testes. */
 const REFRESH_HOURS = Math.max(1, parseInt(process.env.MB_REFRESH_HOURS, 10) || 24);
 setInterval(() => {
   fetchDeputados({ force: true })
@@ -73,9 +69,6 @@ const MIME = {
   '.woff2': 'font/woff2'
 };
 
-/* Headers de segurança/privacidade aplicados a todas as respostas JSON:
-   nosniff impede reinterpretação de MIME; no-referrer garante que a
-   origem nunca vaza para redirecionamentos (ética de anonimato). */
 const SEC_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer'
@@ -94,19 +87,6 @@ function sendJson(res, status, obj, methods = 'GET, POST, OPTIONS') {
   res.end(JSON.stringify(obj));
 }
 
-function readJsonBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; if (data.length > 1024 * 64) { req.destroy(); reject(new Error('Body muito grande')); } });
-    req.on('end', () => {
-      if (!data) return resolve({});
-      try { resolve(JSON.parse(data)); } catch (e) { reject(new Error('JSON invalido: ' + e.message)); }
-    });
-    req.on('error', reject);
-  });
-}
-
-/** Lê e faz parse do body (JSON) de uma requisição POST. */
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let data = '';
@@ -126,12 +106,6 @@ function clientIp(req) {
   return (req.socket && req.socket.remoteAddress) || 'desconhecido';
 }
 
-/* ---------- Tempo real (SSE) ----------
-   Clientes conectados em /api/stream recebem, a cada escrita
-   bem-sucedida no motor de voto, um evento "termometro" com
-   apenas TOTAIS agregados (nunca identifica quem votou em
-   quem). O cliente, ao receber o evento, refaz o GET
-   /api/termometro completo. */
 const streamClients = new Set();
 
 votes.onVoteChange(info => {
@@ -142,10 +116,6 @@ votes.onVoteChange(info => {
   }
 });
 
-/**
- * Aplica busca + filtros + ordenação sobre a lista. Null-safe:
- * campos ausentes (nulos) não quebram a ordenação.
- */
 function applyQuery(list, q) {
   let out = list;
   const busca = (q.busca || '').toLowerCase().trim();
@@ -166,7 +136,7 @@ function applyQuery(list, q) {
     let va = a[field], vb = b[field];
     const aNull = va == null, bNull = vb == null;
     if (aNull && bNull) return 0;
-    if (aNull) return 1;  // nulos sempre por último
+    if (aNull) return 1;
     if (bNull) return -1;
     if (typeof va === 'string' || typeof vb === 'string') {
       return dir * String(va).localeCompare(String(vb), 'pt-BR');
@@ -181,11 +151,9 @@ async function handleApi(req, res, url) {
   const q = Object.fromEntries(url.searchParams);
   const ip = clientIp(req);
 
-  /* ---------- OPERAÇÃO ---------- */
-
   if (p === '/api/health') {
     let registros = 0;
-    try { registros = db.countBallots(); } catch (_) { /* storage indisponível */ }
+    try { registros = db.countBallots(); } catch (_) { }
     return sendJson(res, 200, {
       ok: true,
       uptimeSec: Math.round(process.uptime()),
@@ -198,8 +166,6 @@ async function handleApi(req, res, url) {
     });
   }
 
-  /* ---------- DADOS PÚBLICOS ---------- */
-
   if (p === '/api/status') {
     return sendJson(res, 200, {
       ok: true,
@@ -207,8 +173,7 @@ async function handleApi(req, res, url) {
       api: 'https://dadosabertos.camara.leg.br/api/v2',
       senadoApi: 'https://legis.senado.leg.br/dadosabertos',
       aviso: 'Os dados reais vêm das APIs abertas da Câmara dos Deputados e do Senado Federal. ' +
-             'TSE, Portal da Transparência e CNJ são as fontes de produção ' +
-             '(ver README.md).'
+             'TSE, Portal da Transparência e CNJ são as fontes de produção (ver README.md).'
     });
   }
 
@@ -272,7 +237,6 @@ async function handleApi(req, res, url) {
   if (m && m[0] !== '/api/candidatos/comparar' && !p.startsWith('/api/candidatos/detalhes/')) {
     const id = m[0].replace('/api/candidatos/', '');
     try {
-      // Busca em deputados e senadores (o id carrega o prefixo 'camara-' ou 'senado-')
       const [depResult, senResult] = await Promise.all([
         fetchDeputados(),
         fetchSenadores()
@@ -299,8 +263,6 @@ async function handleApi(req, res, url) {
     }
   }
 
-  /* ---------- VOTO CONTÍNUO E REVOGÁVEL ---------- */
-
   if (p === '/api/termometro' && req.method === 'GET') {
     try {
       return sendJson(res, 200, await votes.getTermometro({ topN: parseInt(q.top || '10', 10) }));
@@ -324,9 +286,8 @@ async function handleApi(req, res, url) {
       JSON.stringify(Object.assign({ ok: true, ts: new Date().toISOString() }, votes.totals())) +
       '\n\n');
     streamClients.add(res);
-    // Heartbeat mantém a conexão viva atrás de proxies/CDN.
     const heartbeat = setInterval(() => {
-      try { res.write(':hb\n\n'); } catch (_) { /* cliente já foi */ }
+      try { res.write(':hb\n\n'); } catch (_) { }
     }, 30000);
     req.on('close', () => { clearInterval(heartbeat); streamClients.delete(res); });
     return;
@@ -369,8 +330,6 @@ async function handleApi(req, res, url) {
     return sendJson(res, r.ok ? 200 : (r.status || 400), r);
   }
 
-  /* ---------- AUTENTICAÇÃO (Google + Telefone) ---------- */
-
   if (p === '/api/auth/google' && req.method === 'POST') {
     let body;
     try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
@@ -411,7 +370,32 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { ok: true });
   }
 
-  /* ---------- VERIFICAÇÃO DE POLÍTICOS ---------- */
+  if (p === '/api/auth/email/send' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    try {
+      const r = await auth.sendEmailOtp(body.email || '');
+      return sendJson(res, 200, r);
+    } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/auth/email/verify' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    try {
+      const r = await auth.verifyEmailOtp(body.email || '', body.code || '');
+      return sendJson(res, 200, r);
+    } catch (e) { return sendJson(res, 401, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/auth/register' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    try {
+      const r = await auth.register(body.email || '', body.name || '', body.phone || '');
+      return sendJson(res, 200, r);
+    } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+  }
 
   if (p === '/api/verificacao/iniciar' && req.method === 'POST') {
     let body;
@@ -442,8 +426,6 @@ async function handleApi(req, res, url) {
     const pid = decodeURIComponent(p.replace('/api/verificacao/politico/', ''));
     return sendJson(res, 200, { ok: true, details: verificacao.getVerificationDetails(pid), stats: reclamacoes.getPoliticianStats(pid) });
   }
-
-  /* ---------- RECLAMAÇÕES, APOIOS, RESPOSTAS ---------- */
 
   if (p === '/api/reclamacoes' && req.method === 'POST') {
     let body;
@@ -507,130 +489,6 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { ok: true, stats: reclamacoes.getPoliticianStats(pid) });
   }
 
-  // === PLs - PROJETOS DE LEI ===
-  if (p === '/api/pls' && req.method === 'GET') {
-    const url = new URL(req.url, 'http://x');
-    const search = url.searchParams.get('q') || '';
-    const party = url.searchParams.get('party') || '';
-    const chamber = url.searchParams.get('chamber') || '';
-    const list = Object.values(db.getPlsByFilters({ search, party, chamber, limit: 200 }));
-    return sendJson(res, 200, { ok: true, total: list.length, pls: list });
-  }
-
-  if (p.startsWith('/api/pls/') && req.method === 'GET') {
-    const id = decodeURIComponent(p.replace('/api/pls/', ''));
-    const pl = db.getPl(id);
-    if (!pl) return sendJson(res, 404, { error: 'PL nao encontrado' });
-    return sendJson(res, 200, { ok: true, pl });
-  }
-
-  if (p === '/api/pls/voto' && req.method === 'POST') {
-    const body = await readJsonBody(req);
-    const { plId, vote, sessionToken } = body;
-    if (!plId || !['aprovo', 'nao_aprovo'].includes(vote)) return sendJson(res, 400, { error: 'plId e vote (aprovo|nao_aprovo) sao obrigatorios' });
-    const voter = auth.getVoterFromToken(sessionToken);
-    if (!voter) return sendJson(res, 401, { error: 'Autenticacao necessaria para votar em PL' });
-    const r = db.castPlVote(plId, voter.voterHash, vote);
-    const pl = db.getPl(plId);
-    return sendJson(res, 200, { ok: true, ...r, pl });
-  }
-
-  if (p === '/api/pls/meu-voto' && req.method === 'GET') {
-    const url = new URL(req.url, 'http://x');
-    const plId = url.searchParams.get('plId');
-    const sessionToken = url.searchParams.get('sessionToken') || url.searchParams.get('token');
-    const voter = auth.getVoterFromToken(sessionToken);
-    if (!voter || !plId) return sendJson(res, 200, { ok: true, vote: null });
-    return sendJson(res, 200, { ok: true, vote: db.getPlVoteForVoter(plId, voter.voterHash) });
-  }
-
-  // === CÓDIGO DE VERIFICAÇÃO DE VOTO (Conferir Voto) ===
-  if (p === '/api/voto/codigo' && req.method === 'POST') {
-    const body = await readJsonBody(req);
-    const { sessionToken } = body;
-    const voter = auth.getVoterFromToken(sessionToken);
-    if (!voter) return sendJson(res, 401, { error: 'Autenticacao necessaria' });
-    const code = db.generateVoteCode(voter.voterHash);
-    // Formata com espaços
-    const formatted = code.match(/.{1,4}/g).join(' ');
-    return sendJson(res, 200, { ok: true, code, formatted, voterHash: voter.voterHash });
-  }
-
-  if (p === '/api/voto/codigos' && req.method === 'GET') {
-    const url = new URL(req.url, 'http://x');
-    const sessionToken = url.searchParams.get('sessionToken') || url.searchParams.get('token');
-    const voter = auth.getVoterFromToken(sessionToken);
-    if (!voter) return sendJson(res, 401, { error: 'Autenticacao necessaria' });
-    const codes = db.getVoteCodesForVoter(voter.voterHash).map(c => ({
-      ...c,
-      formatted: c.code.match(/.{1,4}/g).join(' ')
-    }));
-    return sendJson(res, 200, { ok: true, codes });
-  }
-
-  if (p === '/api/voto/conferir' && req.method === 'POST') {
-    const body = await readJsonBody(req);
-    const { code } = body;
-    const r = db.verifyVoteCode(code);
-    if (!r) return sendJson(res, 404, { error: 'Codigo nao encontrado' });
-    // Retorna os votos ativos do eleitor
-    const all = db.readAllBallots();
-    const meusVotos = Object.values(all).filter(b => b.voterHash === r.voterHash || b.id.startsWith('voter-'));
-    return sendJson(res, 200, { ok: true, code: r.code, voterHash: r.voterHash, votos: meusVotos });
-  }
-
-  // === DETALHES COMPLETOS DE CANDIDATO (fontes oficiais) ===
-  if (p.startsWith('/api/candidatos/detalhes/') && req.method === 'GET') {
-    const id = decodeURIComponent(p.replace('/api/candidatos/detalhes/', ''));
-    const d = db.getPoliticianFullDetails(id);
-    if (!d) return sendJson(res, 404, { error: 'Candidato nao encontrado' });
-    return sendJson(res, 200, { ok: true, candidato: d });
-  }
-
-  // === COMPARAÇÃO (até 3 políticos) ===
-  if (p === '/api/candidatos/comparar' && req.method === 'POST') {
-    const body = await readJsonBody(req);
-    const ids = (body.ids || []).slice(0, 3);
-    if (ids.length < 2) return sendJson(res, 400, { error: 'Selecione pelo menos 2 candidatos' });
-    try {
-      const [depResult, senResult] = await Promise.all([
-        fetchDeputados(),
-        fetchSenadores()
-      ]);
-      const all = [...depResult.list, ...senResult.list];
-      const candidatos = ids
-        .map(id => all.find(c => c.id === id))
-        .filter(Boolean)
-        .map(c => ({ ...c, ...db.getPoliticianFullDetails(c.id) }));
-      if (candidatos.length < 2) return sendJson(res, 404, { error: 'Candidatos não encontrados' });
-      return sendJson(res, 200, { ok: true, candidatos });
-    } catch (e) {
-      return sendJson(res, 500, { error: 'Falha ao comparar: ' + e.message });
-    }
-  }
-
-  // === POLÍTICOS COM VOTOS REVOGADOS ===
-  if (p === '/api/voto/revogados' && req.method === 'GET') {
-    const stats = db.getRevokedStats();
-    return sendJson(res, 200, { ok: true, total: stats.length, politicos: stats });
-  }
-
-  // === MEUS VOTOS (para revogar) ===
-  if (p === '/api/voto/meus' && req.method === 'GET') {
-    const url = new URL(req.url, 'http://x');
-    const sessionToken = url.searchParams.get('sessionToken') || url.searchParams.get('token');
-    const voter = auth.getVoterFromToken(sessionToken);
-    if (!voter) return sendJson(res, 401, { error: 'Autenticacao necessaria' });
-    const all = db.readAllBallots();
-    const meus = Object.values(all).filter(b => !b.revoked);
-    // Enriquece com dados do político
-    const enriched = meus.map(b => {
-      const pol = db.getPolitician(b.politicianId);
-      return { ...b, politician: pol };
-    });
-    return sendJson(res, 200, { ok: true, total: enriched.length, votos: enriched });
-  }
-
   return sendJson(res, 404, { error: 'Rota de API não encontrada' });
 }
 
@@ -678,15 +536,12 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log('\n  🇧🇷  MudaBrasil rodando em  http://localhost:' + PORT + '\n');
   console.log('    Frontend:       http://localhost:' + PORT + '/');
-  console.log('    Termômetro:     http://localhost:' + PORT + '/pages/termometro.html');
-  console.log('    Candidatos:     http://localhost:' + PORT + '/pages/candidatos.html');
   console.log('    API (lista):    http://localhost:' + PORT + '/api/candidatos');
   console.log('    API (senadores): http://localhost:' + PORT + '/api/senadores');
   console.log('    API (voto):     POST http://localhost:' + PORT + '/api/voto');
   console.log('    API (termômetro):GET  http://localhost:' + PORT + '/api/termometro');
   console.log('    Tempo real:     GET  http://localhost:' + PORT + '/api/stream (SSE)');
   console.log('    Health:         GET  http://localhost:' + PORT + '/api/health\n');
-  console.log('    Parlamentares:  http://localhost:' + PORT + '/pages/parlamentares.html');
   console.log('    Auth:           POST /api/auth/{google,otp/send,otp/verify,me,logout}');
   console.log('    Verificação:    /api/verificacao/{iniciar,confirmar,dominios,stats,politico/:id}');
   console.log('    Reclamações:    /api/{reclamacoes,apoios,respostas,rankings}');
@@ -698,21 +553,13 @@ server.listen(PORT, () => {
   console.log('    Encerramento:   Ctrl+C / SIGTERM fecham o banco com segurança\n');
 });
 
-/* ---- Encerramento gracioso ----
-   Em SIGINT/SIGTERM (Ctrl+C, docker stop, systemctl stop) fecha o
-   banco de forma ordenada antes de sair — nenhuma cédula perdida,
-   nenhum arquivo corrompido. (No Windows, kill direto pelo processo
-   ignora o handler; em Linux/Docker, que é o alvo de produção,
-   o encerramento é limpo.) */
 let shuttingDown = false;
 function shutdown(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log('\n[server] ' + signal + ' recebido — encerrando com segurança…');
-  try { db.close(); } catch (_) { /* já fechado */ }
+  try { db.close(); } catch (_) { }
   server.close(() => process.exit(0));
-  // Rede de segurança: se conexões SSE mantiverem o servidor aberto,
-  // sai de qualquer forma em 2 s.
   setTimeout(() => process.exit(0), 2000).unref();
 }
 process.on('SIGINT', () => shutdown('SIGINT'));

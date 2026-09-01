@@ -1,7 +1,7 @@
 /* ============================================================
    MUDABRASIL - AUTENTICACAO DE ELEITORES
    ------------------------------------------------------------
-   Login via Google OAuth 2.0 ou Telefone (SMS OTP).
+   Login via Google OAuth 2.0, Telefone (SMS OTP) ou E-mail (OTP).
    Sem Gov.br - apenas identificacao basica.
    Modo dev aceita tokens "google:email:nome" e OTP retornado.
    ============================================================ */
@@ -16,6 +16,8 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
 const TWILIO_PHONE = process.env.TWILIO_PHONE || '';
 
 const otpStore = new Map();
+const emailOtpStore = new Map();
+const sessionStore = new Map();
 
 async function verifyGoogleToken(idToken) {
   if (AUTH_MODE === 'dev' || !GOOGLE_CLIENT_ID) {
@@ -117,7 +119,54 @@ async function verifyOtp(phone, code) {
   };
 }
 
-const sessionStore = new Map();
+async function sendEmailOtp(email) {
+  const emailStr = String(email).trim().toLowerCase();
+  if (!emailStr.includes('@') || !emailStr.includes('.')) {
+    throw new Error('E-mail inválido.');
+  }
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expiresAt = Date.now() + 10 * 60 * 1000;
+  emailOtpStore.set(emailStr, { code: code, expiresAt: expiresAt, attempts: 0 });
+  console.log('[auth] E-mail OTP para ' + emailStr + ': ' + code);
+  return {
+    ok: true,
+    email: emailStr,
+    expiresIn: 600,
+    devCode: AUTH_MODE === 'dev' ? code : undefined,
+    message: AUTH_MODE === 'dev' ? 'MODO DEV: código = ' + code : 'Código enviado para seu e-mail'
+  };
+}
+
+async function verifyEmailOtp(email, code) {
+  const emailStr = String(email).trim().toLowerCase();
+  const entry = emailOtpStore.get(emailStr);
+  if (!entry) throw new Error('Código não encontrado. Solicite um novo.');
+  if (Date.now() > entry.expiresAt) { emailOtpStore.delete(emailStr); throw new Error('Código expirado. Solicite um novo.'); }
+  if (entry.attempts >= 5) { emailOtpStore.delete(emailStr); throw new Error('Muitas tentativas. Solicite um novo código.'); }
+  if (entry.code !== String(code).trim()) { entry.attempts++; throw new Error('Código incorreto.'); }
+  emailOtpStore.delete(emailStr);
+  let voter = db.getVoterByEmail(emailStr);
+  if (!voter) {
+    const id = 'voter-' + crypto.randomBytes(8).toString('hex');
+    const voterHash = db.hashVoter('email', emailStr);
+    voter = { id: id, method: 'email', googleId: null, phone: null, email: emailStr, name: null, photo: null, voterHash: voterHash, verifiedAt: Date.now(), createdAt: Date.now() };
+    db.upsertVoter(voter);
+  } else { db.upsertVoter(voter); }
+  const sessionToken = generateSessionToken(voter);
+  return { ok: true, voter: { id: voter.id, method: voter.method, name: voter.name, email: voter.email, voterHash: voter.voterHash }, sessionToken: sessionToken };
+}
+
+async function register(email, name, phone) {
+  const emailStr = email ? String(email).trim().toLowerCase() : null;
+  if (emailStr && (!emailStr.includes('@') || !emailStr.includes('.'))) throw new Error('E-mail inválido.');
+  const id = 'voter-' + crypto.randomBytes(8).toString('hex');
+  const voterHash = db.hashVoter('email', emailStr || 'anon-' + id);
+  const voter = { id: id, method: emailStr ? 'email' : 'anon', googleId: null, phone: phone ? String(phone).replace(/\D/g, '') : null, email: emailStr, name: name || null, photo: null, voterHash: voterHash, verifiedAt: Date.now(), createdAt: Date.now() };
+  db.upsertVoter(voter);
+  const sessionToken = generateSessionToken(voter);
+  return { ok: true, voter: { id: voter.id, method: voter.method, name: voter.name, email: voter.email, phone: voter.phone, voterHash: voter.voterHash }, sessionToken: sessionToken };
+}
+
 function generateSessionToken(voter) {
   const token = crypto.randomBytes(32).toString('hex');
   const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
@@ -136,8 +185,10 @@ function getVoterFromToken(token) {
 function logout(token) { sessionStore.delete(token); }
 
 module.exports = {
-  verifyGoogleToken: verifyGoogleToken, loginWithGoogle: loginWithGoogle,
-  sendOtp: sendOtp, verifyOtp: verifyOtp,
-  generateSessionToken: generateSessionToken, getVoterFromToken: getVoterFromToken, logout: logout,
-  AUTH_MODE: AUTH_MODE
+  verifyGoogleToken, loginWithGoogle,
+  sendOtp, verifyOtp,
+  sendEmailOtp, verifyEmailOtp,
+  register,
+  generateSessionToken, getVoterFromToken, logout,
+  AUTH_MODE
 };

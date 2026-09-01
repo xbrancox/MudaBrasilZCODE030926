@@ -23,7 +23,6 @@ function ensureDirs() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-/* Tenta o endpoint .json (formato=json) */
 async function fetchSenadoresJson() {
   try {
     const res = await fetch(`${API_BASE}/senador/lista/atual?formato=json`, {
@@ -31,7 +30,6 @@ async function fetchSenadoresJson() {
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    // A API pode devolver {senadores: [...]} ou apenas [...]
     const lista = json.senadores || json._senadores || json || [];
     if (Array.isArray(lista) && lista.length > 0) {
       return lista.map(normalizeSenador).map(s => ({ ...s, source: 'senado' }));
@@ -39,14 +37,12 @@ async function fetchSenadoresJson() {
     return [];
   } catch (e) {
     console.warn('[senado] JSON endpoint falhou:', e.message);
-    return null; // diferenciado: sinaliza "teve erro" vs "vazio"
+    return null;
   }
 }
 
-/* Parse XML simples sem dependências externas */
 function parseSimpleXML(text) {
   const result = [];
-  // <senador> ... </senador>
   const regexSenador = /<senador[^>]*>([\s\S]*?)<\/senador>/gi;
   let match;
   while ((match = regexSenador.exec(text)) !== null) {
@@ -67,7 +63,6 @@ function parseSimpleXML(text) {
   return result;
 }
 
-/* Tenta o endpoint XML bruto */
 async function fetchSenadoresXml() {
   try {
     const res = await fetch(`${API_BASE}/senador/lista/atual`, {
@@ -86,7 +81,6 @@ async function fetchSenadoresXml() {
   }
 }
 
-/* Normaliza um senador bruto para o schema unificado do frontend */
 function normalizeSenador(s) {
   return {
     id: 'senado-' + (s.uri ? s.uri.replace(/^.*\\/, '') : 'desconhecido'),
@@ -120,31 +114,27 @@ function normalizeSenador(s) {
 
 async function fetchSenadores({ force = false } = {}) {
   ensureDirs();
-  // Primeiro tenta cache
   if (!force && fs.existsSync(SENADO_FILE)) {
     try {
       const cached = JSON.parse(fs.readFileSync(SENADO_FILE, 'utf8'));
       if (cached && Array.isArray(cached) && cached.length > 0) {
         return { list: cached, fromCache: true, count: cached.length };
       }
-    } catch (_) { /* cache corrompido -> rebusca */ }
+    } catch (_) { }
   }
 
-  // Tenta JSON primeiro
   const jsonResult = await fetchSenadoresJson();
   if (jsonResult && jsonResult.length > 0) {
     fs.writeFileSync(SENADO_FILE, JSON.stringify(jsonResult, null, 2));
     return { list: jsonResult, fromCache: false, count: jsonResult.length };
   }
 
-  // Fallback: tenta XML
   const xmlResult = await fetchSenadoresXml();
   if (xmlResult && xmlResult.length > 0) {
     fs.writeFileSync(SENADO_FILE, JSON.stringify(xmlResult, null, 2));
     return { list: xmlResult, fromCache: false, count: xmlResult.length };
   }
 
-  // Fallback final: tentar cache "zumbi" (último conhecido) se existir
   console.info('[senado] APIs indisponíveis — usando dados Câmara apenas.');
   return { list: [], fromCache: false, count: 0, note: 'senado-bloqueado' };
 }
