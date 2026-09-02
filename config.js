@@ -7,9 +7,6 @@
 
 const API_BASE = 'https://mudabrasil-production-79eb.up.railway.app';
 
-// Backend Railway = modo PRODUÇÃO (votos ao vivo, selo real, reclamações persistentes)
-// API_BASE vazio = modo DEMO (só frontend, dados públicos + localStorage)
-
 window.MudaBrasil = window.MudaBrasil || {};
 
 window.MudaBrasil.API_BASE = API_BASE;
@@ -41,7 +38,6 @@ window.MudaBrasil.TERMOMETRO = {
   piso_confianca: 0.5
 };
 
-// Aviso de protótipo
 console.log('%c🟡 MudaBrasil', 'font-size:16px;font-weight:bold;color:#FFD700');
 console.log('%cModo: ' + window.MudaBrasil.MODO, 'color:#94A3B8');
 console.log('%cBackend: ' + API_BASE, 'color:#2ECC71');

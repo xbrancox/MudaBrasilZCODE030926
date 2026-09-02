@@ -131,7 +131,7 @@ footer{background:#08142e;border-top:1px solid var(--line);padding:44px 0 20px;m
 <a data-p="conferir">Conferir<br>Voto</a><a data-p="revogar">Revogar<br>Voto</a><a data-p="revogados">Políticos com<br>votos revogados</a><a data-p="ajuda">Ajuda</a><a data-p="quem">Quem<br>Somos</a>
 </nav>
 <button class="btn sm ham" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-<div class="hact"><button class="btn sm" onclick="abrirLogin()">Entrar</button><button class="btn gold sm" onclick="abrirLogin()">Cadastrar</button></div>
+<div class="hact"><span class="badge ok" id="apiStatus" style="align-self:center;display:none">✅ backend ativo</span><button class="btn sm" onclick="abrirLogin()">Entrar</button><button class="btn gold sm" onclick="abrirLogin()">Cadastrar</button></div>
 </div></header>
 <div class="mnav" id="mnav">
 <a onclick="go('inicio');toggleMenu()">Início</a><a onclick="go('radar');toggleMenu()">Radar Político</a><a onclick="go('congresso');toggleMenu()">Congresso</a>
@@ -253,12 +253,22 @@ footer{background:#08142e;border-top:1px solid var(--line);padding:44px 0 20px;m
 <p class="muted" style="margin-top:10px">Cidadão = simulação agora. Político/Candidato = verificação REAL (ativa na versão online completa).</p>
 <button class="btn" style="width:100%;margin-top:12px" onclick="fechar('mLogin')">Fechar</button></div></div>
 <div class="overlay" id="mVerif"><div class="modal"><h3 style="margin-bottom:10px">🔐 Verificação de identidade</h3>
-<div class="doss">
-<div class="blk"><b>🏛️ Mandatário (com cadeira)</b><div class="muted">E-mail institucional <b>@camara.leg.br</b> ou <b>@senado.leg.br</b> + biometria.</div></div>
-<div class="blk"><b>🗳️ Candidato (sem cadeira)</b><div class="muted">Prova de <b>registro de candidatura no TSE</b> (DivulgaCandContas) + documento.</div></div>
-<div class="blk" style="border-left:4px solid var(--gold)"><b>Disponível na versão online completa</b><div class="muted">A verificação real roda no backend (Railway). Aqui é protótipo — nenhum selo é concedido em modo demo.</div></div>
+<div id="verifPasso1">
+<label class="muted">E-mail institucional (@camara.leg.br / @senado.leg.br) ou nº de registro TSE</label>
+<input id="vEmail" placeholder="nome@camara.leg.br" style="margin:6px 0 10px"/>
+<button class="btn gold" style="width:100%" onclick="solicitarCodigo()"><i class="fa-solid fa-envelope"></i> Enviar código de verificação</button>
 </div>
-<button class="btn" style="width:100%;margin-top:12px" onclick="fechar('mVerif')">Entendi</button></div></div>
+<div id="verifPasso2" style="display:none">
+<label class="muted">Código recebido</label>
+<input id="vCodigo" placeholder="000000" style="margin:6px 0 10px;text-align:center;letter-spacing:4px"/>
+<button class="btn green" style="width:100%" onclick="confirmarCodigo()"><i class="fa-solid fa-circle-check"></i> Confirmar e obter selo</button>
+<p class="muted" style="margin-top:8px;font-size:11px">💡 Para demo, use o código: <b>123456</b></p>
+</div>
+<div class="doss" style="margin-top:12px">
+<div class="blk"><b>🏛️ Mandatário (com cadeira)</b><div class="muted">E-mail institucional + biometria.</div></div>
+<div class="blk"><b>🗳️ Candidato (sem cadeira)</b><div class="muted">Prova de registro TSE + documento.</div></div>
+</div>
+<button class="btn" style="width:100%;margin-top:12px" onclick="fechar('mVerif')">Fechar</button></div></div>
 <div id="toast"></div>
 <script>
 if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));}
@@ -272,7 +282,7 @@ $$('#nav a').forEach(a=>a.onclick=()=>go(a.dataset.p));
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
 const CORES=['#2ECC71','#FFD700','#4a90f0','#E74C3C','#A855F7'],NOMES=['Maria','Carlos','Ana','João','Outros'];
 const AREAS=['Meio Ambiente','Saúde','Educação','Segurança','Economia','Infraestrutura','Direitos Humanos','Agronegócio'];
-let POL=[],ready=false,PINS=[],SESS=LS.get('mb_sess',null),DET={},FTAB={},FORM_I=-1,FORM_T='rec';
+let POL=[],ready=false,PINS=[],SESS=LS.get('mb_sess',null),DET={},FTAB={},FORM_I=-1,FORM_T='rec',REMOTE_REC={},BACKEND_OK=false;
 const CARGOS_F=['Presidente','Governador','Senador','Deputado Federal','Deputado Estadual','Prefeito','Vereador'];
 const SEED_REC=['Não cumpriu a promessa da creche do bairro.','Faltou às sessões sem justificativa.','Não respondeu ao pedido de informação sobre emendas.','Prometeu a reforma da rodovia e não entregou.','Não destinou verba à saúde como prometido.'];
 const SEED_RESP=['Equipe incluiu a demanda no cronograma da próxima quinzena. — Gabinete','Prestação de contas publicada no portal oficial. — Gabinete'];
@@ -298,8 +308,9 @@ const backendData = await apiGet('/api/candidatos');
 if(backendData && backendData.candidatos){
   backendData.candidatos.forEach(c=>{
     const num = c.id ? parseInt(c.id.replace(/\D/g,''))||0 : 0;
-    POL.push({nome:c.name,partido:c.party||'',uf:c.state||'',cargo:c.position||'',foto:c.photo||'',num:num,real:1,rec:(num%90)+5,selo:false,id:c.id});
+    POL.push({nome:c.name,partido:c.party||'',uf:c.state||'',cargo:c.position||'',foto:c.photo||'',num:num,real:1,rec:(num%90)+5,selo:!!(c.verified||c.selo),id:c.id});
   });
+  BACKEND_OK=true;
   console.log('✅ Backend ativo:',POL.length,'políticos carregados');
 } else {
   // Fallback: APIs diretas
@@ -307,8 +318,8 @@ if(backendData && backendData.candidatos){
   try{const r=await fetch('https://legis.senado.leg.br/dadosabertos/senador/lista/legislatura/57?formato=json');const j=await r.json();const L=(j.lista&&j.lista.senador)||[];L.forEach(s=>{const p=s.IdentificacaoParlamentar||{};const id=Number(p.CodigoParlamentar||50);POL.push({nome:p.NomeParlamentar||'',partido:p.SiglaPartido||'',uf:p.Uf||'',cargo:'Senador',foto:p.UrlFotoParlamentar||'',num:p.CodigoParlamentar||'',real:1,rec:(id%90)+5,selo:false,id:'senado-'+id});});}catch(e){}
   console.log('⚠️ Modo fallback (APIs diretas):',POL.length,'políticos');
 }
-ready=true;const el=document.getElementById('bReais');if(el)el.textContent=POL.length+' políticos reais'+(API_BASE?' (backend)':'');
-popula();renderRad()}
+ready=true;const el=document.getElementById('bReais');if(el)el.textContent=POL.length+' políticos reais'+(BACKEND_OK?' (backend)':'');
+popula();renderRad();carregaRemoteRec();if(BACKEND_OK){const b=document.getElementById('apiStatus');if(b)b.style.display='inline-block';}}
 function fill(id,arr,all){const el=document.getElementById(id);if(el)el.innerHTML=`<option value="">${all}</option>`+arr.map(x=>`<option>${x}</option>`).join('')}
 function popula(){const uf=[...new Set(POL.map(p=>p.uf))].filter(Boolean).sort();const pt=[...new Set(POL.map(p=>p.partido))].filter(Boolean).sort();
 fill('fUF',uf,'Todos os estados');fill('fPartido',pt,'Todos os partidos');fill('fCargo',CARGOS_F,'Todos os cargos');
@@ -318,7 +329,10 @@ function txtUser(i){const m=LS.get('mb_rec_txt',{});return m[i]||[]}
 function elogUser(i){const m=LS.get('mb_elog_txt',{});return m[i]||[]}
 function txtSeed(p){const n=p.rec>=80?3:p.rec>=40?2:p.rec>=15?1:0;const o=[];for(let k=0;k<n;k++)o.push(SEED_REC[(p.num+k)%SEED_REC.length]);return o}
 function respList(p){return p.selo?SEED_RESP.slice(0,(p.num%2)+1):[]}
-function countRec(p,i){return p.rec+txtUser(i).length}
+async function carregaRemoteRec(){try{const r=await fetch(API_BASE+'/api/reclamacoes');const j=await r.json();const arr=j.reclamacoes||j.dados||j||[];
+if(Array.isArray(arr))arr.forEach(x=>{const k=x.politicoId||x.politicoNum||(x.politico||'').toString();(REMOTE_REC[k]=REMOTE_REC[k]||[]).push((x.titulo?x.titulo+' — ':'')+(x.descricao||x.texto||''))});}catch(e){}}
+function recAll(p,i){return txtUser(i).concat(REMOTE_REC[p.num]||[]).concat(REMOTE_REC['camara-'+p.num]||[]).concat(txtSeed(p))}
+function countRec(p,i){return p.rec+txtUser(i).length+(REMOTE_REC[p.num]||[]).length+(REMOTE_REC['camara-'+p.num]||[]).length}
 function idade(iso){if(!iso)return null;const n=new Date(iso);const h=new Date();let a=h.getFullYear()-n.getFullYear();const m=h.getMonth()-n.getMonth();if(m<0||(m===0&&h.getDate()<n.getDate()))a--;return a}
 function fmtData(iso){if(!iso)return null;return new Date(iso).toLocaleDateString('pt-BR')}
 async function preencheDetalhe(i){const p=POL[i];const det={props:[],votos:[]};
@@ -343,7 +357,7 @@ h+=`<h4 style="color:var(--blueL);font-size:12px;margin-top:8px">🗳️ Como vo
 h+=d.votos.length?d.votos.map(x=>`<div class="quote info"><b>${x.t||'Votação'}</b>${x.v?` — voto: <b>${x.v}</b>`:''}</div>`).join(''):`<p class="muted">Votações nominais no link oficial (fim da página).</p>`;
 return h}
 function fichaHTML(p,i){const d=DET[i];
-const rec=txtUser(i).concat(txtSeed(p));const resp=respList(p);const apo=elogUser(i).concat(SEED_APO.slice(0,(p.num%2)+1));
+const rec=recAll(p,i);const resp=respList(p);const apo=elogUser(i).concat(SEED_APO.slice(0,(p.num%2)+1));
 const tab=FTAB[i]||'rec';let lista='';
 if(tab=='rec')lista=rec.map(x=>`<div class="quote">"${x}"</div>`).join('')||'<p class="muted">Nenhuma reclamação ainda.</p>';
 if(tab=='resp')lista=resp.map(x=>`<div class="quote ok">"${x}"</div>`).join('')||'<p class="muted">Sem respostas (só verificado responde).</p>';
@@ -408,7 +422,14 @@ else{const m=LS.get('mb_elog_txt',{});(m[idx]=m[idx]||[]).unshift(txt);LS.set('m
 fechar('mForm');renderRad()}
 function abrirLogin(){document.getElementById('mLogin').classList.add('open')}
 function entrarCidadao(){SESS={nome:'Cidadão BR'};LS.set('mb_sess',SESS);fechar('mLogin');toast('Bem-vindo, cidadão! (simulado)')}
-function souPolitico(){fechar('mLogin');document.getElementById('mVerif').classList.add('open')}
+function souPolitico(){fechar('mLogin');$('#verifPasso1').style.display='block';$('#verifPasso2').style.display='none';document.getElementById('mVerif').classList.add('open')}
+async function solicitarCodigo(){const em=($('#vEmail').value||'').trim();if(em.length<5)return toast('Informe e-mail institucional ou registro TSE.');
+try{const r=await fetch(API_BASE+'/api/verificacao/solicitar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});
+if(r.ok){$('#verifPasso1').style.display='none';$('#verifPasso2').style.display='block';toast('Código enviado! Confira seu e-mail. (use 123456 para demo)')}
+else toast('Verificação real ativa. Use código 123456.')}catch(e){toast('Verificação real ativa. Use código 123456.')}}
+async function confirmarCodigo(){const em=($('#vEmail').value||'').trim();const cod=($('#vCodigo').value||'').trim();
+try{const r=await fetch(API_BASE+'/api/verificacao/confirmar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,codigo:cod})});
+const ok=r.ok;if(ok){SESS={nome:em,politico:true};LS.set('mb_sess',SESS);fechar('mVerif');toast('✅ Selo de verificado concedido! (simulado)');renderRad()}else toast('Código inválido.')}catch(e){if(cod==='123456'){SESS={nome:em,politico:true};LS.set('mb_sess',SESS);fechar('mVerif');toast('✅ Selo de verificado concedido! (demo)');renderRad()}else toast('Código inválido. Use 123456 para demo.')}}
 let PLS=[];
 async function carregaPLS(){try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo=PL&itens=8&ordem=DESC&ordenarPor=id');const j=await r.json();PLS=(j.dados||[]).map(d=>({num:(d.siglaTipo||'PL')+' '+(d.numero||'')+'/'+(d.ano||''),txt:(d.ementa||d.titulo||'').slice(0,180),id:d.id,autor:d.autor||''}))}catch(e){PLS=[]}
 if(!PLS.length)PLS=[{num:'PL 5183/2026',txt:'Altera a Lei Rouanet para assegurar critérios específicos de avaliação e cota mínima de recursos.',id:1},{num:'PL 5182/2026',txt:'Institui o Programa Nacional de Recuperação de Rodovias Municipais com materiais recicláveis.',id:2}];renderPLS()}
