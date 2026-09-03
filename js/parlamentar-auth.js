@@ -5,6 +5,7 @@
 
 (function () {
   'use strict';
+  const API = (window.MudaBrasil && window.MudaBrasil.API_BASE) || '';
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -62,7 +63,7 @@
   async function logout() {
     if (state.session && state.session.sessionToken) {
       try {
-        await fetch('/api/auth/logout', {
+        await fetch(API + '/api/auth/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionToken: state.session.sessionToken })
@@ -87,7 +88,7 @@
     }
     setFeedback('Autenticando...', 'info');
     try {
-      const res = await fetch('/api/auth/google', {
+      const res = await fetch(API + '/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken: token })
@@ -116,7 +117,7 @@
     }
     setFeedback('Enviando código...', 'info');
     try {
-      const res = await fetch('/api/auth/otp/send', {
+      const res = await fetch(API + '/api/auth/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone })
@@ -150,7 +151,7 @@
     }
     setFeedback('Verificando...', 'info');
     try {
-      const res = await fetch('/api/auth/otp/verify', {
+      const res = await fetch(API + '/api/auth/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: state.phoneInOtp, code })

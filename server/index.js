@@ -36,6 +36,7 @@ const db = require('./db');
 const auth = require('./auth');
 const verificacao = require('./verificacao');
 const reclamacoes = require('./reclamacoes');
+const seedPls = require('./seed_pls');
 
 const ROOT = path.join(__dirname, '..');
 const PORT = process.env.PORT || 8080;
@@ -147,7 +148,10 @@ function applyQuery(list, q) {
 }
 
 async function handleApi(req, res, url) {
-  const p = url.pathname;
+  let p = url.pathname;
+  if (p.startsWith('/api/candidatos/detalhes/')) {
+    p = '/api/candidatos/' + p.slice('/api/candidatos/detalhes/'.length);
+  }
   const q = Object.fromEntries(url.searchParams);
   const ip = clientIp(req);
 
@@ -257,7 +261,7 @@ async function handleApi(req, res, url) {
           cand.hasFullData = true;
         }
       }
-      return sendJson(res, 200, { mode: 'real', source: fonte, candidato: cand });
+      return sendJson(res, 200, { ok: true, mode: 'real', source: fonte, candidato: cand });
     } catch (e) {
       return sendJson(res, 502, { error: e.message });
     }
@@ -305,7 +309,8 @@ async function handleApi(req, res, url) {
     let body;
     try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
     try {
-      const r = await votes.castVote(body, ip);
+      const voter = auth.getVoterFromToken(body.sessionToken || '');
+      const r = await votes.castVote({ ...body, voterHash: voter ? voter.voterHash : null }, ip);
       return sendJson(res, r.ok ? 201 : (r.status || 400), r);
     } catch (e) {
       return sendJson(res, 500, { ok: false, error: 'Erro interno ao votar: ' + e.message });
@@ -316,9 +321,16 @@ async function handleApi(req, res, url) {
     let body;
     try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
     const code = String(body.code || '').trim();
-    if (!code) return sendJson(res, 400, { ok: false, error: 'Código é obrigatório' });
-    const r = votes.revokeVote(code, ip);
-    return sendJson(res, r.ok ? 200 : (r.status || 400), r);
+    if (code) {
+      const r = votes.revokeVote(code, ip);
+      return sendJson(res, r.ok ? 200 : (r.status || 400), r);
+    }
+    const ballotId = String(body.ballotId || '').trim();
+    if (ballotId) {
+      const r = votes.revokeBallotById(ballotId, ip);
+      return sendJson(res, r.ok ? 200 : (r.status || 400), r);
+    }
+    return sendJson(res, 400, { ok: false, error: 'Código ou ballotId é obrigatório' });
   }
 
   if (p === '/api/voto/manter' && req.method === 'POST') {
@@ -487,6 +499,101 @@ async function handleApi(req, res, url) {
   if (p.startsWith('/api/estatisticas/politico/') && req.method === 'GET') {
     const pid = decodeURIComponent(p.replace('/api/estatisticas/politico/', ''));
     return sendJson(res, 200, { ok: true, stats: reclamacoes.getPoliticianStats(pid) });
+  }
+
+  /* ================= INTEGRAÇÃO FRONTEND (PLs, conferir, meus votos, comparar) ================= */
+
+  if (p === '/api/pls' && req.method === 'GET') {
+    try {
+      let all = Object.values(db.readAllPls());
+      if (!all.length) { try { seedPls.seed(); all = Object.values(db.readAllPls()); } catch (_) { } }
+      return sendJson(res, 200, { ok: true, mode: 'real', total: all.length, pls: all });
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/pls/voto' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    const voter = auth.getVoterFromToken(body.sessionToken || '');
+    if (!voter) return sendJson(res, 401, { ok: false, error: 'Faça login para votar em PLs' });
+    const vote = body.vote === 'aprovo' ? 'aprovo' : (body.vote === 'nao_aprovo' ? 'nao_aprovo' : null);
+    if (!vote) return sendJson(res, 400, { ok: false, error: 'vote deve ser "aprovo" ou "nao_aprovo"' });
+    const plId = String(body.plId || '');
+    if (!db.getPl(plId)) return sendJson(res, 404, { ok: false, error: 'PL não encontrado' });
+    try {
+      db.castPlVote(plId, voter.voterHash, vote);
+      const updated = db.getPl(plId);
+      return sendJson(res, 200, { ok: true, pl: { id: updated.id, approvalCount: updated.approvalCount, rejectionCount: updated.rejectionCount } });
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/voto/revogados' && req.method === 'GET') {
+    try {
+      const r = await votes.getRevogados();
+      return sendJson(res, 200, r);
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/voto/conferir' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    const code = String(body.code || '').replace(/[\s-]/g, '');
+    const rec = code ? db.verifyVoteCode(code) : null;
+    if (!rec) return sendJson(res, 404, { ok: false, error: 'Código não encontrado' });
+    let vinculados = [];
+    try { vinculados = (db.getBallotsByVoter(rec.voterHash) || []).filter(b => !b.revoked); } catch (_) { }
+    return sendJson(res, 200, {
+      ok: true,
+      voterHash: rec.voterHash,
+      votos: vinculados.map(b => ({ id: b.ballotId, politicianId: b.politicianId, createdAt: b.createdAt }))
+    });
+  }
+
+  if (p === '/api/voto/codigo' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    const voter = auth.getVoterFromToken(body.sessionToken || '');
+    if (!voter) return sendJson(res, 401, { ok: false, error: 'Faça login para gerar o código' });
+    try {
+      const codes = db.getVoteCodesForVoter(voter.voterHash);
+      const code = (codes && codes.length) ? codes[0].code : db.generateVoteCode(voter.voterHash);
+      return sendJson(res, 200, { ok: true, code, formatted: code.replace(/(.{4})/g, '$1 ').trim() });
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/voto/meus' && req.method === 'GET') {
+    const voter = auth.getVoterFromToken(q.sessionToken || (req.headers.authorization || '').replace('Bearer ', ''));
+    if (!voter) return sendJson(res, 401, { ok: false, error: 'Faça login para ver seus votos' });
+    try {
+      const votos = await votes.getBallotsForVoter(voter.voterHash);
+      return sendJson(res, 200, { ok: true, votos });
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/candidatos/comparar' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    const ids = Array.isArray(body.ids) ? body.ids.map(String).slice(0, 4) : [];
+    if (!ids.length) return sendJson(res, 400, { ok: false, error: 'ids é obrigatório' });
+    try {
+      const [depResult, senResult] = await Promise.all([fetchDeputados(), fetchSenadores()]);
+      const todos = [
+        ...depResult.list.map(d => ({ ...d, position: 'Deputado Federal' })),
+        ...senResult.list.map(s => ({ ...s, position: 'Senador Federal' }))
+      ];
+      const escolhidos = ids.map(id => todos.find(c => c.id === id)).filter(Boolean);
+      if (!escolhidos.length) return sendJson(res, 404, { ok: false, error: 'Nenhum candidato encontrado' });
+      return sendJson(res, 200, { ok: true, candidatos: escolhidos });
+    } catch (e) { return sendJson(res, 502, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/verificacao/solicitar' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    try {
+      const r = verificacao.startVerification(body.politicianId || '', body.email || '');
+      return sendJson(res, 200, r);
+    } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
   }
 
   return sendJson(res, 404, { error: 'Rota de API não encontrada' });

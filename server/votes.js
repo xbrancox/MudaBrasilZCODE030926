@@ -150,7 +150,8 @@ async function castVote(input, ip) {
     createdAt: now,
     reaffirmedAt: now,
     revoked: false,
-    revokedAt: null
+    revokedAt: null,
+    voterHash: input.voterHash || null
   };
   db.upsertBallot(ballot);
   notifyChange('voto');
@@ -299,8 +300,69 @@ function round1(n) { return Math.round(n * 10) / 10; }
 function round2(n) { return Math.round(n * 100) / 100; }
 function round4(n) { return Math.round(n * 10000) / 10000; }
 
+async function getRevogados() {
+  const store = loadStore();
+  const now = Date.now();
+  const index = await getDeputiesIndex();
+  const byPolitician = new Map();
+  for (const b of Object.values(store.ballots)) {
+    const bucket = byPolitician.get(b.politicianId) || { revogacoes: 0, votosAtivos: 0 };
+    if (b.revoked) bucket.revogacoes++;
+    else bucket.votosAtivos++;
+    byPolitician.set(b.politicianId, bucket);
+  }
+  const politicos = [];
+  for (const [pid, agg] of byPolitician.entries()) {
+    if (!agg.revogacoes) continue;
+    const pol = index.get(pid) || { id: pid, name: '(parlamentar)', party: '-', state: '-', photo: null };
+    politicos.push({
+      politicianId: pid, name: pol.name, party: pol.party, state: pol.state, photo: pol.photo,
+      revogacoes: agg.revogacoes, votosAtivos: agg.votosAtivos
+    });
+  }
+  politicos.sort((a, b) => b.revogacoes - a.revogacoes || b.votosAtivos - a.votosAtivos);
+  return {
+    ok: true, mode: 'real',
+    totalRevogados: politicos.reduce((s, p) => s + p.revogacoes, 0),
+    politicos,
+    atualizadoEm: new Date(now).toISOString()
+  };
+}
+
+async function getBallotsForVoter(voterHash) {
+  const store = loadStore();
+  const index = await getDeputiesIndex();
+  const out = [];
+  for (const b of Object.values(store.ballots)) {
+    if (b.voterHash !== voterHash) continue;
+    const pol = index.get(b.politicianId) || { id: b.politicianId, name: '(parlamentar)', party: '-', state: '-', photo: null };
+    out.push({
+      id: b.ballotId,
+      revoked: !!b.revoked,
+      createdAt: b.createdAt,
+      politician: { id: pol.id, name: pol.name, party: pol.party, state: pol.state, photo: pol.photo }
+    });
+  }
+  out.sort((a, b) => b.createdAt - a.createdAt);
+  return out;
+}
+
+function revokeBallotById(ballotId, ip) {
+  const rl = checkRateLimit(ip, 'revoke');
+  if (!rl.allowed) return { ok: false, status: 429, error: 'Muitas ações em pouco tempo. Aguarde um instante.' };
+  const ballot = db.getBallot(ballotId);
+  if (!ballot) return { ok: false, status: 404, error: 'Voto não encontrado' };
+  if (ballot.revoked) return { ok: false, status: 409, error: 'Este voto já foi revogado' };
+  ballot.revoked = true;
+  ballot.revokedAt = Date.now();
+  db.upsertBallot(ballot);
+  notifyChange('revogacao');
+  return { ok: true, revoked: true, politicianId: ballot.politicianId };
+}
+
 module.exports = {
   castVote, revokeVote, reaffirmVote, viewVote, getTermometro,
+  getRevogados, getBallotsForVoter, revokeBallotById,
   voteWeight, onVoteChange, totals,
   DECADENCIA, ICM, K_SATURACAO, VOTOS_FILE, VOTOS_DB, db
 };

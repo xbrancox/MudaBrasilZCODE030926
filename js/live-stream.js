@@ -16,6 +16,7 @@
 
 (function () {
   'use strict';
+  const API = (window.MudaBrasil && window.MudaBrasil.API_BASE) || '';
 
   function initLiveUpdate(refreshFn, opts) {
     opts = opts || {};
@@ -47,7 +48,7 @@
 
     function connectSSE() {
       if (!opts.enabled || typeof EventSource === 'undefined' || stopped) return;
-      try { es = new EventSource('/api/stream'); } catch (_) { es = null; }
+      try { es = new EventSource(API + '/api/stream'); } catch (_) { es = null; }
       if (!es) return;
 
       // Bem-vindo: sincroniza o estado assim que a conexão abre.

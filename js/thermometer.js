@@ -16,6 +16,7 @@
    ============================================================ */
 (function () {
   'use strict';
+  const API = (window.MudaBrasil && window.MudaBrasil.API_BASE) || '';
 
   const LS_CODE = 'mb_codigo';   // chaves da spec — NÃO renomear
   const LS_LOCAL = 'mb_local';
@@ -258,7 +259,7 @@
     try {
       let uf = null;
       try { uf = (JSON.parse(localStorage.getItem(LS_LOCAL) || '{}') || {}).uf || null; } catch (_) {}
-      const res = await fetchWithTimeout('/api/voto', 6000, {
+      const res = await fetchWithTimeout(API + '/api/voto', 6000, {
         method: 'POST',
         body: JSON.stringify({ politicianId: selectedId, uf })
       });
@@ -292,7 +293,7 @@
     if (!code) { alert('Informe seu código de verificação.'); return; }
     setCode(code);
     try {
-      const res = await fetchWithTimeout('/api/voto?code=' + encodeURIComponent(code), 6000);
+      const res = await fetchWithTimeout(API + '/api/voto?code=' + encodeURIComponent(code), 6000);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       const pol = politicians.find(p => p.id === data.ballot.politicianId);
@@ -342,7 +343,7 @@
     if (!code) { alert('Informe seu código para revogar.'); return; }
     if (!confirm('Tem certeza que deseja REVOGAR seu voto de confiança? Esta ação é irreversível.')) return;
     try {
-      const res = await fetchWithTimeout('/api/voto/revogar', 6000, { method: 'POST', body: JSON.stringify({ code }) });
+      const res = await fetchWithTimeout(API + '/api/voto/revogar', 6000, { method: 'POST', body: JSON.stringify({ code }) });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       currentVote = null;
@@ -357,7 +358,7 @@
     const code = codeFromInput();
     if (!code) { alert('Informe seu código para reafirmar.'); return; }
     try {
-      const res = await fetchWithTimeout('/api/voto/manter', 6000, { method: 'POST', body: JSON.stringify({ code }) });
+      const res = await fetchWithTimeout(API + '/api/voto/manter', 6000, { method: 'POST', body: JSON.stringify({ code }) });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       $('my-vote-box').innerHTML = '<div class="my-vote-box my-vote-success">🔄 Voto reafirmado! O decaimento foi reiniciado (peso máximo restaurado).</div>';
@@ -381,7 +382,7 @@
   /* ---------- CARREGAMENTO ---------- */
   async function refreshThermometer() {
     try {
-      const res = await fetchWithTimeout('/api/termometro', 6000);
+      const res = await fetchWithTimeout(API + '/api/termometro', 6000);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       renderThermometer(await res.json());
       return true;
@@ -390,13 +391,13 @@
 
   async function loadReal() {
     // Termômetro (define modo) + lista de parlamentares (p/ o seletor)
-    const res = await fetchWithTimeout('/api/termometro', 6000);
+    const res = await fetchWithTimeout(API + '/api/termometro', 6000);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     setMode('real', data.source);
     renderThermometer(data);
 
-    const resC = await fetchWithTimeout('/api/candidatos', 8000);
+    const resC = await fetchWithTimeout(API + '/api/candidatos', 8000);
     if (resC.ok) {
       const jc = await resC.json();
       if (jc.mode === 'real' && Array.isArray(jc.candidatos) && jc.candidatos.length) {

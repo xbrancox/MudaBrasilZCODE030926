@@ -115,6 +115,7 @@ function openSqlite() {
       reaffirmed_at  INTEGER,
       revoked        INTEGER NOT NULL DEFAULT 0,
       revoked_at     INTEGER,
+      voter_hash     TEXT,
       updated_at     INTEGER
     );
     CREATE INDEX IF NOT EXISTS idx_ballots_politician ON ballots(politician_id);
@@ -235,16 +236,18 @@ const rowToBallot = r => ({
   createdAt: r.created_at,
   reaffirmedAt: r.reaffirmed_at,
   revoked: !!r.revoked,
-  revokedAt: r.revoked_at
+  revokedAt: r.revoked_at,
+  voterHash: r.voter_hash || null
 });
 const ballotParams = b => [
   b.ballotId, b.politicianId, b.uf || null,
   b.createdAt, b.reaffirmedAt || null,
-  b.revoked ? 1 : 0, b.revokedAt || null, Date.now()
+  b.revoked ? 1 : 0, b.revokedAt || null,
+  b.voterHash || null, Date.now()
 ];
 const UPSERT_BALLOT_SQL = `
-  INSERT INTO ballots (id, politician_id, uf, created_at, reaffirmed_at, revoked, revoked_at, updated_at)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO ballots (id, politician_id, uf, created_at, reaffirmed_at, revoked, revoked_at, voter_hash, updated_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     politician_id  = excluded.politician_id,
     uf             = excluded.uf,
@@ -252,6 +255,7 @@ const UPSERT_BALLOT_SQL = `
     reaffirmed_at  = excluded.reaffirmed_at,
     revoked        = excluded.revoked,
     revoked_at     = excluded.revoked_at,
+    voter_hash     = COALESCE(excluded.voter_hash, ballots.voter_hash),
     updated_at     = excluded.updated_at`;
 
 function init() {
@@ -260,6 +264,7 @@ function init() {
   let migrated = 0;
   if (BACKEND === 'sqlite') {
     openSqlite();
+    try { db.prepare('ALTER TABLE ballots ADD COLUMN voter_hash TEXT').run(); } catch (_) { }
     const n = db.prepare('SELECT COUNT(*) AS n FROM ballots').get().n;
     if (n === 0) {
       const legacy = jsonReadFile('ballots');
@@ -298,6 +303,18 @@ function readAllBallots() {
     return out;
   }
   return jsonReadFile('ballots');
+}
+
+function getBallotsByVoter(voterHash) {
+  if (!voterHash) return [];
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    let rows = [];
+    try { rows = db.prepare('SELECT * FROM ballots WHERE voter_hash = ? ORDER BY created_at DESC').all(voterHash); } catch (_) { }
+    return rows.map(rowToBallot);
+  }
+  const all = jsonReadFile('ballots');
+  return Object.values(all).filter(b => b.voterHash === voterHash);
 }
 
 function countBallots() {

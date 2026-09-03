@@ -6,6 +6,7 @@
 
 (function () {
   'use strict';
+  const API = (window.MudaBrasil && window.MudaBrasil.API_BASE) || '';
 
   const $ = (s, p) => (p || document).querySelector(s);
   const $$ = (s, p) => Array.from((p || document).querySelectorAll(s));
@@ -78,14 +79,26 @@
      ============================================================ */
   async function loadCandidatos() {
     try {
-      const r = await fetch('/api/candidatos');
+      const r = await fetch(API + '/api/candidatos');
       const d = await r.json();
       state.allPoliticians = d.candidatos || [];
+      atualizaBannerDados(d);
       populateFilterOptions();
       attachFilterHandlers();
       applyFilters();
     } catch (e) {
       console.error('loadCandidatos', e);
+    }
+  }
+
+  function atualizaBannerDados(d) {
+    const banner = document.querySelector('.mb-demo-banner');
+    if (!banner) return;
+    const real = d && d.mode === 'real' && Array.isArray(d.candidatos) && d.candidatos.length > 0;
+    if (real) {
+      banner.innerHTML = '<span class="mb-pill-icon">✅</span><span><strong>Dados reais</strong> — ' + (d.source || 'Câmara dos Deputados + Senado Federal') + ' · atualização automática.</span>';
+      banner.style.background = 'rgba(0,151,57,.12)';
+      banner.style.borderColor = 'rgba(0,151,57,.45)';
     }
   }
 
@@ -206,7 +219,7 @@
 
   async function runCompare() {
     const ids = Array.from(state.compareSelection);
-    const r = await fetch('/api/candidatos/comparar', {
+    const r = await fetch(API + '/api/candidatos/comparar', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids })
     });
@@ -251,7 +264,7 @@
      DETALHES DO CANDIDATO
      ============================================================ */
   async function openCandidato(id) {
-    const r = await fetch('/api/candidatos/detalhes/' + encodeURIComponent(id));
+    const r = await fetch(API + '/api/candidatos/detalhes/' + encodeURIComponent(id));
     const d = await r.json();
     if (!d.ok) { toast('Candidato não encontrado', 'error'); return; }
     const c = d.candidato;
@@ -306,7 +319,7 @@
     }
     // Carrega feed
     try {
-      const r = await fetch('/api/reclamacoes?limit=50');
+      const r = await fetch(API + '/api/reclamacoes?limit=50');
       const d = await r.json();
       renderRadar(d.complaints || []);
       renderRadarLists();
@@ -374,7 +387,7 @@
      ============================================================ */
   async function loadPls() {
     try {
-      const r = await fetch('/api/pls');
+      const r = await fetch(API + '/api/pls');
       const d = await r.json();
       state.pls = d.pls || [];
       populatePlFilters();
@@ -440,7 +453,7 @@
     const sess = session();
     if (!sess) { toast('Entre para votar em PLs', 'error'); openAuthModal(); return; }
     try {
-      const r = await fetch('/api/pls/voto', {
+      const r = await fetch(API + '/api/pls/voto', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plId, vote, sessionToken: sess.token })
       });
@@ -465,7 +478,7 @@
      ============================================================ */
   async function loadRevogados() {
     try {
-      const r = await fetch('/api/voto/revogados');
+      const r = await fetch(API + '/api/voto/revogados');
       const d = await r.json();
       state.revStats = d.politicos || [];
       // popula filtros
@@ -557,7 +570,7 @@
     const code = $$('.mb-code-group').map(i => i.value).join('');
     if (code.length !== 20) { toast('Digite os 20 dígitos', 'error'); return; }
     try {
-      const r = await fetch('/api/voto/conferir', {
+      const r = await fetch(API + '/api/voto/conferir', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code })
       });
@@ -577,7 +590,7 @@
     const sess = session();
     if (!sess) { toast('Entre para gerar código', 'error'); openAuthModal(); return; }
     try {
-      const r = await fetch('/api/voto/codigo', {
+      const r = await fetch(API + '/api/voto/codigo', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionToken: sess.token })
       });
@@ -608,7 +621,7 @@
   async function loadMeusVotos() {
     const sess = session();
     try {
-      const r = await fetch('/api/voto/meus?sessionToken=' + encodeURIComponent(sess.token));
+      const r = await fetch(API + '/api/voto/meus?sessionToken=' + encodeURIComponent(sess.token));
       const d = await r.json();
       const list = $('#revogar-list');
       if (!d.votos || !d.votos.length) { list.innerHTML = '<p class="mb-muted">Você ainda não tem votos ativos para revogar. <a href="meu-voto.html">Vote em alguém</a> primeiro.</p>'; return; }
@@ -647,7 +660,7 @@
     }, 1000);
     btn.onclick = async () => {
       try {
-        const r = await fetch('/api/voto/revogar', {
+        const r = await fetch(API + '/api/voto/revogar', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ballotId, sessionToken: session().token })
         });
@@ -686,7 +699,7 @@
       const name = $('#google-name').value.trim() || email.split('@')[0];
       if (!email) { toast('Informe um email', 'error'); return; }
       try {
-        const r = await fetch('/api/auth/google', {
+        const r = await fetch(API + '/api/auth/google', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idToken: 'google:' + email + ':' + name })
         });
@@ -699,7 +712,7 @@
       const phone = $('#phone-number').value.replace(/\D/g, '');
       if (phone.length < 10) { toast('Telefone inválido', 'error'); return; }
       try {
-        const r = await fetch('/api/auth/otp/send', {
+        const r = await fetch(API + '/api/auth/otp/send', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone })
         });
@@ -714,7 +727,7 @@
       const phone = $('#phone-number').value.replace(/\D/g, '');
       const code = $('#phone-code').value.trim();
       try {
-        const r = await fetch('/api/auth/otp/verify', {
+        const r = await fetch(API + '/api/auth/otp/verify', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, code })
         });

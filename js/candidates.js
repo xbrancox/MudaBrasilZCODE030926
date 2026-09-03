@@ -10,6 +10,7 @@
    ============================================================ */
 
 (function () {
+  const API = (window.MudaBrasil && window.MudaBrasil.API_BASE) || '';
   const D = window.CANDIDATE_DATA;
 
   // Conjunto de dados ativo (reais ou demo)
@@ -389,7 +390,7 @@
 
   async function loadData() {
     try {
-      const res = await fetchWithTimeout('/api/candidatos', 5000);
+      const res = await fetchWithTimeout(API + '/api/candidatos', 12000);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (data && data.mode === 'real' && Array.isArray(data.candidatos) && data.candidatos.length > 0) {
