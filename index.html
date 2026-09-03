@@ -288,14 +288,20 @@ donut(document.getElementById('dc-'+i),modo==='UF'?DON_UF:DON_CID);if(modo==='Ci
 async function carregaPol(){POL=[];
 try{const r=await fetch(API_BASE+'/api/candidatos');const j=await r.json();const arr=Array.isArray(j)?j:(j.dados||j.candidatos||[]);
 if(arr.length){arr.forEach(d=>POL.push({nome:d.nome||d.nomeCivil||'',partido:d.partido||d.siglaPartido||'',uf:d.uf||d.siglaUf||'',cargo:d.cargo||'Deputado Federal',foto:d.foto||d.urlFoto||'',num:d.id||d.num||0,real:1,rec:(d.id%90)+5,selo:!!(d.selo||d.verificado)}));
-BACKEND_OK=true;$('#apiStatus').style.display='inline-block';}}catch(e){}
+BACKEND_OK=true;$('#apiStatus').style.display='inline-block';conectaSSE();}}catch(e){}
 if(!POL.length){
 try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/deputados?itens=513&ordem=ASC&ordenarPor=nome');const j=await r.json();(j.dados||[]).forEach(d=>POL.push({nome:d.nome,partido:d.siglaPartido||'',uf:d.siglaUf||'',cargo:'Deputado Federal',foto:d.urlFoto||'',num:d.id,real:1,rec:(d.id%90)+5,selo:false}));}catch(e){}
 try{const r=await fetch('https://legis.senado.leg.br/dadosabertos/senador/lista/legislatura/57?formato=json');const j=await r.json();const L=(j.lista&&j.lista.senador)||[];L.forEach(s=>{const p=s.IdentificacaoParlamentar||{};const id=Number(p.CodigoParlamentar||50);POL.push({nome:p.NomeParlamentar||'',partido:p.SiglaPartido||'',uf:p.Uf||'',cargo:'Senador',foto:p.UrlFotoParlamentar||'',num:p.CodigoParlamentar||'',real:1,rec:(id%90)+5,selo:false});});}catch(e){}}
 ready=true;const el=document.getElementById('bReais');if(el)el.textContent=POL.length+' políticos reais'+(BACKEND_OK?' (backend)':'');
 popula();renderRad();carregaRemoteRec()}
-async function carregaRemoteRec(){try{const r=await fetch(API_BASE+'/api/reclamacoes');const j=await r.json();const arr=j.reclamacoes||j.dados||j||[];
-if(Array.isArray(arr))arr.forEach(x=>{const k=x.politicoId||x.politico||x.politicoNum;(REMOTE_REC[k]=REMOTE_REC[k]||[]).push((x.titulo?x.titulo+' — ':'')+(x.descricao||x.texto||''))});}catch(e){}}
+async function carregaRemoteRec(){const antes=JSON.stringify(REMOTE_REC);try{const r=await fetch(API_BASE+'/api/reclamacoes');const j=await r.json();const arr=j.reclamacoes||j.dados||j||[];
+REMOTE_REC={};if(Array.isArray(arr))arr.forEach(x=>{const k=x.politicoId||x.politico||x.politicoNum;(REMOTE_REC[k]=REMOTE_REC[k]||[]).push((x.titulo?x.titulo+' — ':'')+(x.descricao||x.texto||''))});
+if(JSON.stringify(REMOTE_REC)!==antes&&ready)renderRad();}catch(e){}}
+let SSE=null;
+function conectaSSE(){if(SSE||!BACKEND_OK)return;try{SSE=new EventSource(API_BASE+'/api/stream');
+SSE.addEventListener('reclamacao',e=>{try{const x=JSON.parse(e.data);const k=x.politicoId||x.politicoNum;(REMOTE_REC[k]=REMOTE_REC[k]||[]).unshift((x.titulo?x.titulo+' — ':'')+(x.descricao||x.texto||''));toast('🔴 AO VIVO: nova '+(x.tipo==='apo'?'apoio':'reclamação')+'!');if(ready)renderRad();}catch(err){}});
+SSE.addEventListener('ping',()=>{});
+SSE.onerror=()=>{SSE=null;setTimeout(conectaSSE,15000);};}catch(e){SSE=null;}}
 function fill(id,arr,all){const el=document.getElementById(id);if(el)el.innerHTML=`<option value="">${all}</option>`+arr.map(x=>`<option>${x}</option>`).join('')}
 function popula(){const uf=[...new Set(POL.map(p=>p.uf))].filter(Boolean).sort();const pt=[...new Set(POL.map(p=>p.partido))].filter(Boolean).sort();
 fill('fUF',uf,'Todos os estados');fill('fPartido',pt,'Todos os partidos');fill('fCargo',CARGOS_F,'Todos os cargos');
@@ -317,7 +323,8 @@ if(p.cargo==='Deputado Federal'){
   if(d.municipioNascimento)det.munic=(d.municipioNascimento||'')+(d.ufNascimento?'/'+d.ufNascimento:'');
   if(d.ultimoStatus)det.legislatura=d.ultimoStatus.idLegislatura;if(d.gabinete)det.gabinete=d.gabinete.nome;
   if(d.gabinete)det.contato=[d.gabinete.telefone,d.gabinete.email].filter(Boolean).join(' · ');}catch(e){}
- try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/proposicoes?autorId='+p.num+'&itens=8&ordem=DESC&ordenarPor=id');const j=await r.json();det.props=(j.dados||[]).map(x=>({t:(x.siglaTipo||'')+' '+(x.numero||'')+'/'+(x.ano||''),e:(x.ementa||x.titulo||'').slice(0,110)}));}catch(e){}
+ try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo=PL&itens=100&ordem=DESC&ordenarPor=id');const j=await r.json();const nome_p=(p.nome||'').toLowerCase();det.props=(j.dados||[]).filter(x=>{const an=((x.autor||'').toLowerCase());return an.includes(nome_p)||nome_p.split(' ').slice(-1).every(w=>w.length>3&&an.includes(w))}).slice(0,8).map(x=>({t:(x.siglaTipo||'')+' '+(x.numero||'')+'/'+(x.ano||''),e:(x.ementa||x.titulo||'').slice(0,110)}));}catch(e){}
+ try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/deputados/'+p.num+'/votacoes?itens=6');const j=await r.json();det.votos=(j.dados||[]).map(x=>({t:(x.proposicao&&x.proposicao.titulo)||x.titulo||'',v:x.voto||''})).filter(x=>x.v);}catch(e){}
 }
 det.mandatos=(p.num%3)+1;det.pls=det.props.length||((p.num%47)+3);det.presenca=(70+(p.num%30))+'%';det.processos=p.rec>=80?2:p.rec>=40?1:0;det.patrimonio='R$ '+((p.num%12)+1)+','+(p.num%9)+'M';det.area=AREAS[p.num%AREAS.length];
 DET[i]=det;const el=document.getElementById('stats-'+i);if(el)el.innerHTML=statsInner(det);const rl=document.getElementById('real-'+i);if(rl)rl.innerHTML=realHTML(i)}
@@ -325,7 +332,7 @@ function statsInner(d){const s=[['Idade',d.idade],['Escolaridade',d.escolaridade
 return s.map(x=>`<div class="stat"><small>${x[0]}</small><b>${x[1]!=null&&x[1]!==''?x[1]:'…'}</b></div>`).join('')}
 function realHTML(i){const p=POL[i];const d=DET[i]||{props:[],votos:[]};
 let h=`<h4 style="color:var(--gold);font-size:12px">📚 Projetos apresentados (${d.props.length?d.props.length:'…'})</h4>`;
-h+=d.props.length?d.props.map(x=>`<div class="quote info"><b>${x.t}</b> — ${x.e}…</div>`).join(''):`<p class="muted">${p.cargo==='Deputado Federal'?'Carregando proposições…':'Proposituras no link oficial (fim da página).'}</p>`;
+if(d.props.length){h+=d.props.map(x=>`<div class="quote info"><b>${x.t}</b> — ${x.e}…</div>`).join('');}else{const oficial=p.cargo==='Deputado Federal'?`https://www.camara.leg.br/deputados/${p.num}`:`https://www25.senado.leg.br/senadores/senador-${p.num}`;h+=`<p class="muted">Proposições não indexadas por autor via API pública. <a href="${oficial}" target="_blank">Ver perfil oficial →</a></p>`}
 h+=`<h4 style="color:var(--blueL);font-size:12px;margin-top:8px">🗳️ Como votou (últimas votações)</h4>`;
 h+=d.votos.length?d.votos.map(x=>`<div class="quote info"><b>${x.t||'Votação'}</b>${x.v?` — voto: <b>${x.v}</b>`:''}</div>`).join(''):`<p class="muted">Votações nominais no link oficial (fim da página).</p>`;
 return h}
@@ -423,7 +430,7 @@ const FAQ=[['O que é simulação?','A votação/revogação não tem valor jur�
 $('#faqList').innerHTML=FAQ.map(f=>`<div class="card"><b>${f[0]}</b><p class="muted" style="margin:6px 0 0">${f[1]}</p></div>`).join('');
 async function news(){try{const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml'));const j=await r.json();const it=(j.items||[]).slice(0,2);
 $('#homeNews').innerHTML=it.map(n=>`<div class="ncard"><div class="th"><span class="cat">${(n.category||'Política').toString().slice(0,14)}</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>${n.title}</h4><p>${(n.description||'').replace(/<[^>]+>/g,'').slice(0,140)}</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a href="${n.link}" target="_blank">Ler →</a></div></div></div>`).join('')}catch(e){$('#homeNews').innerHTML='<div class="ncard"><div class="th"><span class="cat">Política</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>Brasil promete restaurar 163 mil km² de terras degradadas até 2030</h4><p>O Brasil apresentou as primeiras metas de Neutralidade da Degradação da Terra em evento internacional.</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a>Ler →</a></div></div></div>'}}
-initDonuts();carregaPol();carregaPLS();news();
+initDonuts();carregaPol();carregaPLS();news();setInterval(carregaRemoteRec,60000);
 </script>
 </body>
 </html>
