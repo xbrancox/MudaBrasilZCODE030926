@@ -117,6 +117,14 @@ votes.onVoteChange(info => {
   }
 });
 
+/* SSE: reclamacoes / apoios em tempo real */
+reclamacoes.onReclamacaoChange(info => {
+  const frame = 'event: ' + info.tipo + '\ndata: ' + JSON.stringify(info) + '\n\n';
+  for (const client of streamClients) {
+    try { client.write(frame); } catch (_) { streamClients.delete(client); }
+  }
+});
+
 function applyQuery(list, q) {
   let out = list;
   const busca = (q.busca || '').toLowerCase().trim();

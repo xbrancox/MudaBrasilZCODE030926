@@ -303,6 +303,84 @@ async function carregaStats(){
   }catch(e){}
 }
 
+/* ============================================================
+   FASE 3 — SSE (Server-Sent Events) + Fallback Polling
+   Conecta ao /api/stream do backend para receber atualizações
+   em tempo real (novos votos, reclamações, apoios, etc.).
+   Se o SSE falhar, faz polling a cada 60 segundos.
+   ============================================================ */
+let SSE_SOURCE = null;
+let SSE_FALLBACK = null;
+function initSSE(){
+  if(!BACKEND_OK || !window.EventSource) return;
+  try {
+    SSE_SOURCE = new EventSource(API_BASE + '/api/stream');
+    SSE_SOURCE.addEventListener('welcome', function(e){
+      try {
+        const data = JSON.parse(e.data);
+        atualizaContadoresSSE(data);
+        console.log('✅ SSE conectado (welcome)');
+      } catch(_){}
+    });
+    SSE_SOURCE.addEventListener('termometro', function(e){
+      try {
+        const data = JSON.parse(e.data);
+        atualizaContadoresSSE(data);
+      } catch(_){}
+    });
+    /* 🔴 AO VIVO — nova reclamação de outra janela */
+    SSE_SOURCE.addEventListener('reclamacao', function(e){
+      try {
+        const data = JSON.parse(e.data);
+        const politicoNome = data.data ? ' para ' + data.data.politicianId : '';
+        toast('🔴 AO VIVO - Nova reclamação recebida' + politicoNome + '!');
+        carregaRemoteRec();
+        /* Se o Radar estiver aberto, re-renderiza */
+        const secRadar = document.getElementById('sec-radar');
+        if(secRadar && secRadar.classList.contains('on')) renderRad();
+      } catch(_){}
+    });
+    /* 🔴 AO VIVO — novo apoio de outra janela */
+    SSE_SOURCE.addEventListener('apoio', function(e){
+      try {
+        const data = JSON.parse(e.data);
+        const politicoNome = data.data ? ' para ' + data.data.politicianId : '';
+        toast('🔴 AO VIVO - Novo apoio registrado' + politicoNome + '!');
+        carregaRemoteRec();
+        const secRadar = document.getElementById('sec-radar');
+        if(secRadar && secRadar.classList.contains('on')) renderRad();
+      } catch(_){}
+    });
+    SSE_SOURCE.onerror = function(){
+      console.warn('⚠️ SSE falhou, ativando fallback de polling (60s)');
+      SSE_SOURCE.close();
+      SSE_SOURCE = null;
+      if(!SSE_FALLBACK){
+        SSE_FALLBACK = setInterval(carregaStats, 60000);
+      }
+    };
+  } catch(e) {
+    console.warn('⚠️ SSE não suportado, ativando fallback');
+    if(!SSE_FALLBACK){
+      SSE_FALLBACK = setInterval(carregaStats, 60000);
+    }
+  }
+}
+function atualizaContadoresSSE(data){
+  const elVotos = document.getElementById('bVotos');
+  if(elVotos && data){
+    const ativos = data.totalVotosAtivos || 0;
+    const revogados = data.totalRevogados || 0;
+    let txt = ativos + ' votos registrados';
+    if(revogados) txt += ' · ' + revogados + ' revogações';
+    elVotos.textContent = txt;
+  }
+  const elReais = document.getElementById('bReais');
+  if(elReais && POL.length){
+    elReais.textContent = POL.length + ' políticos reais (backend)';
+  }
+}
+
 async function carregaRemoteRec(){try{const r=await fetch(API_BASE+'/api/reclamacoes');const j=await r.json();const arr=j.reclamacoes||j.dados||j||[];
 if(Array.isArray(arr))arr.forEach(x=>{const k=x.politicoId||x.politico||x.politicoNum;(REMOTE_REC[k]=REMOTE_REC[k]||[]).push((x.titulo?x.titulo+' — ':'')+(x.descricao||x.texto||''))});}catch(e){}}
 function fill(id,arr,all){const el=document.getElementById(id);if(el)el.innerHTML=`<option value="">${all}</option>`+arr.map(x=>`<option>${x}</option>`).join('')}
@@ -433,6 +511,8 @@ $('#faqList').innerHTML=FAQ.map(f=>`<div class="card"><b>${f[0]}</b><p class="mu
 async function news(){try{const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml'));const j=await r.json();const it=(j.items||[]).slice(0,2);
 $('#homeNews').innerHTML=it.map(n=>`<div class="ncard"><div class="th"><span class="cat">${(n.category||'Política').toString().slice(0,14)}</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>${n.title}</h4><p>${(n.description||'').replace(/<[^>]+>/g,'').slice(0,140)}</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a href="${n.link}" target="_blank">Ler →</a></div></div></div>`).join('')}catch(e){$('#homeNews').innerHTML='<div class="ncard"><div class="th"><span class="cat">Política</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>Brasil promete restaurar 163 mil km² de terras degradadas até 2030</h4><p>O Brasil apresentou as primeiras metas de Neutralidade da Degradação da Terra em evento internacional.</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a>Ler →</a></div></div></div>'}}
 initDonuts();try{carregaPol()}catch(e){console.error('carregaPol',e)}try{carregaPLS()}catch(e){console.error('carregaPLS',e)}try{news()}catch(e){console.error('news',e)}try{carregaStats()}catch(e){console.error('carregaStats',e)}
+/* Fase 3 — SSE: inicia conexão após carregamento inicial */
+setTimeout(initSSE, 2000);
 </script>
 </body>
 </html>

@@ -19,6 +19,15 @@ const path = require('path');
 const db = require('./db');
 const verificacao = require('./verificacao');
 
+/* ---- Callback de eventos (SSE em tempo real) ---- */
+let reclamacaoChangeHook = null;
+function onReclamacaoChange(fn) { reclamacaoChangeHook = fn; }
+function emitReclamacaoEvent(tipo, data) {
+  if (typeof reclamacaoChangeHook === 'function') {
+    try { reclamacaoChangeHook({ tipo, ts: new Date().toISOString(), data }); } catch (_) { }
+  }
+}
+
 function generateId(prefix) {
   return prefix + '-' + crypto.randomBytes(8).toString('hex');
 }
@@ -63,6 +72,14 @@ function createComplaint({ politicianId, voterHash, voterIp, content }) {
   };
 
   db.createComplaint(complaint);
+
+  emitReclamacaoEvent('reclamacao', {
+    id: complaint.id,
+    politicianId: complaint.politicianId,
+    content: sanitized.slice(0, 120),
+    status: complaint.status,
+    createdAt: complaint.createdAt
+  });
 
   return { ok: true, complaint: { id: complaint.id, politicianId: complaint.politicianId, content: complaint.content, status: complaint.status, createdAt: complaint.createdAt } };
 }
@@ -112,6 +129,13 @@ function createSupport(opts) {
   };
 
   db.createSupport(support);
+
+  emitReclamacaoEvent('apoio', {
+    id: support.id,
+    politicianId: support.politicianId,
+    content: sanitized.slice(0, 120),
+    createdAt: support.createdAt
+  });
 
   return { ok: true, support: { id: support.id, politicianId: support.politicianId, content: support.content, createdAt: support.createdAt } };
 }
@@ -249,5 +273,6 @@ module.exports = {
   createSupport, listSupports,
   createResponse, listResponses,
   getPoliticianStats, getRankings, getGlobalStats,
-  sanitize, timeAgo, ipFromReq
+  sanitize, timeAgo, ipFromReq,
+  onReclamacaoChange
 };
