@@ -1,8 +1,8 @@
-const CACHE = 'votabrasil-v20';
+const CACHE = 'votabrasil-v21';
 const ASSETS = [
   './',
   './index.html',
-  './config.local.js',
+  '../config.local.js',
   './manifest.webmanifest',
   './icon.svg',
   './logo.svg'

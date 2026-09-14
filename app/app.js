@@ -9,7 +9,7 @@ const LS_COMP = 'mb_comparacao';
 const LS_PLOP = 'mb_pl_opinioes';
 
 if (API_BASE) document.getElementById('badge').style.display = 'flex';
-console.log('%c🟡 VotaBrasil v20', 'font-size:16px;font-weight:bold;color:#FFD700');
+console.log('%c🟡 VotaBrasil v21', 'font-size:16px;font-weight:bold;color:#FFD700');
 console.log('Modo: ' + MB.MODO + ' | Backend: ' + (API_BASE || '(nenhum)'));
 
 /* ===== STATE ===== */
