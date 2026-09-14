@@ -1,95 +1,569 @@
-/* VotaBrasil App - Urna Digital do Povo (prototipo) */
-var API=(window.MudaBrasil&&window.MudaBrasil.API_BASE)||'';
-var $=function(s){return document.querySelector(s)};
-var $$=function(s){return Array.from(document.querySelectorAll(s))};
-var LS={
-  get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},
-  set:function(k,v){localStorage.setItem(k,JSON.stringify(v))}
+/* ============================================================
+   VotaBrasil — App PWA
+   ============================================================ */
+const MB = window.VotaBrasil || {};
+const API_BASE = MB.API_BASE || '';
+const LS_VOTOS = 'mb_votos';
+const LS_RECL = 'mb_reclamacoes';
+const LS_COMP = 'mb_comparacao';
+const LS_PLOP = 'mb_pl_opinioes';
+
+if (API_BASE) document.getElementById('badge').style.display = 'flex';
+console.log('%c🟡 VotaBrasil v20', 'font-size:16px;font-weight:bold;color:#FFD700');
+console.log('Modo: ' + MB.MODO + ' | Backend: ' + (API_BASE || '(nenhum)'));
+
+/* ===== STATE ===== */
+const CARGOS_ORDEM = ['Presidente', 'Senador', 'Deputado Federal', 'Deputado Estadual', 'Governador'];
+
+const CANDIDATOS = {
+  'Presidente': [
+    { nome: 'Ana Souza', partido: 'PSD', numero: 55 },
+    { nome: 'Bruno Lima', partido: 'NOVO', numero: 30 },
+    { nome: 'Carla Mendes', partido: 'PSOL', numero: 50 }
+  ],
+  'Senador': [
+    { nome: 'Diego Franco', partido: 'MDB', numero: 151 },
+    { nome: 'Elisa Prado', partido: 'PT', numero: 131 },
+    { nome: 'Fábio Nunes', partido: 'PL', numero: 222 }
+  ],
+  'Deputado Federal': [
+    { nome: 'Gil Santos', partido: 'UNIÃO', numero: 4444 },
+    { nome: 'Helena Rocha', partido: 'PSDB', numero: 4545 },
+    { nome: 'Igor Alves', partido: 'PSB', numero: 4040 }
+  ],
+  'Deputado Estadual': [
+    { nome: 'Joana Pinto', partido: 'REP', numero: 1010 },
+    { nome: 'Kléber Dias', partido: 'PDT', numero: 1212 },
+    { nome: 'Lia Campos', partido: 'PV', numero: 4343 }
+  ],
+  'Governador': [
+    { nome: 'Marcos Teles', partido: 'PP', numero: 11 },
+    { nome: 'Nina Barros', partido: 'CID', numero: 23 },
+    { nome: 'Otávio Reis', partido: 'REDE', numero: 18 }
+  ]
 };
-var UFS=['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
-var DEMO={
-  presidente:[{nome:'Ana Fontes',part:'PV',num:51},{nome:'Otto Prado',part:'PL',num:22},{nome:'Cida Moraes',part:'PT',num:13},{nome:'Rui Bacelar',part:'PSD',num:55}],
-  governador:[{nome:'Tereza Kahn',part:'NOVO',num:30},{nome:'Leo Sampaio',part:'PT',num:13},{nome:'Marcos Vela',part:'PL',num:22},{nome:'Duda Nunes',part:'MDB',num:15}],
-  estadual:[{nome:'Caio Bittar',part:'Cidadania',num:23},{nome:'Rita Campos',part:'PSOL',num:50},{nome:'Ivo Leite',part:'UNIAO',num:44},{nome:'Sofia Prado',part:'PT',num:13}]
-};
-var CARGOS=[
-  {id:'presidente',rot:'Presidente',demo:'presidente'},
-  {id:'governador',rot:'Governador',demo:'governador',ufLabel:true},
-  {id:'senador',rot:'Senador',real:'Senador Federal'},
-  {id:'depfed',rot:'Deputado Federal',real:'Deputado Federal'},
-  {id:'estadual',rot:'Deputado Estadual/Distrital',demo:'estadual',ufLabel:true}
+
+const POLS_DEMO = [
+  { id:1,nome:'Jair Bolsonaro',cargo:'Ex-Presidente',partido:'PL',uf:'SP',av:'JB',
+    dados:{nascimento:'21/03/1955',naturalidade:'Glicério/SP',mandatos:'Deputado (7 mandatos)',escolaridade:'Superior (EsPCEx)',patrimonio:'R$ 5,8M',processos:'21 (TSE)',comparecimento:'94%',projetos:'17',votos:'22M (2018)',financiamento:'R$ 18M'},
+    fontes:[{l:'TSE',u:'https://divulgacandcontas.tse.jus.br/'},{l:'Transparência',u:'https://portaldatransparencia.gov.br/'},{l:'CNJ',u:'https://www.cnj.jus.br/'}]},
+  { id:2,nome:'Luiz Inácio Lula da Silva',cargo:'Presidente',partido:'PT',uf:'SP',av:'LL',
+    dados:{nascimento:'27/10/1945',naturalidade:'Caetés/PE',mandatos:'Presidente (3x)',escolaridade:'Superior (Metalurgia)',patrimonio:'R$ 7,9M',processos:'0 ativos',comparecimento:'100%',projetos:'4',votos:'60M (2022)',financiamento:'R$ 118M'},
+    fontes:[{l:'TSE',u:'https://divulgacandcontas.tse.jus.br/'},{l:'Planalto',u:'https://www.gov.br/planalto'}]},
+  { id:3,nome:'Ciro Gomes',cargo:'Ex-Deputado',partido:'PDT',uf:'CE',av:'CG',
+    dados:{nascimento:'16/08/1957',naturalidade:'Pindamonhangaba/SP',mandatos:'Governador CE, Dep Fed',escolaridade:'Superior (Direito)',patrimonio:'R$ 2,1M',processos:'3',comparecimento:'91%',projetos:'22',votos:'3,6M (2022)',financiamento:'R$ 28M'},
+    fontes:[{l:'TSE',u:'https://divulgacandcontas.tse.jus.br/'},{l:'Câmara',u:'https://www.camara.leg.br/'}]},
+  { id:4,nome:'Marina Silva',cargo:'Ministra',partido:'REDE',uf:'AC',av:'MS',
+    dados:{nascimento:'09/02/1958',naturalidade:'Rio Branco/AC',mandatos:'Senadora, Ministra (2x)',escolaridade:'Superior (História)',patrimonio:'R$ 190K',processos:'0',comparecimento:'96%',projetos:'38',votos:'923K (2010)',financiamento:'R$ 2,4M'},
+    fontes:[{l:'MMA',u:'https://www.gov.br/mma'},{l:'Senado',u:'https://www25.senado.leg.br/'}]},
+  { id:5,nome:'Arthur Lira',cargo:'Deputado',partido:'PP',uf:'AL',av:'AL',
+    dados:{nascimento:'30/07/1969',naturalidade:'Maceió/AL',mandatos:'Deputado (4x), Pres. Câmara',escolaridade:'Superior (Direito)',patrimonio:'R$ 3,2M',processos:'8',comparecimento:'88%',projetos:'12',votos:'128K (2022)',financiamento:'R$ 6,1M'},
+    fontes:[{l:'Câmara',u:'https://www.camara.leg.br/deputados/'},{l:'CNJ',u:'https://www.cnj.jus.br/'}]},
+  { id:6,nome:'Simone Tebet',cargo:'Ministra',partido:'MDB',uf:'MS',av:'ST',
+    dados:{nascimento:'22/07/1970',naturalidade:'Três Lagoas/MS',mandatos:'Senadora, Ministra',escolaridade:'Superior (Direito)',patrimonio:'R$ 4,1M',processos:'2',comparecimento:'97%',projetos:'29',votos:'503K (2018)',financiamento:'R$ 14M'},
+    fontes:[{l:'Senado',u:'https://www25.senado.leg.br/'},{l:'TSE',u:'https://divulgacandcontas.tse.jus.br/'}]},
+  { id:7,nome:'Davi Alcolumbre',cargo:'Senador',partido:'UNIÃO',uf:'AP',av:'DA',
+    dados:{nascimento:'13/09/1977',naturalidade:'Macapá/AP',mandatos:'Senador (2x), Pres. Senado',escolaridade:'Superior (Economia)',patrimonio:'R$ 2,8M',processos:'12',comparecimento:'85%',projetos:'15',votos:'220K (2022)',financiamento:'R$ 7,3M'},
+    fontes:[{l:'Senado',u:'https://www25.senado.leg.br/'}]},
+  { id:8,nome:'Rodrigo Pacheco',cargo:'Senador',partido:'PSD',uf:'MG',av:'RP',
+    dados:{nascimento:'03/07/1976',naturalidade:'Porto Alegre/RS',mandatos:'Senador, Pres. Senado',escolaridade:'Superior (Direito)',patrimonio:'R$ 6,4M',processos:'5',comparecimento:'90%',projetos:'11',votos:'4,7M (2018)',financiamento:'R$ 21M'},
+    fontes:[{l:'Senado',u:'https://www25.senado.leg.br/'},{l:'TSE',u:'https://divulgacandcontas.tse.jus.br/'}]}
 ];
-var LOCAL=LS.get('mb_local',null);
-var BALLOTS=LS.get('mb_ballots',[]);
-var CAND=[];
-var VOTA={passo:0,esc:{},selTemp:null,code:'',hash:'',q:''};
-var APUR={recorte:'nacional',uf:'',cidade:''};
-var RADAR={q:'',filtro:'',fixados:LS.get('mb_fix',[])};
-var CIDADES={};
-var SESSAO=LS.get('mb_session',null);
-var scr=SESSAO?'inicio':'login';
-var NAV=[['inicio','\u{1F3E0}','Inicio'],['votar','\u{1F5F3}','Votar'],['apuracoes','\u{1F4CA}','Apurações'],['radar','\u{1F464}','Radar'],['conferir','\u{1F50D}','Conferir']];
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function iniciais(n){return String(n||'?').trim().split(/\s+/).map(function(p){return p[0]}).filter(Boolean).join('').slice(0,2).toUpperCase()}
-function corAvatar(n){var h=0;var s=String(n||'');for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return 'hsl('+h+',55%,45%)'}
-function fmtCode(d){return d.replace(/(.{4})/g,'$1 ').trim()}
-async function sha(txt){try{var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}catch(e){var h=5381;var s=String(txt);for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(16).padStart(16,'0').repeat(4).slice(0,64)}}
-function toast(msg){var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.remove('hidden');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.add('hidden')},2400)}
-function navHTML(){var h='<nav class="bot">';for(var i=0;i<NAV.length;i++){var n=NAV[i];h+='<button data-scr="'+n[0]+'" class="'+(scr===n[0]?'on':'')+'"><span>'+n[1]+'</span><span>'+n[2]+'</span></button>'}return h+'</nav>'}
-function headerHTML(t,back){return '<header><button class="hback" '+(back?'data-back="1"':'style="visibility:hidden"')+'>\u2190</button><img class="logo" src="logo.svg" alt="" onerror="this.remove()"><b>'+esc(t==='MudaBrasil'?'VotaBrasil':t)+'</b><button class="hback" id="fontbtn" data-acao="fonte" title="Fonte grande">A+</button><span class="badge" id="badge">\u2026</span></header>'}
-function renderDiaD(){var a1=new Date('2026-10-04T08:00:00-03:00');var a2=new Date('2026-10-25T08:00:00-03:00');var ag=new Date();function dd(a){var x=Math.ceil((a-ag)/864e5);return x>=0?x:0}var el=document.getElementById('diad-dados');if(!el)return;el.innerHTML='<div class="tile"><b>'+dd(a1)+'</b><span>dias pro 1o turno (04/10)</span></div><div class="tile"><b>'+dd(a2)+'</b><span>dias pro 2o turno (25/10)</span></div>'}
-function render(){var m=document.getElementById('app');var h='';if(scr==='inicio')h=headerHTML('VotaBrasil',false)+telaInicio();else if(scr==='login')h=telaLogin();else if(scr==='votar')h=headerHTML('Votar',VOTA.passo>0)+telaVotar();else if(scr==='apuracoes')h=headerHTML('Apurações',false)+telaApur();else if(scr==='radar')h=headerHTML('Radar Politico',false)+telaRadar();else h=headerHTML('Conferir Voto',false)+telaConferir();m.innerHTML=h+navHTML();bindAll();badge();renderDiaD();if(LS.get('mb_fonteg',0))document.body.classList.add('fonteg');else document.body.classList.remove('fonteg')}
-async function badge(){var b=document.getElementById('badge');if(!b||!API)return;try{var r=await fetch(API+'/api/health',{cache:'no-store'});if(r.ok){b.textContent='sistema no ar';b.classList.remove('off')}else throw 0}catch(e){b.textContent='sem conexao';b.classList.add('off')}}
-function telaInicio(){
-  var d1=new Date(2026,9,4,8),d2=new Date(2026,9,25,8),ag=new Date();
-  function dd(a){var x=Math.ceil((a-ag)/864e5);return x>=0?x:0}
-  return '<section class="hero"><h1>O PODER EMANA DO POVO<br>NÃO ACABA NO DIA DA ELEIÇÃO.</h1><h2>Seu voto coloca. Seu voto tira.</h2><p>Eleição pelo celular com comprovante verificável.<br>Protótipo de viabilidade, sem valor jurídico.</p></section>'+
-  '<h3 class="sect">PÁGINAS DO APP</h3>'+
-  '<div class="grid2">'+
-  '<div class="card c-row"><span class="c-ico">🗳️</span><div class="c-body"><b>VOTAÇÃO</b><small>Teclado estilo urna, 5 cargos</small><button class="btn-gold" data-go="votar">VOTAR AGORA</button></div></div>'+
-  '<div class="card c-row"><span class="c-ico">📊</span><div class="c-body"><b>RESULTADOS</b><small>Apuração ao vivo em donuts</small><button class="btn-gold" data-go="apuracoes">VER AGORA</button></div></div>'+
-  '<div class="card c-row"><span class="c-ico">👤</span><div class="c-body"><b>RADAR POLÍTICO</b><small>Quem é, reclamar e apoiar</small><button class="btn-gold" data-go="radar">ABRIR RADAR</button></div></div>'+
-  '<div class="card c-row"><span class="c-ico">🔍</span><div class="c-body"><b>CONFERIR VOTO</b><small>Seu código de 20 dígitos no site</small><button class="btn-gold" data-go="conferir">CONFERIR</button></div></div>'+
-  '</div>'+
-  '<div class="chips"><span>🔒 100% anônimo</span><span>🔗 trilha de hash</span><span>🇧🇷 fontes oficiais</span><span>⚖️ regra dos 70%</span></div>'+
-  '<div class="card diad"><b>🗓️ DIA D</b><div class="grid2" id="diad-dados"><div class="tile"><b>'+dd(d1)+'</b><span>dias pro 1º turno (04/10)</span></div><div class="tile"><b>'+dd(d2)+'</b><span>dias pro 2º turno (25/10)</span></div></div><small data-tip="Datas fixas da Constituição (art. 77): 1º e 2º domingos de outubro">ℹ️ datas constitucionais</small></div>';
-}function progHTML(at){var h='<div class="prog5">';for(var i=0;i<5;i++)h+='<i class="'+(i<at?'on':'')+'"></i>';return h+'</div>'}
-function telaVotar(){if(VOTA.passo===0)return telaLocal();if(VOTA.passo>=1&&VOTA.passo<=5)return telaCargo(VOTA.passo-1);if(VOTA.passo===6)return telaRevisao();if(VOTA.passo===7)return telaAviso();return telaRecibo()}
-function telaLocal(){var ufSel=LOCAL?LOCAL.uf:(UFS.indexOf('RJ')>=0?'RJ':UFS[0]);var h=progHTML(0);h+='<div class="card loc"><b>ONDE VOCE VOTA?</b><small>A eleicao usa seu local pra montar os cargos de estado e municipio.</small>';h+='<button class="btn-gold wide" id="geo">\u{1F6F0} ATIVAR MINHA LOCALIZACAO</button>';h+='<div class="row2"><label>Estado<select id="uf">';for(var i=0;i<UFS.length;i++)h+='<option '+(UFS[i]===ufSel?'selected':'')+'>'+UFS[i]+'</option>';h+='</select></label>';h+='<label>Cidade<select id="cid"><option value="">escolha o estado...</option></select></label></div>';h+='<input id="cidLivre" placeholder="ou digite a cidade se nao achar">';h+='<p class="warn">\u26A0 Esta fora do seu domicilio eleitoral? Vale o local escolhido aqui.</p>';h+='<button class="btn-gold wide" id="okLocal">CONFIRMAR LOCAL DE VOTACAO</button></div>';return h}
-function cargoInfo(i){var c=CARGOS[i];var rot=c.rot;if(c.ufLabel)rot=c.rot+' \u2014 '+(LOCAL?LOCAL.uf:'BR');return {rot:rot,demo:c.demo,real:c.real}}
-function listaCandidatos(i){var ci=cargoInfo(i);if(ci.demo){return DEMO[ci.demo].map(function(x){return {nome:x.nome,part:x.part,num:String(x.num),demo:true}})}var uf=LOCAL?LOCAL.uf:'';var list=CAND.filter(function(c){return (c.position===ci.real||c.position===ci.real.replace(' Federal',''))&&(!uf||c.state===uf)}).slice(0,12);if(!list.length)return [];return list.map(function(c){return {nome:c.name,part:c.party,num:String(c.number||''),id:c.id,demo:false}})}
-function participacaoHTML(){if(!LOCAL||!LOCAL.uf)return '';var n=BALLOTS.filter(function(b){return b.uf===LOCAL.uf}).length;return '<div class="participacao" data-tip="Contador anonimo de cedulas - suas escolhas nunca saem do aparelho">\u{1F465} Participacao em '+LOCAL.uf+': <b>'+n+' cedula(s)</b></div>'}
-function glossarioVotacao(){return '<div class="card gloss"><b>\u{1F4D6} GLOSSARIO ELEITORAL</b><div class="chips"><span data-tip="Voce vota, mas nao escolhe ninguem: registra indiferenca. Conta no total, nao elege ninguem.">VOTO EM BRANCO</span><span data-tip="Voto de protesto: voce anula de proposito. Nao elege ninguem e nao cancela os outros cargos.">VOTO NULO</span><span data-tip="Perda do mandato. No VotaBrasil: se 70% de quem elegeu revoga, o mandato cai.">CASSACAO</span><span data-tip="Cerimonia que inicia o mandato. A revogacao so abre depois dela.">POSSE</span><span data-tip="70% dos votos que elegeram = cassacao. E o poder continuo do povo.">REGRA DOS 70%</span></div></div>'}
-function telaCargo(i){var ci=cargoInfo(i);var lista=listaCandidatos(i);var qq=(VOTA.q||'').toLowerCase();if(qq){lista=lista.filter(function(x){return (x.nome||'').toLowerCase().indexOf(qq)>=0||(x.part||'').toLowerCase().indexOf(qq)>=0})}var sel=VOTA.selTemp;var h=progHTML(i);h+=participacaoHTML();h+='<div class="cargo-tit"><b>'+esc(ci.rot.toUpperCase())+'</b><small>Toque no candidato (ou branco / nulo)</small></div>';h+='<input type="search" class="search-mini" id="cargo-q" placeholder="\u{1F50D} filtrar por nome ou partido..." value="'+esc(VOTA.q||'')+'">';if(!lista.length)h+='<small class="hint">Nenhum candidato real carregado pra este UF ainda (TSE pendente).</small>';for(var k=0;k<lista.length;k++){var x=lista[k];var selCls=(sel&&sel.tipo==='cand'&&sel.k===k)?'sel':'';h+='<div class="cand '+selCls+'" data-sel="'+i+':'+k+'"><span class="av" style="background:'+corAvatar(x.nome)+'">'+iniciais(x.nome)+'</span><div class="nm"><b>'+esc(x.nome)+' '+(x.demo?'<span class="chip-demo">TSE pendente</span>':'')+'</b><small>'+esc(x.part)+' \u00B7 '+esc(x.num||'\u2014')+'</small></div><span class="radio"></span></div>'}h+='<small class="hint">Os botoes de voto ficam FIXOS aqui embaixo.</small>';h+='<div class="urbar"><button class="brn" data-ur="branco">BRANCO</button><button class="nul" data-ur="nulo">NULO</button></div>';h+='<div class="barAcoes"><button class="btn-ghost" data-acao="voltar">\u2190 VOLTAR</button><button class="btn-ghost" data-acao="corrige">CORRIGE</button><button class="btn-gold" data-acao="confirma" '+(!sel?'disabled':'')+'>CONFIRMA</button></div>';h+='<small class="hint">Toque no candidato pra selecionar, depois use CORRIGE/BRANCO/NULO/CONFIRMA.</small>';h+=glossarioVotacao();return h}
-function telaRevisao(){var rows='';for(var i=0;i<CARGOS.length;i++){var c=CARGOS[i];var escolha=VOTA.esc[c.id];var texto=escolha?(escolha.tipo==='branco'?'VOTO EM BRANCO':escolha.tipo==='nulo'?'VOTO NULO':escolha.nome+' ('+escolha.part+' \u00B7 '+escolha.num+')'):'(nao votado)';rows+='<div class="rev-row"><div class="crg"><b>'+esc(cargoInfo(i).rot)+'</b><small>'+esc(texto)+'</small></div><button class="trocar" data-trocar="'+i+'">trocar</button></div>'}var h=progHTML(5);h+='<div class="card"><h3 style="color:var(--gold);font-size:14px;letter-spacing:2px;margin-bottom:10px">REVISE SUA CEDULA</h3>'+rows;h+='<button class="btn-gold wide" data-acao="r3" style="margin-top:14px">CONFIRMAR</button></div>';return h}
-function telaAviso(){var pct=Math.round(((window.MudaBrasil&&window.MudaBrasil.REGRA_REVOGACAO||{percentual_cassacao:0.7}).percentual_cassacao)*100);var h=progHTML(5);h+='<div class="aviso"><b style="color:var(--gold)">\u2139 Mandato revogavel</b><p style="margin-top:6px">Voce podera <b>revogar</b> apos a posse se o eleito nao corresponder \u2014 regra dos '+pct+'%: se esse percentual dos eleitores que elegeram revogam, cai o mandato.</p></div>';h+='<button class="btn-gold wide" data-acao="gerar">ENTENDI, GERAR MEU CODIGO</button>';return h}
-async function registrarVoto(){var digits=Array.from(crypto.getRandomValues(new Uint8Array(20))).map(function(x){return x%10}).join('');var prev=BALLOTS.length?BALLOTS[BALLOTS.length-1].hash:('0'.repeat(64));var payload=JSON.stringify({digits:digits,esc:VOTA.esc,uf:LOCAL?LOCAL.uf:'',cidade:LOCAL?LOCAL.cidade:'',ts:Date.now(),prev:prev});var hash=await sha(payload);BALLOTS.push({code:digits,hash:hash,esc:VOTA.esc,uf:LOCAL?LOCAL.uf:'',cidade:LOCAL?LOCAL.cidade:'',ts:Date.now()});LS.set('mb_ballots',BALLOTS);VOTA.code=digits;VOTA.hash=hash}
-function startCountdown(){var ov=document.getElementById('overlay');ov.classList.remove('hidden');var n=8;ov.innerHTML='<div class="num">'+n+'</div><small>Registrando sua cedula...<br>Toque pra concluir agora</small>';var tick=setInterval(function(){n--;ov.querySelector('.num').textContent=n;if(n<=0){clearInterval(tick);finalize()}},1000);ov.onclick=function(){clearInterval(tick);finalize()};async function finalize(){try{await registrarVoto()}catch(e){console.error(e)}ov.classList.add('hidden');ov.onclick=null;VOTA.passo=8;render()}}
-function telaRecibo(){var blocos=(VOTA.code.match(/.{1,4}/g)||[]).join(' ');var h='<div class="receipt"><p class="ok-check">\u2705 VOTO REGISTRADO</p>';h+='<div class="code-box"><div class="label">SEU COMPROVANTE</div><div class="dig" data-acao="copiar" style="cursor:pointer">'+esc(blocos)+'</div>';h+='<small class="hint">\u{1F446} toque no codigo para copiar</small>';h+='<div class="hash">'+esc(VOTA.hash.slice(0,32))+'\u2026'+esc(VOTA.hash.slice(-8))+'</div></div>';h+='<p style="font-size:12px;color:var(--mut);margin-bottom:6px">Guarde este codigo: e seu unico comprovante.</p>';h+='<p style="font-size:12px;color:#c3d0e4;margin-bottom:10px">\u{1F512} VOTO SECRETO: suas escolhas nunca saem deste aparelho. O codigo comprova participacao, nao o conteudo do voto.</p>';h+='<button class="btn-gold" data-acao="copiar">COPIAR CODIGO</button>';h+='<button class="btn-ghost" data-acao="vsite" style="width:100%;margin-top:8px">CONFERIR NO SITE \u2192</button>';h+='<button class="btn-ghost" data-acao="novo" style="width:100%;margin-top:8px">Votar de novo (demonstracao)</button></div>';return h}
-function donutHTML(data){var cores=['#2ECC71','#FFD700','#4A90D9','#E74C3C','#9B59B6'];var top=data.slice(0,4);var outros=0;for(var i=4;i<data.length;i++)outros+=data[i][1];var total=0;for(var j=0;j<top.length;j++)total+=top[j][1];total+=outros;if(!total)return '<small class="hint">Sem votos ainda.</small>';var parts=[];var deg=0;for(var i=0;i<top.length;i++){var p=top[i][1]/total*360;parts.push(cores[i]+' '+deg+'deg '+(deg+p)+'deg');deg+=p}if(outros>0){parts.push(cores[4]+' '+deg+'deg 360deg')}var grad='conic-gradient('+parts.join(',')+')';var leg='';for(var i=0;i<top.length;i++){leg+='<li><i style="background:'+cores[i]+'"></i>'+esc(top[i][0])+' <small>\u00B7 '+Math.round(top[i][1]/total*100)+'%</small></li>'}if(outros>0)leg+='<li><i style="background:'+cores[4]+'"></i>Outros <small>\u00B7 '+Math.round(outros/total*100)+'%</small></li>';return '<div class="donut-row"><div class="donut-plot" style="background:'+grad+'"></div><ul class="donut-leg">'+leg+'</ul></div>'}
-function agregaApur(){var seed={presidente:[['Ana Fontes',34],['Otto Prado',29],['Cida Moraes',21],['Rui Bacelar',16]],governador:[['Tereza Kahn',31],['Leo Sampaio',27],['Marcos Vela',24],['Duda Nunes',18]],senador:[['Caio Bittar',38],['Rita Campos',26],['Ivo Leite',20],['Sofia Prado',16]],depfed:[['Caio Bittar',33],['Rita Campos',28],['Ivo Leite',22],['Sofia Prado',17]],estadual:[['Caio Bittar',36],['Rita Campos',25],['Ivo Leite',21],['Sofia Prado',18]]};var uf=APUR.uf;var cid=APUR.cidade;var out={};for(var k=0;k<CARGOS.length;k++){var c=CARGOS[k];var map={};var s=seed[c.id]||[];for(var j=0;j<s.length;j++)map[s[j][0]]=(map[s[j][0]]||0)+s[j][1];for(var j=0;j<BALLOTS.length;j++){var b=BALLOTS[j];if(APUR.recorte==='estado'&&b.uf!==uf)continue;if(APUR.recorte==='cidade'&&(b.uf!==uf||b.cidade!==cid))continue;var e=b.esc[c.id];if(!e)continue;var nome=e.tipo==='cand'?e.nome:(e.tipo==='branco'?'Voto branco':'Voto nulo');map[nome]=(map[nome]||0)+1}var arr=Object.entries(map).sort(function(a,b){return b[1]-a[1]});out[c.id]=arr}return out}
-function telaApur(){var pills=['nacional','estado','cidade'];var rotMap={nacional:'NACIONAL',estado:'ESTADO',cidade:'CIDADE'};var selUF=APUR.uf||(UFS.indexOf('RJ')>=0?'RJ':UFS[0]);var selects='';if(APUR.recorte==='estado'||APUR.recorte==='cidade'){selects+='<div class="row2"><label>Estado<select id="a-uf">';for(var i=0;i<UFS.length;i++)selects+='<option '+(UFS[i]===selUF?'selected':'')+'>'+UFS[i]+'</option>';selects+='</select></label>';if(APUR.recorte==='cidade'){var lista=CIDADES[selUF]||[];selects+='<label>Cidade<select id="a-cid">';if(lista.length){for(var j=0;j<lista.length;j++)selects+='<option '+(lista[j]===APUR.cidade?'selected':'')+'>'+lista[j]+'</option>'}else{selects+='<option value="">carregando...</option>'}selects+='</select></label>'}else selects+='<label></label>';selects+='</div>'}var dados=agregaApur();var cards='';for(var k=0;k<CARGOS.length;k++){var c=CARGOS[k];var arr=dados[c.id]||[];cards+='<div class="donut"><h4>'+esc(c.rot)+' <span class="badge-parc">apuracao parcial</span></h4>'+donutHTML(arr)+'</div>'}var n=BALLOTS.length;var h='<div class="pills">';for(var i=0;i<pills.length;i++)h+='<button class="pill '+(APUR.recorte===pills[i]?'on':'')+'" data-apur="'+pills[i]+'">'+rotMap[pills[i]]+'</button>';h+='</div>'+selects;h+='<small class="hint">Apuracao parcial: demonstrativa (TSE pendente) + '+n+' voto(s) registrado(s) neste aparelho'+(APUR.recorte!=='nacional'?' \u00B7 filtrado por '+(APUR.recorte==='estado'?uf:'cidade'):'')+'.</small>';h+='<div class="donut-grid">'+cards+'</div>';return h}
-function telaRadar(){var q=RADAR.q;var f=RADAR.filtro;var pills=[['','Todos'],['dep','Dep. Federais'],['sen','Senadores'],['ok','Verificados']];var list=CAND.slice();if(q){var qq=q.toLowerCase();list=list.filter(function(c){return (c.name||'').toLowerCase().indexOf(qq)>=0||(c.party||'').toLowerCase().indexOf(qq)>=0||(c.state||'').toLowerCase().indexOf(qq)>=0})}if(f==='dep')list=list.filter(function(c){return c.position==='Deputado Federal'});if(f==='sen')list=list.filter(function(c){return c.position==='Senador Federal'});if(f==='ok')list=list.filter(function(c){return c.selo});var cards='';for(var k=0;k<Math.min(list.length,40);k++){var c=list[k];var chip=c.selo?'<span class="chip-ok">\u2713 VERIFICADO</span>':'';var fixado=RADAR.fixados.indexOf(c.id)>=0;cards+='<div class="pol-card"><span class="av" style="background:'+corAvatar(c.name)+'">'+iniciais(c.name)+'</span><div class="nm" data-pol="'+esc(c.id)+'"><b>'+esc(c.name)+' '+chip+'</b><small>'+esc(c.party||'')+' \u00B7 '+esc(c.state||'')+'</small></div><div class="acts"><button class="btn-green" data-apoio="'+esc(c.id)+'">APOIAR</button><button class="btn-red" data-recl="'+esc(c.id)+'">RECLAMAR</button><button class="btn-ghost" data-fix="'+esc(c.id)+'" title="Fixar pra comparar (max. 2)">'+(fixado?'\u{1F4CC}':'\u{1F4CD}')+'</button></div></div>'}if(!cards)cards='<small class="hint">Nenhum politico encontrado. Tente outra busca.</small>';var comp=RADAR.fixados.length>=2?'<button class="btn-gold wide" style="margin-top:10px" data-acao="comparar">\u{1F19A} Comparar lado a lado</button>':'';var h='<input type="search" class="search-mini" id="radar-q" placeholder="\u{1F50D} buscar por nome, partido ou UF..." value="'+esc(q)+'">';h+='<div class="pills">';for(var i=0;i<pills.length;i++)h+='<button class="pill '+(f===pills[i][0]?'on':'')+'" data-rfiltro="'+pills[i][0]+'">'+pills[i][1]+'</button>';h+='</div>';h+=(!CAND.length?'<small class="hint">Carregando politicos reais...</small>':'');h+=cards+comp;return h}
-function telaConferir(){var blocos='';for(var i=0;i<5;i++)blocos+='<input class="cf-in" data-cf="'+i+'" maxlength="4" inputmode="numeric" placeholder="0000">';var hist='';for(var i=BALLOTS.length-1;i>=0;i--){var b=BALLOTS[i];var d=new Date(b.ts);hist+='<div class="hist-item" data-fill="'+esc(b.code)+'"><span class="cc">'+esc(fmtCode(b.code))+'</span><span class="dt">'+d.toLocaleDateString('pt-BR')+'</span><span class="chip-at">NO APARELHO</span></div>'}if(!hist)hist='<small class="hint">Nenhum codigo registrado neste aparelho.</small>';var h='<div class="card"><h3 style="color:var(--gold);font-size:14px;letter-spacing:2px;margin-bottom:6px">CONFERIR MEU VOTO</h3><small>Cole seu codigo de 20 digitos e verifique no site oficial.</small><div class="conf-inp">'+blocos+'</div>';h+='<button class="btn-gold wide" data-acao="confV">CONFERIR NO SITE</button>';h+='<button class="btn-ghost wide" data-acao="exemplo" style="width:100%;margin-top:8px">Testar com um exemplo</button>';h+='<button class="btn-ghost wide" data-acao="vSiteV" style="width:100%;margin-top:8px">ABRIR SEM CODIGO</button></div>';h+='<div class="card"><h3 style="color:var(--gold);font-size:14px;letter-spacing:2px;margin-bottom:6px">MEUS CODIGOS NESTE APARELHO</h3>'+hist+'</div>';h+='<small class="hint" style="display:block;text-align:center;margin-top:8px">A verificacao completa abre no site oficial VotaBrasil.</small>';return h}
-function openModal(html){var m=document.getElementById('modal');m.innerHTML='<div class="box">'+html+'</div>';m.classList.remove('hidden');m.onclick=function(e){if(e.target===m)closeModal()}}
-function closeModal(){document.getElementById('modal').classList.add('hidden');document.getElementById('modal').innerHTML=''}
-function modalPolitico(id){var c=null;for(var i=0;i<CAND.length;i++)if(CAND[i].id===id)c=CAND[i];if(!c)return;var html='<h3>'+esc(c.name)+' '+(c.selo?'<span class="chip-ok">\u2713 VERIFICADO</span>':'')+'</h3><small>'+esc(c.position||'')+' \u00B7 '+esc(c.party||'')+' \u00B7 '+esc(c.state||'')+'</small>';html+='<div style="margin:12px 0;display:flex;gap:8px"><button class="btn-green" data-apoio="'+esc(c.id)+'" style="flex:1">\u{1F44D} APOIAR</button><button class="btn-red" data-recl="'+esc(c.id)+'" style="flex:1">\u{1F44E} RECLAMAR</button></div>';html+='<a class="btn-gold" style="display:block;text-align:center;width:100%" target="_blank" rel="noopener" href="../pages/parlamentares.html?dep='+encodeURIComponent(c.name)+'">Ver ficha completa no site \u2192</a>';html+='<div class="row"><button class="btn-ghost" data-close="1">Fechar</button></div>';openModal(html)}
-function modalForm(pid,tipo){var titulo=tipo==='apoio'?'APOIAR':'RECLAMAR';var cor=tipo==='apoio'?'btn-green-fill':'btn-red-fill';var html='<h3>'+titulo+'</h3><small>Politico: '+esc(pid)+'</small><input type="text" id="f-tit" placeholder="Titulo (curto)" style="margin-top:10px">';html+='<textarea id="f-desc" placeholder="'+(tipo==='apoio'?'Por que voce apoia?':'Descreva o problema com evidencias (se tiver).')+'"></textarea>';html+='<div class="row"><button class="btn-ghost" data-close="1">Cancelar</button><button class="'+cor+'" data-enviar="'+esc(pid)+'" data-tipo="'+tipo+'">Enviar</button></div>';openModal(html)}
-function modalCedula(b){var d=new Date(b.ts);var rows='';for(var i=0;i<CARGOS.length;i++){var c=CARGOS[i];var e=b.esc[c.id];var t=e?(e.tipo==='cand'?esc(e.nome)+' ('+esc(e.part)+' \u00B7 '+esc(e.num||'\u2014')+')':(e.tipo==='branco'?'VOTO EM BRANCO':'VOTO NULO')):'(nao votado)';rows+='<div class="rev-row"><div class="crg"><b>'+esc(cargoInfo(i).rot)+'</b><small>'+t+'</small></div></div>'}var html='<h3>\u{1F50D} CEDULA NESTE APARELHO</h3><small>Registrada em '+d.toLocaleString('pt-BR')+' \u00B7 '+esc(b.uf||'')+(b.cidade?' \u00B7 '+esc(b.cidade):'')+'</small>'+rows;html+='<p style="margin:10px 0;font-size:12px;color:#c3d0e4">\u{1F512} Exibida somente neste aparelho. Nada foi enviado a servidores.</p>';html+='<div class="row"><button class="btn-ghost" data-close="1">Fechar</button></div>';openModal(html)}
-function telaLogin(){var h='<section class="hero"><h1>ENTRAR</h1><p>Identifique-se pra votar com seguranca.<br>No prototipo, voce tambem pode entrar como convidado (anonimo).</p></section>';h+='<div class="card"><button class="btn-gold wide" id="lg-g">G \u00B7 ENTRAR COM GOOGLE</button>';h+='<button class="btn-ghost wide" id="lg-tel" style="width:100%;margin-top:8px">\u{1F4F1} ENTRAR COM TELEFONE</button>';h+='<button class="btn-ghost wide" id="lg-mail" style="width:100%;margin-top:8px">\u2709 ENTRAR COM E-MAIL</button>';h+='<button class="btn-ghost wide" id="lg-guest" style="width:100%;margin-top:8px">Continuar como convidado (anonimo)</button>';h+='<small class="hint" style="display:block;margin-top:10px">Se implantado oficialmente: entrada via gov.br, blockchain ou outro meio oficial, com total seguranca.</small></div>';h+='<div class="card hidden" id="lg-form"><small id="lg-label"></small><input id="lg-id" placeholder="" style="margin-top:8px"><button class="btn-gold wide" id="lg-send" style="margin-top:8px">ENVIAR CODIGO</button><input id="lg-code" class="hidden" placeholder="codigo recebido" style="margin-top:8px"><button class="btn-gold wide hidden" id="lg-ok" style="margin-top:8px">CONFIRMAR</button></div>';return h}
-var LG={modo:''};
-function abreForm(modo){LG.modo=modo;var f=document.getElementById('lg-form');if(!f)return;f.classList.remove('hidden');document.getElementById('lg-label').textContent=modo==='phone'?'Digite seu celular (DDD+numero)':'Digite seu e-mail';document.getElementById('lg-id').placeholder=modo==='phone'?'21 99999-9999':'voce@email.com';document.getElementById('lg-code').classList.add('hidden');document.getElementById('lg-ok').classList.add('hidden')}
-function bindLogin(){var g=document.getElementById('lg-g');if(g)g.onclick=function(){toast('Google ativa na versao implantada - use convidado ou codigo no prototipo');abreForm('google')};var t=document.getElementById('lg-tel');if(t)t.onclick=function(){abreForm('phone')};var m=document.getElementById('lg-mail');if(m)m.onclick=function(){abreForm('email')};var gu=document.getElementById('lg-guest');if(gu)gu.onclick=function(){SESSAO={nome:'Convidado',tipo:'guest'};LS.set('mb_session',SESSAO);scr='inicio';render()};var s=document.getElementById('lg-send');if(s)s.onclick=async function(){var id=document.getElementById('lg-id').value.trim();if(!id){toast('Preencha');return}LG.id=id;var rota=LG.modo==='phone'?'/api/auth/otp/send':'/api/auth/email/send';try{var r=await fetch(API+rota,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(LG.modo==='phone'?{phone:id}:{email:id})});var j=await r.json().catch(function(){return {}});if(j&&j.code)toast('Codigo prototipo: '+j.code);else toast('Codigo simulado no prototipo: 123456')}catch(e){toast('Codigo simulado no prototipo: 123456')}document.getElementById('lg-code').classList.remove('hidden');document.getElementById('lg-ok').classList.remove('hidden')};var ok=document.getElementById('lg-ok');if(ok)ok.onclick=async function(){var code=document.getElementById('lg-code').value.trim();var rota=LG.modo==='phone'?'/api/auth/otp/verify':'/api/auth/email/verify';var nome=LG.id;try{var r=await fetch(API+rota,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(LG.modo==='phone'?{phone:LG.id,code:code}:{email:LG.id,code:code})});var j=await r.json().catch(function(){return {}});if(j&&j.name)nome=j.name;if(j&&j.token)LG.token=j.token}catch(e){}SESSAO={nome:nome,tipo:LG.modo,token:LG.token||''};LS.set('mb_session',SESSAO);scr='inicio';render();toast('Bem-vindo(a), '+nome)}}
-function popupSimulacao(){if(LS.get('mb_aviso_sim',0))return;var html='<h3>\u{1F9EA} PROTOTIPO EM TESTE</h3>';html+='<p style="margin:8px 0">O VotaBrasil e uma <b>simulacao demonstrativa</b> de votacao pelo celular \u2014 nada aqui tem valor juridico ou eleitoral.</p>';html+='<p style="margin:8px 0">Se implantado oficialmente, o login sera feito com <b>gov.br, blockchain ou outro meio oficial de identificacao</b>, com total seguranca, <b>voto secreto</b> e auditabilidade completa.</p>';html+='<p style="margin:8px 0">No prototipo, suas escolhas <b>nunca saem do aparelho</b>: o codigo comprova participacao, nao o conteudo.</p>';html+='<div class="row"><button class="btn-gold" id="aviso-ok">ENTENDI, COMECAR</button></div>';openModal(html);var b=document.getElementById('aviso-ok');if(b)b.onclick=function(){LS.set('mb_aviso_sim',1);closeModal()}}
-function bindAll(){bindLogin();var navBtns=$$('nav.bot button');for(var i=0;i<navBtns.length;i++){(function(b){b.onclick=function(){scr=b.dataset.scr;if(scr==='radar'&&!CAND.length)carregaCAND();render()}})(navBtns[i])}var goBtns=$$('[data-go]');for(var i=0;i<goBtns.length;i++){(function(b){b.onclick=function(){scr=b.dataset.go;if(scr==='radar'&&!CAND.length)carregaCAND();render()}})(goBtns[i])}var backBtns=$$('[data-back]');for(var i=0;i<backBtns.length;i++){backBtns[i].onclick=function(){if(scr==='votar'){VOTA.passo=Math.max(0,VOTA.passo-1);VOTA.selTemp=null;render();return}scr='inicio';render()}}var geo=document.getElementById('geo');if(geo)geo.onclick=pedirGeo;var ufSel=document.getElementById('uf');if(ufSel){ufSel.onchange=function(){carregarCidades(ufSel.value)};carregarCidades(ufSel.value)}var okL=document.getElementById('okLocal');if(okL)okL.onclick=confirmarLocal;var selBtns=$$('[data-sel]');for(var i=0;i<selBtns.length;i++){(function(el){el.onclick=function(){var p=el.dataset.sel.split(':');VOTA.selTemp={tipo:'cand',k:+p[1]};render()}})(selBtns[i])}var urBtns=$$('[data-ur]');for(var i=0;i<urBtns.length;i++){(function(el){el.onclick=function(){VOTA.selTemp={tipo:el.dataset.ur};render()}})(urBtns[i])}var acBtns=$$('[data-acao]');for(var i=0;i<acBtns.length;i++){(function(b){b.onclick=acaoClick})(acBtns[i])}var trBtns=$$('[data-trocar]');for(var i=0;i<trBtns.length;i++){(function(b){b.onclick=function(){var i=+b.dataset.trocar;VOTA.passo=i+1;VOTA.selTemp=null;render()}})(trBtns[i])}var apBtns=$$('[data-apur]');for(var i=0;i<apBtns.length;i++){(function(b){b.onclick=function(){APUR.recorte=b.dataset.apur;render();if(APUR.recorte==='estado'||APUR.recorte==='cidade'){setTimeout(function(){var s=document.getElementById('a-uf');if(s){s.onchange=function(){APUR.uf=s.value;APUR.cidade='';render()};carregarCidades(s.value)}var sc=document.getElementById('a-cid');if(sc)sc.onchange=function(){APUR.cidade=sc.value}},30)}}})(apBtns[i])}var cq=document.getElementById('cargo-q');if(cq)cq.oninput=function(){VOTA.q=cq.value;render();var n=document.getElementById('cargo-q');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}};var rq=document.getElementById('radar-q');if(rq)rq.oninput=function(){RADAR.q=rq.value;render();var n=document.getElementById('radar-q');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}};var rfBtns=$$('[data-rfiltro]');for(var i=0;i<rfBtns.length;i++){(function(b){b.onclick=function(){RADAR.filtro=b.dataset.rfiltro;render()}})(rfBtns[i])}var fxBtns=$$('[data-fix]');for(var i=0;i<fxBtns.length;i++){(function(b){b.onclick=function(e){e.stopPropagation();var id=b.dataset.fix;var k=RADAR.fixados.indexOf(id);if(k>=0){RADAR.fixados.splice(k,1)}else if(RADAR.fixados.length<2){RADAR.fixados.push(id)}else{toast('Maximo 2 politicos fixados');return}LS.set('mb_fix',RADAR.fixados);render()}})(fxBtns[i])}var polBtns=$$('[data-pol]');for(var i=0;i<polBtns.length;i++){(function(el){el.onclick=function(){modalPolitico(el.dataset.pol)}})(polBtns[i])}var apBtns2=$$('[data-apoio]');for(var i=0;i<apBtns2.length;i++){(function(el){el.onclick=function(e){e.stopPropagation();modalForm(el.dataset.apoio,'apoio')}})(apBtns2[i])}var rcBtns=$$('[data-recl]');for(var i=0;i<rcBtns.length;i++){(function(el){el.onclick=function(e){e.stopPropagation();modalForm(el.dataset.recl,'rec')}})(rcBtns[i])}var clBtns=$$('[data-close]');for(var i=0;i<clBtns.length;i++){clBtns[i].onclick=closeModal}var enBtns=$$('[data-enviar]');for(var i=0;i<enBtns.length;i++){(function(b){b.onclick=function(){enviarForm(b.dataset.enviar,b.dataset.tipo)}})(enBtns[i])}var cfins=$$('.cf-in');for(var i=0;i<cfins.length;i++){(function(inp,i){inp.oninput=function(){inp.value=inp.value.replace(/\D/g,'').slice(0,4);if(inp.value.length===4&&i<4)cfins[i+1].focus()};inp.onkeydown=function(e){if(e.key==='Backspace'&&!inp.value&&i>0){cfins[i-1].focus();cfins[i-1].value=''}}})(cfins[i],i)}var flBtns=$$('[data-fill]');for(var i=0;i<flBtns.length;i++){(function(el){el.onclick=function(){var c=el.dataset.fill;for(var j=0;j<cfins.length;j++)cfins[j].value=c.slice(j*4,j*4+4)}})(flBtns[i])}var tipEls=$$('[data-tip]');for(var i=0;i<tipEls.length;i++){(function(el){el.onclick=function(e){e.stopPropagation();toast(el.getAttribute('data-tip'))}})(tipEls[i])}}
-function acaoClick(e){var a=e.currentTarget.dataset.acao;if(a==='voltar'){VOTA.passo=Math.max(0,VOTA.passo-1);VOTA.selTemp=null;render()}else if(a==='corrige'){VOTA.selTemp=null;render()}else if(a==='confirma'){var i=VOTA.passo-1;var lista=listaCandidatos(i);var qq=(VOTA.q||'').toLowerCase();if(qq)lista=lista.filter(function(x){return (x.nome||'').toLowerCase().indexOf(qq)>=0||(x.part||'').toLowerCase().indexOf(qq)>=0});if(!VOTA.selTemp){toast('Selecione uma opcao antes de CONFIRMAR');return}if(VOTA.selTemp.tipo==='cand'){var c=lista[VOTA.selTemp.k];VOTA.esc[CARGOS[i].id]={tipo:'cand',nome:c.nome,part:c.part,num:c.num||''}}else{VOTA.esc[CARGOS[i].id]={tipo:VOTA.selTemp.tipo}}VOTA.selTemp=null;VOTA.passo=Math.min(6,VOTA.passo+1);try{if(navigator.vibrate)navigator.vibrate(60)}catch(e2){}render()}else if(a==='r3'){VOTA.passo=7;render()}else if(a==='gerar'){startCountdown()}else if(a==='copiar'){var txt=VOTA.code;try{navigator.clipboard.writeText(txt).then(function(){toast('Codigo copiado!')})}catch(e2){var t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Codigo copiado!')}}else if(a==='vsite'){window.open('../index.html#conferir-voto?code='+encodeURIComponent(VOTA.code),'_blank')}else if(a==='confV'){var v='';var inps=$$('.cf-in');for(var i=0;i<inps.length;i++)v+=inps[i].value;if(v.replace(/\D/g,'').length!==20){toast('Codigo precisa de 20 digitos');return}var b=null;for(var i=0;i<BALLOTS.length;i++)if(BALLOTS[i].code===v)b=BALLOTS[i];if(b){modalCedula(b)}else{window.open('../index.html#conferir-voto?code='+encodeURIComponent(v),'_blank')}}else if(a==='exemplo'){var b=BALLOTS.length?BALLOTS[BALLOTS.length-1]:null;var c=b?b.code:'16948051304534262993';var inps=$$('.cf-in');for(var i=0;i<inps.length;i++)inps[i].value=c.slice(i*4,i*4+4);toast('Exemplo preenchido')}else if(a==='vSiteV'){window.open('../index.html#conferir-voto','_blank')}else if(a==='fonte'){document.body.classList.toggle('fonteg');LS.set('mb_fonteg',document.body.classList.contains('fonteg'));toast(document.body.classList.contains('fonteg')?'Fonte grande ativada':'Fonte padrao')}else if(a==='comparar'){var cs=[];for(var i=0;i<RADAR.fixados.length;i++){for(var j=0;j<CAND.length;j++)if(CAND[j].id===RADAR.fixados[i]){cs.push(CAND[j]);break}}if(cs.length<2){toast('Fixe 2 politicos primeiro (toque no \u{1F4CD})');return}var html='<h3>\u{1F19A} Comparacao lado a lado</h3><div class="cols2">';for(var i=0;i<cs.length;i++){var c=cs[i];html+='<div class="card"><b>'+esc(c.name)+'</b><small>'+esc(c.party||'')+' \u00B7 '+esc(c.state||'')+'</small><a class="btn-gold" style="display:block;text-align:center;margin-top:8px" target="_blank" href="../pages/parlamentares.html?dep='+encodeURIComponent(c.name)+'">Ver ficha no site \u2192</a></div>'}html+='</div><div class="row"><button class="btn-ghost" data-close="1">Fechar</button></div>';openModal(html)}else if(a==='novo'){VOTA={passo:0,esc:{},selTemp:null,code:'',hash:'',q:''};render()}}
-function confirmarLocal(){var uf=document.getElementById('uf').value;var cidSel=document.getElementById('cid');var cidL=document.getElementById('cidLivre').value.trim();var cid=cidL||(cidSel?cidSel.value:'');if(!cid){toast('Escolha uma cidade ou digite');return}LOCAL={uf:uf,cidade:cid,fonte:cidL?'manual':(LOCAL&&LOCAL.fonte||'manual')};LS.set('mb_local',LOCAL);VOTA.passo=1;render()}
-async function pedirGeo(){if(!navigator.geolocation){toast('Geolocalizacao indisponivel neste aparelho');return}toast('Buscando sua localizacao...');navigator.geolocation.getCurrentPosition(async function(pos){try{var r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+pos.coords.latitude+'&longitude='+pos.coords.longitude+'&localityLanguage=pt');var j=await r.json();var ufRaw=(j.principalSubdivisionCode||'').replace(/^BR-/,'');var uf=UFS.indexOf(ufRaw)>=0?ufRaw:(j.principalSubdivision||'').toUpperCase().slice(0,2);var cidade=j.city||j.locality||'';if(UFS.indexOf(uf)<0){toast('UF nao identificada - escolha manualmente');return}LOCAL={uf:uf,cidade:cidade||'',fonte:'gps'};LS.set('mb_local',LOCAL);toast('Local detectado: '+uf+(cidade?' \u00B7 '+cidade:''));VOTA.passo=1;render()}catch(e2){toast('Falha ao resolver UF - escolha manualmente')}},function(err){toast('Permissao negada - escolha manualmente')},{timeout:12000,enableHighAccuracy:false})}
-async function carregarCidades(uf){if(!uf)return;if(CIDADES[uf]){var s=document.getElementById('cid');if(s)preencherSel(s,CIDADES[uf]);return}try{var r=await fetch('https://servicosdados.ibge.gov.br/api/v1/localidades/estados/'+uf+'/municipios?orderby=nome');var j=await r.json();var arr=(j||[]).map(function(m){return m.nome});CIDADES[uf]=arr;var s=document.getElementById('cid');if(s)preencherSel(s,arr);var sa=document.getElementById('a-cid');if(sa)preencherSel(sa,arr)}catch(e){var s=document.getElementById('cid');if(s)s.innerHTML='<option value="">erro ao carregar - digite abaixo</option>'}}
-function preencherSel(sel,arr){var h='<option value="">escolha...</option>';for(var i=0;i<arr.length;i++)h+='<option>'+arr[i]+'</option>';sel.innerHTML=h;if(LOCAL&&sel.id==='cid'&&LOCAL.cidade&&arr.indexOf(LOCAL.cidade)>=0)sel.value=LOCAL.cidade}
-async function carregaCAND(){if(CAND.length)return;if(!API){CAND=[];return}try{var r=await fetch(API+'/api/candidatos');var j=await r.json();CAND=(j.candidatos||[]).map(function(c){return {id:c.id,name:c.name,party:c.party,state:c.state,position:c.position,selo:!!c.selo}});render()}catch(e){CAND=[]}}
-async function flushFila(){if(!navigator.onLine)return;var fila=LS.get('mb_fila',[]);if(!fila.length)return;var rest=[];for(var x=0;x<fila.length;x++){var q=fila[x];try{await fetch(API+'/api/reclamacoes/public',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({politicianId:q.pid,tipo:q.tipo,titulo:q.titulo,descricao:q.descricao})})}catch(e){rest.push(q)}}LS.set('mb_fila',rest);if(rest.length<fila.length)toast('Pendente enviado!')}
-async function enviarForm(pid,tipo){var tit=document.getElementById('f-tit').value.trim();var desc=document.getElementById('f-desc').value.trim();if(!tit||!desc){toast('Preencha titulo e descricao');return}var btn=document.querySelector('[data-enviar]');btn.disabled=true;btn.textContent='Enviando...';try{var r=await fetch(API+'/api/reclamacoes/public',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({politicianId:pid,tipo:tipo,titulo:tit,descricao:desc})});if(!r.ok)throw new Error('HTTP '+r.status);toast(tipo==='apoio'?'Apoio registrado!':'Reclamacao registrada!');closeModal()}catch(e2){var fila=LS.get('mb_fila',[]);fila.push({pid:pid,tipo:tipo,titulo:tit,descricao:desc});LS.set('mb_fila',fila);closeModal();toast('Sem conexao: guardado, envia ao reconectar');btn.disabled=false;btn.textContent='Enviar'}}
-(function boot(){render();carregaCAND().catch(function(){});popupSimulacao();if(LS.get('mb_fonteg',0))document.body.classList.add('fonteg');window.addEventListener('online',flushFila);flushFila();if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}})();
 
+let flowState = { uf: '', cidade: '', cargos: {}, codigo: '' };
+let polList = POLS_DEMO.slice();
+let polAtualal = null;
+let cargoTroca = null;
+let votoConferido = null;
+let loginMode = 'cid';
+let loginStep = 1;
 
+/* ===== STORAGE HELPERS ===== */
+function getVotos() { try { return JSON.parse(localStorage.getItem(LS_VOTOS) || '[]'); } catch(e) { return []; } }
+function saveVotos(v) { localStorage.setItem(LS_VOTOS, JSON.stringify(v)); }
+function getRecl() { try { return JSON.parse(localStorage.getItem(LS_RECL) || '[]'); } catch(e) { return []; } }
+function saveRecl(r) { localStorage.setItem(LS_RECL, JSON.stringify(r)); }
+function getComp() { try { return JSON.parse(localStorage.getItem(LS_COMP) || '[]'); } catch(e) { return []; } }
+function saveComp(c) { localStorage.setItem(LS_COMP, JSON.stringify(c)); }
+function getPLOp() { try { return JSON.parse(localStorage.getItem(LS_PLOP) || '{}'); } catch(e) { return {}; } }
+function savePLOp(o) { localStorage.setItem(LS_PLOP, JSON.stringify(o)); }
+
+/* ===== NAVEGAÇÃO ===== */
+function ir(id) {
+  document.querySelectorAll('.sec,.flow').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  document.getElementById('h-title').textContent = 'VotaBrasil';
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  const nb = document.querySelector('.nav button[data-s="' + id + '"]');
+  if (nb) nb.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function iniciarVotacao() {
+  document.querySelectorAll('.sec,.flow').forEach(s => s.classList.remove('active'));
+  document.getElementById('flow-t1').classList.add('active');
+  document.getElementById('h-title').textContent = 'Votar';
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  const votarBtn = document.querySelector('.nav button[data-s="votar"]');
+  if (votarBtn) votarBtn.classList.add('active');
+  // reset flow
+  flowState = { uf: '', cidade: '', cargos: {}, codigo: '' };
+  document.getElementById('sel-estado').value = '';
+  document.getElementById('sel-cidade').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function flowIr(id) {
+  document.querySelectorAll('.flow').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function voltarHome() { ir('s-inicio'); }
+
+/* ===== FLOW: TELA 1 ===== */
+function confirmarLocal() {
+  const uf = document.getElementById('sel-estado').value;
+  const cidade = document.getElementById('sel-cidade').value;
+  if (!uf || !cidade) { toast('Selecione estado e cidade', 'error'); return; }
+  flowState.uf = uf;
+  flowState.cidade = cidade;
+  CARGOS_ORDEM.forEach(c => {
+    if (!flowState.cargos[c]) flowState.cargos[c] = { ...CANDIDATOS[c][0] };
+  });
+  flowIr('flow-t2');
+}
+
+/* ===== FLOW: TELA 2 ===== */
+function gerarCodigoEAvancar() {
+  // gerar codigo de 20 digitos
+  let c = '';
+  for (let i = 0; i < 5; i++) {
+    c += Math.floor(1000 + Math.random() * 9000) + (i < 4 ? ' ' : '');
+  }
+  flowState.codigo = c;
+  renderReview();
+  flowIr('flow-t3');
+}
+
+/* ===== FLOW: TELA 3 ===== */
+function renderReview() {
+  const list = document.getElementById('review-list');
+  list.innerHTML = CARGOS_ORDEM.map(c => {
+    const cand = flowState.cargos[c] || CANDIDATOS[c][0];
+    flowState.cargos[c] = cand;
+    return '<div class="vote-item"><div class="vote-info"><h3>' + c + '</h3><p>' + cand.nome + ' · ' + cand.partido + ' · nº ' + cand.numero + '</p></div><button class="btn-trocar" onclick="abrirCand(\'' + c + '\')">Trocar</button></div>';
+  }).join('');
+}
+
+function abrirCand(cargo) {
+  cargoTroca = cargo;
+  document.getElementById('cand-cargo').textContent = cargo;
+  const opts = CANDIDATOS[cargo];
+  document.getElementById('cand-list').innerHTML = opts.map((o, i) => {
+    return '<div class="cand-row" onclick="escolherCand(' + i + ')"><div><div class="cand-nome">' + o.nome + '</div><div class="cand-p">' + o.partido + ' · nº ' + o.numero + '</div></div><span style="color:var(--gold)">→</span></div>';
+  }).join('');
+  abrirSheet('cand-sheet');
+}
+
+function escolherCand(i) {
+  if (!cargoTroca) return;
+  flowState.cargos[cargoTroca] = CANDIDATOS[cargoTroca][i];
+  renderReview();
+  fecharSheet('cand-sheet');
+  toast('Candidato de ' + cargoTroca + ' atualizado');
+}
+
+/* ===== FLOW: TELA 4 ===== */
+function finalizarVoto() {
+  document.getElementById('codigo-gerado').textContent = flowState.codigo;
+  // salvar em localStorage
+  const votos = getVotos();
+  const novo = {
+    codigo: flowState.codigo.replace(/\s/g, ''),
+    uf: flowState.uf,
+    cidade: flowState.cidade,
+    cargos: JSON.parse(JSON.stringify(flowState.cargos)),
+    status: 'ATIVO',
+    data: new Date().toISOString()
+  };
+  votos.unshift(novo);
+  saveVotos(votos);
+  atualizarStats();
+  flowIr('flow-t4');
+}
+
+function copiarCodigo() {
+  const c = document.getElementById('codigo-gerado').textContent.replace(/\s/g, '');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(c).then(() => toast('Código copiado!', 'success'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = c; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('Código copiado!', 'success'); } catch(e) { toast('Não foi possível copiar', 'error'); }
+    document.body.removeChild(ta);
+  }
+}
+
+function verMeuVoto() {
+  ir('s-conferir');
+  setTimeout(() => {
+    const c = flowState.codigo.replace(/\s/g, '');
+    preencherCodigo(c);
+    conferirCodigo();
+  }, 200);
+}
+
+/* ===== CONFERIR ===== */
+function preencherCodigo(c) {
+  const digits = c.replace(/\D/g, '');
+  const ins = document.querySelectorAll('#code-inputs .code-in');
+  for (let i = 0; i < ins.length; i++) {
+    ins[i].value = digits.substring(i * 4, i * 4 + 4) || '';
+  }
+}
+
+function conferirCodigo() {
+  const ins = document.querySelectorAll('#code-inputs .code-in');
+  let c = '';
+  ins.forEach(i => c += i.value);
+  c = c.replace(/\D/g, '');
+  const resEl = document.getElementById('conf-result');
+  if (c.length < 20) {
+    resEl.className = 'conf-result notfound';
+    resEl.innerHTML = '<h3>⚠️ Código incompleto</h3><p style="color:var(--gray);font-size:.88rem">Preencha os 20 dígitos.</p>';
+    return;
+  }
+  // buscar no localStorage
+  const votos = getVotos();
+  const v = votos.find(x => x.codigo === c);
+  if (v) {
+    renderVotoResultado(v);
+  } else {
+    // código de exemplo?
+    if (c === '16948051304534262993') {
+      const demo = {
+        codigo: c,
+        uf: 'RJ',
+        cidade: 'Rio de Janeiro',
+        cargos: {
+          'Presidente': { nome: 'Ana Souza', partido: 'PSD', numero: 55 },
+          'Senador': { nome: 'Diego Franco', partido: 'MDB', numero: 151 },
+          'Deputado Federal': { nome: 'Gil Santos', partido: 'UNIÃO', numero: 4444 },
+          'Deputado Estadual': { nome: 'Joana Pinto', partido: 'REP', numero: 1010 },
+          'Governador': { nome: 'Marcos Teles', partido: 'PP', numero: 11 }
+        },
+        status: 'ATIVO',
+        data: new Date().toISOString()
+      };
+      renderVotoResultado(demo);
+      return;
+    }
+    resEl.className = 'conf-result notfound';
+    resEl.innerHTML = '<h3>❌ Código não encontrado</h3><p style="color:var(--gray);font-size:.88rem;margin-top:8px">Este código não está registrado neste aparelho.</p><button class="btn-o" style="margin-top:14px" onclick="testarExemplo()">Testar com um exemplo</button>';
+  }
+}
+
+function renderVotoResultado(v) {
+  const resEl = document.getElementById('conf-result');
+  const isAtivo = v.status === 'ATIVO';
+  resEl.className = 'conf-result' + (isAtivo ? ' found' : ' notfound');
+  const badge = isAtivo
+    ? '<span class="badge-at">✓ ATIVO</span>'
+    : '<span class="badge-rv">✕ REVOGADO em ' + new Date(v.revogadoEm).toLocaleDateString('pt-BR') + '</span>';
+  let html = '<h3>' + badge + ' Seu voto</h3>';
+  html += '<div class="voto-detail">';
+  html += '<div class="vd-row"><span>Local</span><span>' + v.cidade + '/' + v.uf + '</span></div>';
+  CARGOS_ORDEM.forEach(c => {
+    const ca = v.cargos[c];
+    if (ca) html += '<div class="vd-row"><span>' + c + '</span><span>' + ca.nome + ' · ' + ca.partido + ' · ' + ca.numero + '</span></div>';
+  });
+  html += '<div class="vd-row"><span>Registrado em</span><span>' + new Date(v.data).toLocaleString('pt-BR') + '</span></div>';
+  html += '<div class="vd-row"><span>Código</span><span style="font-family:monospace;font-size:.75rem">' + v.codigo.replace(/(.{4})/g, '$1 ').trim() + '</span></div>';
+  html += '</div>';
+  if (isAtivo) {
+    html += '<button class="btn-danger" style="margin-top:14px" onclick="revogarVotoAtual(\'' + v.codigo + '\')">Revogar este voto</button>';
+    html += '<p style="font-size:.74rem;color:var(--gray);margin-top:10px;text-align:center">Regra R3: 70% dos votos que elegeram = cassação do mandato</p>';
+  }
+  resEl.innerHTML = html;
+  votoConferido = v;
+}
+
+function testarExemplo() {
+  preencherCodigo('16948051304534262993');
+  conferirCodigo();
+}
+
+function revogarVotoAtual(codigo) {
+  const votos = getVotos();
+  const v = votos.find(x => x.codigo === codigo);
+  if (!v) return;
+  v.status = 'REVOGADO';
+  v.revogadoEm = new Date().toISOString();
+  saveVotos(votos);
+  renderVotoResultado(v);
+  toast('Voto revogado com sucesso', 'success');
+  atualizarStats();
+}
+
+/* ===== RADAR ===== */
+function renderPol(lista) {
+  document.getElementById('pol-list').innerHTML = lista.map(p =>
+    '<div class="pol" onclick="abrirPol(' + p.id + ')"><div class="pol-av">' + p.av + '</div><div class="pol-info"><h3>' + p.nome + '</h3><p>' + p.cargo + ' · ' + p.partido + '/' + p.uf + '</p></div><span class="pol-badge">Verificado</span></div>'
+  ).join('');
+}
+function filtrarPol() {
+  const q = document.getElementById('busca-pol').value.toLowerCase();
+  renderPol(POLS_DEMO.filter(p => p.nome.toLowerCase().includes(q) || p.cargo.toLowerCase().includes(q) || p.partido.toLowerCase().includes(q)));
+}
+function abrirPol(id) {
+  const p = POLS_DEMO.find(x => x.id === id);
+  if (!p) return;
+  polAtualal = p;
+  document.getElementById('pol-sheet-nome').textContent = p.nome + ' · ' + p.cargo;
+  let html = '<div class="dados-grid">';
+  html += '<div class="dados-row"><span>Partido/UF</span><span>' + p.partido + '/' + p.uf + '</span></div>';
+  Object.keys(p.dados).forEach(k => {
+    const label = k.charAt(0).toUpperCase() + k.slice(1);
+    html += '<div class="dados-row"><span>' + label + '</span><span>' + p.dados[k] + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div style="font-size:.82rem;color:var(--gold);font-weight:700;margin-top:14px">Fontes oficiais</div>';
+  html += '<div class="fontes">';
+  p.fontes.forEach(f => { html += '<a class="fonte" href="' + f.u + '" target="_blank" rel="noopener">' + f.l + ' ↗</a>'; });
+  html += '</div>';
+  document.getElementById('pol-sheet-body').innerHTML = html;
+  abrirSheet('pol-sheet');
+}
+function reclamarPolitico() {
+  if (!polAtualal) return;
+  fecharSheet('pol-sheet');
+  document.getElementById('recl-politico').textContent = 'Sobre: ' + polAtualal.nome + ' · ' + polAtualal.cargo;
+  document.getElementById('recl-titulo').value = '';
+  document.getElementById('recl-desc').value = '';
+  abrirSheet('recl-sheet');
+}
+function enviarReclamacao() {
+  if (!polAtualal) return;
+  const t = document.getElementById('recl-titulo').value.trim();
+  const d = document.getElementById('recl-desc').value.trim();
+  if (!t || !d) { toast('Preencha título e descrição', 'error'); return; }
+  const recls = getRecl();
+  recls.unshift({ politicoId: polAtualal.id, politicoNome: polAtualal.nome, titulo: t, descricao: d, data: new Date().toISOString() });
+  saveRecl(recls);
+  fecharSheet('recl-sheet');
+  toast('Reclamação registrada', 'success');
+}
+function fixarPolitico() {
+  if (!polAtualal) return;
+  const c = getComp();
+  if (c.find(x => x.id === polAtualal.id)) { toast('Já está fixado'); return; }
+  if (c.length >= 2) { toast('Máximo 2 políticos. Limpe a comparação.', 'error'); return; }
+  c.push({ id: polAtualal.id, nome: polAtualal.nome, cargo: polAtualal.cargo, partido: polAtualal.partido, uf: polAtualal.uf });
+  saveComp(c);
+  document.getElementById('comp-count').textContent = c.length;
+  fecharSheet('pol-sheet');
+  toast('Fixado para comparação (' + c.length + '/2)', 'success');
+}
+function abrirComparar() {
+  const c = getComp();
+  document.getElementById('comp-count').textContent = c.length;
+  if (c.length === 0) {
+    document.getElementById('comp-body').innerHTML = '<p style="color:var(--gray);font-size:.88rem;text-align:center;padding:20px 0">Nenhum político fixado. No Radar, toque em "Fixar para comparar" na ficha de um político.</p>';
+  } else {
+    const keys = ['cargo', 'partido', 'uf', 'nascimento', 'escolaridade', 'patrimonio', 'processos', 'comparecimento', 'projetos', 'votos', 'financiamento'];
+    let html = '<table class="comp-table"><thead><tr><th></th>';
+    c.forEach(p => { html += '<th class="pol-nome">' + p.nome + '</th>'; });
+    html += '</tr></thead><tbody>';
+    keys.forEach(k => {
+      html += '<tr><th>' + k + '</th>';
+      c.forEach(p => {
+        const full = POLS_DEMO.find(x => x.id === p.id);
+        const val = full && full.dados && full.dados[k] ? full.dados[k] : (p[k] || '—');
+        html += '<td>' + val + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('comp-body').innerHTML = html;
+  }
+  abrirSheet('comp-sheet');
+}
+function limparComparacao() { saveComp([]); document.getElementById('comp-count').textContent = 0; }
+
+/* ===== CONGRESSO ===== */
+const PL_FALLBACK = [
+  { id:1,sigla:'PL',numero:'1234',ano:'2024',ementa:'Reforma Tributária Simplificada — unificação de impostos sobre consumo.' },
+  { id:2,sigla:'PL',numero:'5678',ano:'2024',ementa:'Marco Legal das Startups e do empreendedorismo inovador.' },
+  { id:3,sigla:'PL',numero:'9012',ano:'2024',ementa:'Fortalece direitos dos cidadãos sobre dados pessoais (altera LGPD).' },
+  { id:4,sigla:'PL',numero:'3456',ano:'2024',ementa:'Reforma Administrativa: estabilidade e carreira no serviço público federal.' },
+  { id:5,sigla:'PL',numero:'7890',ano:'2024',ementa:'Educação digital como componente curricular obrigatório no ensino fundamental.' },
+  { id:6,sigla:'PL',numero:'2345',ano:'2024',ementa:'Transparência em licitações: publicação em tempo real em portal único.' }
+];
+function renderPls(pls) {
+  const ops = getPLOp();
+  document.getElementById('pl-list').innerHTML = pls.map(p => {
+    const op = ops[p.id];
+    const num = p.sigla + ' ' + p.numero + '/' + p.ano;
+    return '<div class="pl"><div class="pl-num">' + num + '</div><h3>' + p.ementa + '</h3><div class="pl-btns">' +
+      '<button class="pl-btn apoiar' + (op === 'apoiar' ? ' voted' : '') + '" onclick="opinarPL(' + p.id + ',\'apoiar\',this)">' + (op === 'apoiar' ? '✓ Apoiado' : '👍 Apoiar') + '</button>' +
+      '<button class="pl-btn contra' + (op === 'contra' ? ' voted' : '') + '" onclick="opinarPL(' + p.id + ',\'contra\',this)">' + (op === 'contra' ? '✓ Contra' : '👎 Contra') + '</button>' +
+      '</div></div>';
+  }).join('');
+}
+function opinarPL(id, tipo, btn) {
+  const ops = getPLOp();
+  ops[id] = tipo;
+  savePLOp(ops);
+  btn.parentElement.querySelectorAll('.pl-btn').forEach(b => { b.classList.add('voted'); });
+  btn.textContent = tipo === 'apoiar' ? '✓ Apoiado' : '✓ Contra';
+  toast('Opinião registrada', 'success');
+}
+function fetchPls() {
+  const statusEl = document.getElementById('pl-status');
+  statusEl.textContent = 'Carregando PLs reais da API da Câmara...';
+  fetch('https://dadosabertos.camara.leg.br/api/v2/proposicoes?sigla=PL&status=EmTramitacao&itens=6&ordem=DESC&ordenarPor=id')
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(json => {
+      const dados = (json && json.dados) || [];
+      if (!dados.length) throw new Error('vazio');
+      const pls = dados.map(p => ({
+        id: p.id,
+        sigla: p.siglaTipo || 'PL',
+        numero: p.numero,
+        ano: p.ano,
+        ementa: p.ementa || '(sem ementa)'
+      }));
+      renderPls(pls);
+      statusEl.textContent = '✓ Fonte: dadosabertos.camara.leg.br — ' + pls.length + ' PLs em tramitação';
+      document.getElementById('stat-pls').textContent = String(pls.length);
+    })
+    .catch(err => {
+      console.warn('API Câmara falhou, usando demo:', err);
+      renderPls(PL_FALLBACK);
+      statusEl.textContent = 'Modo demo (API Câmara indisponível) — ' + PL_FALLBACK.length + ' PLs';
+      document.getElementById('stat-pls').textContent = String(PL_FALLBACK.length);
+    });
+}
+
+/* ===== RESULTADOS (donuts) ===== */
+const DONUTS_DEMO = [
+  { cargo: 'Presidente', a: 'Ana Souza', a_pct: 46, b: 'Bruno Lima', b_pct: 38, c: 'Carla Mendes', c_pct: 16, corA: '#FFD700', corB: '#B8860B', corC: '#94A3B8' },
+  { cargo: 'Governador', a: 'Marcos Teles', a_pct: 52, b: 'Nina Barros', b_pct: 32, c: 'Otávio Reis', c_pct: 16, corA: '#FFD700', corB: '#B8860B', corC: '#94A3B8' },
+  { cargo: 'Senador', a: 'Diego Franco', a_pct: 41, b: 'Elisa Prado', b_pct: 39, c: 'Fábio Nunes', c_pct: 20, corA: '#FFD700', corB: '#B8860B', corC: '#94A3B8' },
+  { cargo: 'Dep. Federal', a: 'Gil Santos', a_pct: 44, b: 'Helena Rocha', b_pct: 33, c: 'Igor Alves', c_pct: 23, corA: '#FFD700', corB: '#B8860B', corC: '#94A3B8' }
+];
+function renderDonuts() {
+  const el = document.getElementById('donuts');
+  el.innerHTML = DONUTS_DEMO.map(d => {
+    const angA = (d.a_pct / 100) * 360;
+    const angB = angA + (d.b_pct / 100) * 360;
+    const grad = 'conic-gradient(' + d.corA + ' 0 ' + angA + 'deg, ' + d.corB + ' ' + angA + 'deg ' + angB + 'deg, ' + d.corC + ' ' + angB + 'deg 360deg)';
+    return '<div class="donut"><h4>' + d.cargo + '</h4><div class="donut-ring" style="background:' + grad + '"><span class="donut-label">' + d.a_pct + '%</span></div><div class="donut-leg"><span><span class="dot-c" style="background:' + d.corA + '"></span>' + d.a + ' (' + d.a_pct + '%)</span><span><span class="dot-c" style="background:' + d.corB + '"></span>' + d.b + ' (' + d.b_pct + '%)</span><span><span class="dot-c" style="background:' + d.corC + '"></span>' + d.c + ' (' + d.c_pct + '%)</span></div></div>';
+  }).join('');
+}
+
+/* ===== REVOGADOS ===== */
+const REV_DEMO = [
+  { nome: 'Exemplo Político A', cargo: 'Deputado', revPct: 87 },
+  { nome: 'Exemplo Político B', cargo: 'Senador', revPct: 78 },
+  { nome: 'Exemplo Político C', cargo: 'Governador', revPct: 72 },
+  { nome: 'Exemplo Político D', cargo: 'Deputado', revPct: 69 },
+  { nome: 'Exemplo Político E', cargo: 'Prefeito', revPct: 65 },
+  { nome: 'Exemplo Político F', cargo: 'Vereador', revPct: 58 }
+];
+function renderRevogados() {
+  document.getElementById('rev-list').innerHTML = REV_DEMO.map((r, i) =>
+    '<div class="rev-item"><div class="rev-rank">' + (i + 1) + '</div><div class="rev-info"><h4>' + r.nome + '</h4><p>' + r.cargo + '</p></div><div class="rev-pct">' + r.revPct + '%</div></div>'
+  ).join('');
+}
+
+/* ===== STATS ===== */
+function atualizarStats() {
+  const votos = getVotos();
+  document.getElementById('stat-votos').textContent = String(6 + votos.length);
+}
+
+/* ===== SHEETS ===== */
+function abrirSheet(id) { document.getElementById(id).classList.remove('hidden'); }
+function fecharSheet(id) { document.getElementById(id).classList.add('hidden'); }
+
+/* ===== LOGIN ===== */
+function abrirLogin() {
+  fecharSheet('menu-sheet');
+  loginMode = 'cid';
+  loginStep = 1;
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-code').value = '';
+  document.getElementById('login-step2').classList.add('hidden');
+  document.querySelectorAll('#login-sheet input[name=modo]').forEach(r => r.checked = (r.value === 'cid'));
+  document.getElementById('login-submit').textContent = 'Continuar';
+  abrirSheet('login-sheet');
+}
+document.querySelectorAll('#login-sheet input[name=modo]').forEach(r => {
+  r.addEventListener('change', e => { loginMode = e.target.value; });
+});
+function enviarLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  if (loginStep === 1) {
+    if (!email || email.indexOf('@') < 0) { toast('Email inválido', 'error'); return; }
+    if (loginMode === 'pol') {
+      const dominio = email.split('@')[1];
+      const validos = ['camara.leg.br', 'senado.leg.br', 'gov.br', 'tse.jus.br'];
+      if (!validos.some(v => dominio.endsWith(v))) {
+        toast('Use email institucional (ex: @camara.leg.br)', 'error');
+        return;
+      }
+      document.getElementById('login-step2').classList.remove('hidden');
+      document.getElementById('login-submit').textContent = 'Verificar';
+      loginStep = 2;
+      toast('Código enviado para ' + email);
+      return;
+    }
+    fecharSheet('login-sheet');
+    toast('Entrou como cidadão (simulado)', 'success');
+  } else {
+    const code = document.getElementById('login-code').value.trim();
+    if (code.length !== 6) { toast('Código deve ter 6 dígitos', 'error'); return; }
+    fecharSheet('login-sheet');
+    toast('✓ Político verificado — selo aplicado', 'success');
+  }
+}
+
+/* ===== TOAST ===== */
+let toastTimer = null;
+function toast(msg, tipo) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (tipo ? ' ' + tipo : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.add('hidden'); }, 2500);
+}
+
+/* ===== INPUTS DE CÓDIGO (auto-focus + paste) ===== */
+document.querySelectorAll('#code-inputs .code-in').forEach((inp, i, arr) => {
+  inp.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    if (e.target.value.length === 4 && i < arr.length - 1) arr[i + 1].focus();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && e.target.value === '' && i > 0) arr[i - 1].focus();
+  });
+  inp.addEventListener('paste', e => {
+    e.preventDefault();
+    const d = (e.clipboardData.getData('text') || '').replace(/\s/g, '').replace(/[^0-9]/g, '');
+    if (d.length >= 20) {
+      for (let j = 0; j < 5; j++) arr[j].value = d.substring(j * 4, j * 4 + 4);
+      arr[4].focus();
+    }
+  });
+});
+
+/* ===== INIT ===== */
+renderPol(POLS_DEMO);
+renderDonuts();
+renderRevogados();
+atualizarStats();
+fetchPls();
+document.getElementById('comp-count').textContent = String(getComp().length);

@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — ENRIQUECIMENTO DE PRESENÇA (snapshot)
+   VOTABRASIL — ENRIQUECIMENTO DE PRESENÇA (snapshot)
    ------------------------------------------------------------
    Complementa data/politicos.json com a atuação em plenário
    em 2026, das APIs abertas oficiais:
@@ -25,7 +25,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const SNAP = path.join(ROOT, 'data', 'politicos.json');
-const UA = 'MudaBrasil/1.0 (plataforma civica de transparencia; dados abertos)';
+const UA = 'VotaBrasil/1.0 (plataforma civica de transparencia; dados abertos)';
 const INICIO = '2026-01-01';
 // Fim do período = hoje: re-rodadas semanais pegam as sessões novas
 const FIM = new Date().toISOString().slice(0, 10);

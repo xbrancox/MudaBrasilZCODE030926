@@ -1,7 +1,7 @@
 {
-  "name": "mudabrasil-backend",
+  "name": "votabrasil-backend",
   "version": "1.0.0",
-  "description": "MudaBrasil — Backend de voto contínuo e revogável",
+  "description": "VotaBrasil — Backend de voto contínuo e revogável",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
@@ -22,6 +22,6 @@
     "transparency",
     "brazil"
   ],
-  "author": "MudaBrasil",
+  "author": "VotaBrasil",
   "license": "MIT"
 }

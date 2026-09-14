@@ -1,8 +1,8 @@
 /* ============================================================
-   MudaBrasil — Configuração Global
+   VotaBrasil — Configuração Global
    -----------------------------------------------------------
    Backend: https://mudabrasil-redesign-production.up.railway.app (novo projeto Railway)
-   Frontend: https://xbrancox.github.io/mudabrasil/
+   Frontend: https://xbrancox.github.io/votabrasil/
    ============================================================ */
 
 let API_BASE = 'https://mudabrasil-redesign-production.up.railway.app';
@@ -16,13 +16,13 @@ if (SERVIDO_PELO_BACKEND) API_BASE = '';
 // Backend Railway = modo PRODUÇÃO (votos ao vivo, selo real, reclamações persistentes)
 // API_BASE vazio = modo DEMO (só frontend, dados públicos + localStorage)
 
-window.MudaBrasil = window.MudaBrasil || {};
+window.VotaBrasil = window.VotaBrasil || {};
 
-window.MudaBrasil.API_BASE = API_BASE;
-window.MudaBrasil.MODO = 'producao';
-window.MudaBrasil.SERVIDO_PELO_BACKEND = SERVIDO_PELO_BACKEND;
+window.VotaBrasil.API_BASE = API_BASE;
+window.VotaBrasil.MODO = 'producao';
+window.VotaBrasil.SERVIDO_PELO_BACKEND = SERVIDO_PELO_BACKEND;
 
-window.MudaBrasil.URLS = {
+window.VotaBrasil.URLS = {
   camara: 'https://dadosabertos.camara.leg.br/api/v2',
   senado: 'https://legis.senado.leg.br/dadosabertos',
   tse: 'https://divulgacandcontas.tse.jus.br/divulga/app/',
@@ -30,25 +30,25 @@ window.MudaBrasil.URLS = {
   cnj: 'https://www.cnj.jus.br/'
 };
 
-window.MudaBrasil.CONTATO = {
-  email_geral: 'contato@mudabrasil.app',
-  email_anuncie: 'anuncie@mudabrasil.app',
-  email_imprensa: 'imprensa@mudabrasil.app'
+window.VotaBrasil.CONTATO = {
+  email_geral: 'contato@votabrasil.app',
+  email_anuncie: 'anuncie@votabrasil.app',
+  email_imprensa: 'imprensa@votabrasil.app'
 };
 
-window.MudaBrasil.REGRA_REVOGACAO = {
+window.VotaBrasil.REGRA_REVOGACAO = {
   percentual_cassacao: 0.70,
   abre_apos_posse: true,
   descricao: '70% dos votos que elegeram o político = cassação do mandato'
 };
 
-window.MudaBrasil.TERMOMETRO = {
+window.VotaBrasil.TERMOMETRO = {
   decaimento_cheio_dias: 90,
   decaimento_piso_dias: 180,
   piso_confianca: 0.5
 };
 
 // Aviso de protótipo
-console.log('%c🟡 MudaBrasil', 'font-size:16px;font-weight:bold;color:#FFD700');
-console.log('%cModo: ' + window.MudaBrasil.MODO, 'color:#94A3B8');
+console.log('%c🟡 VotaBrasil', 'font-size:16px;font-weight:bold;color:#FFD700');
+console.log('%cModo: ' + window.VotaBrasil.MODO, 'color:#94A3B8');
 console.log('%cBackend: ' + API_BASE, 'color:#2ECC71');

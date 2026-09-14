@@ -1,5 +1,5 @@
 # ===============================
-# MudaBrasil — Ignorar arquivos locais
+# VotaBrasil — Ignorar arquivos locais
 # ===============================
 
 # Urnas de voto (ANONIMATO GARANTIDO)
@@ -44,3 +44,6 @@ upload-*.ps1
 server/data/enrich/
 server/data/pls_reais.json
 node_modules/
+
+# Config local do usuario (nunca versionar)
+app/config.js

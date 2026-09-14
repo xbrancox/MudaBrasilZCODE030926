@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL - MOTOR DE VOTO CONTÍNUO E REVOGÁVEL
+   VOTABRASIL - MOTOR DE VOTO CONTÍNUO E REVOGÁVEL
    ------------------------------------------------------------
    O coração da plataforma: um "termômetro de confiança" em que o
    cidadão expressa VOTO DE CONFIANÇA em um parlamentar e pode
@@ -38,7 +38,7 @@ const VOTOS_FILE = db.VOTOS_FILE;
 const VOTOS_DB = db.VOTOS_DB;
 const SALT_FILE = path.join(DATA_DIR, '.salt');
 
-/* ---- Configuração pública (espelha o contrato do config.js) ---- */
+/* ---- Configuração pública (espelha o contrato do config.local.js) ---- */
 const DECADENCIA = { cheioDias: 90, pisoDias: 180, piso: 0.5 };
 const ICM = {
   versao: 'v1.0',
@@ -265,7 +265,7 @@ async function getTermometro({ topN = 10 } = {}) {
   return {
     mode: 'real',
     ok: true,
-    metodo: 'Índice de Confiança MudaBrasil (ICM) — componente de confiança',
+    metodo: 'Índice de Confiança VotaBrasil (ICM) — componente de confiança',
     icm: ICM,
     decadencia: DECADENCIA,
     atualizadoEm: new Date(now).toISOString(),

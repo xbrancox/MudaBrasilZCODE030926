@@ -1,10 +1,10 @@
-cd C:\Users\euler\MudaBrasil
+cd C:\Users\euler\VotaBrasil
 New-Item -ItemType Directory -Force -Path app | Out-Null
 
 @'
 {
-  "name": "MudaBrasil - Voto Continuo",
-  "short_name": "MudaBrasil",
+  "name": "VotaBrasil - Voto Continuo",
+  "short_name": "VotaBrasil",
   "description": "Seu voto coloca. Seu voto tira.",
   "start_url": "/mudabrasil/app/",
   "scope": "/mudabrasil/app/",
@@ -91,7 +91,7 @@ nav.bot button.on{color:var(--gold)}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#061a3a">
-<title>MudaBrasil · App</title>
+<title>VotaBrasil · App</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
@@ -99,7 +99,7 @@ nav.bot button.on{color:var(--gold)}
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<header><b>MudaBrasil</b><span class="badge" id="badge">…</span><a class="btn-gold" href="../index.html">Cadastrar</a></header>
+<header><b>VotaBrasil</b><span class="badge" id="badge">…</span><a class="btn-gold" href="../index.html">Cadastrar</a></header>
 <main>
   <section id="scr-urna"></section>
   <section id="scr-detail" class="hidden"></section>
@@ -118,7 +118,7 @@ nav.bot button.on{color:var(--gold)}
 '@ | Set-Content -Path app\index.html -Encoding UTF8
 
 @'
-const API=(window.MudaBrasil&&window.MudaBrasil.API_BASE)||'';
+const API=(window.VotaBrasil&&window.VotaBrasil.API_BASE)||'';
 const $=s=>document.querySelector(s);
 const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 let PLS=[],VOT=[],VOTOS={},MAPVOT={},POVO={},fila=[],idx=0,pular=[];
@@ -219,7 +219,7 @@ Start-Sleep -Seconds 50
 $base='https://xbrancox.github.io/mudabrasil/'
 $urls=@('app/','app/index.html','app/app.js','app/app.css','app/manifest.webmanifest','app/sw.js','app/icon.svg','index.html','pages/congresso.html','pages/parlamentares.html','pages/votacoes.html','pages/eleicoes-2026.html','js/header-unificado.js','config.js')
 foreach($u in $urls){ try{ $r=Invoke-WebRequest ($base+$u) -UseBasicParsing -TimeoutSec 20; Write-Host ($r.StatusCode+'  OK   '+$u) -ForegroundColor Green }catch{ Write-Host ('FAIL      '+$u) -ForegroundColor Red } }
-foreach($e in @('api/health','api/pls','api/votos-pl','api/camara/votacoes','api/termometro')){ try{ $r=Invoke-WebRequest ('https://mudabrasil-production-79eb.up.railway.app/'+$e) -UseBasicParsing -TimeoutSec 20; Write-Host ($r.StatusCode+'  OK   '+$e) -ForegroundColor Green }catch{ Write-Host ('FAIL      '+$e) -ForegroundColor Red } }
+foreach($e in @('api/health','api/pls','api/votos-pl','api/camara/votacoes','api/termometro')){ try{ $r=Invoke-WebRequest ('https://mudabrasil-redesign-production.up.railway.app/'+$e) -UseBasicParsing -TimeoutSec 20; Write-Host ($r.StatusCode+'  OK   '+$e) -ForegroundColor Green }catch{ Write-Host ('FAIL      '+$e) -ForegroundColor Red } }
 $h=(Invoke-WebRequest ($base+'app/app.js') -UseBasicParsing).Content
 foreach($s in @('URNA EXPRESSA','PLACAR DO POVO','TOTAIS CRUZADOS','GAP','DNA','serviceWorker')){ if($h -match [regex]::Escape($s)){Write-Host ('CHECK OK  '+$s) -ForegroundColor Green}else{Write-Host ('CHECK FAIL '+$s) -ForegroundColor Red} }
 Write-Host "`n=== FIM. Cole o resultado aqui se houver algum FAIL ===" -ForegroundColor Cyan

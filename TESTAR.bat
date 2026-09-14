@@ -1,12 +1,12 @@
 @echo off
 chcp 65001 >nul
-title MudaBrasil - Verificando site...
+title VotaBrasil - Verificando site...
 color 0A
 cd /d "%~dp0"
 
 echo.
 echo ====================================================
-echo   MUDABRASIL - TESTE AUTOMATICO
+echo   VOTABRASIL - TESTE AUTOMATICO
 echo ====================================================
 echo.
 echo Verificando arquivos locais...

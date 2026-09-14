@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — SERVIDOR (frontend + API de dados públicos + VOTO)
+   VOTABRASIL — SERVIDOR (frontend + API de dados públicos + VOTO)
    ------------------------------------------------------------
    Um único comando sobe o site inteiro e a API:
 
@@ -266,7 +266,7 @@ async function refreshNoticias(force) {
   const now = Date.now();
   if (!force && now - NEWS_CACHE.ts < 600000 && NEWS_CACHE.items.length) return;
   try {
-    const cab = { Accept: 'application/rss+xml,application/xml,text/xml', 'User-Agent': 'MudaBrasil/1.0 (+https://mudabrasil.app)' };
+    const cab = { Accept: 'application/rss+xml,application/xml,text/xml', 'User-Agent': 'VotaBrasil/1.0 (+https://votabrasil.app)' };
     const fetchFeed = url => fetch(url, { headers: cab, signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined })
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
     const nacionais = await Promise.all(NEWS_FEEDS.map(f =>
@@ -996,7 +996,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, async () => {
-  console.log('\n  🇧🇷  MudaBrasil rodando em  http://localhost:' + PORT + '\n');
+  console.log('\n  🇧🇷  VotaBrasil rodando em  http://localhost:' + PORT + '\n');
   console.log('    Frontend:       http://localhost:' + PORT + '/');
   console.log('    API (lista):    http://localhost:' + PORT + '/api/candidatos');
   console.log('    API (senadores): http://localhost:' + PORT + '/api/senadores');

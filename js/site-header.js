@@ -1,9 +1,9 @@
 /* ============================================================
-   MUDABRASIL — CABEÇALHO ÚNICO (todas as páginas)
+   VOTABRASIL — CABEÇALHO ÚNICO (todas as páginas)
    ------------------------------------------------------------
    Injeta o mesmo cabeçalho em qualquer página, com:
    - menu de 10 itens, item ativo detectado pela URL/hash
-   - badge "backend ativo" (usa window.MudaBrasil.API_BASE se
+   - badge "backend ativo" (usa window.VotaBrasil.API_BASE se
      config.js estiver carregado antes deste script)
    - Entrar/Cadastrar: na home chama abrirLogin(), fora aponta
      para a home
@@ -94,7 +94,7 @@
     topo.id = 'mbtopo';
     topo.innerHTML =
       '<header>' +
-      ' <a class="lg" href="' + R + 'index.html"><span class="ic"><i class="fa-solid fa-layer-group"></i></span><span><b>MudaBrasil</b><small>Participa\u00e7\u00e3o C\u00edvica</small></span></a>' +
+      ' <a class="lg" href="' + R + 'index.html"><span class="ic"><img src="' + R + 'icon.svg" alt="VotaBrasil" width="40" height="40" style="border-radius:10px;display:block"></span><span><b>VotaBrasil</b><small>Participa\u00e7\u00e3o C\u00edvica</small></span></a>' +
       ' <button class="ham" aria-label="Menu" onclick="document.getElementById(\'mbtopo-mnav\').classList.toggle(\'open\')"><i class="fa-solid fa-bars"></i></button>' +
       ' <nav>' + nav + '</nav>' +
       ' <div class="hact"><span class="hbadge" id="mbtopo-badge" hidden>conectando\u2026</span>' +
@@ -121,7 +121,7 @@
     }
 
     // badge do backend
-    var base = (window.MudaBrasil && window.MudaBrasil.API_BASE) || '';
+    var base = (window.VotaBrasil && window.VotaBrasil.API_BASE) || '';
     var badge = document.getElementById('mbtopo-badge');
     if (badge) {
       fetch(base + '/api/health').then(function (r) {

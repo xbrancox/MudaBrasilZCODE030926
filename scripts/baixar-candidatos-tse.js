@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — INGEST DE CANDIDATOS 2026 (TSE via espelho)
+   VOTABRASIL — INGEST DE CANDIDATOS 2026 (TSE via espelho)
    ------------------------------------------------------------
    O TSE bloqueia automação da nossa rede (403 Akamai em
    dadosabertos/cdn/divulgacand). Fonte usada: o espelho

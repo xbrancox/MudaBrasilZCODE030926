@@ -1,4 +1,4 @@
-# 🗳️ MudaBrasil — Redesign v2.0
+# 🗳️ VotaBrasil — Redesign v2.0
 
 Plataforma cívica de **voto contínuo e revogável** com foco em **transparência total**.
 Esta é a versão **redesign**, criada em arquivos novos sem alterar o projeto original.
@@ -82,7 +82,7 @@ python -m http.server 8000     # ou: npx serve .
 ## 📁 Estrutura do Projeto
 
 ```
-mudaBrasil-redesign/
+votaBrasil-redesign/
 ├── index.html                 # Home — hero, painel "Plataforma ao vivo" (dados reais em tempo real), navegação
 ├── css/
 │   └── design-system.css      # Sistema de design (tokens, componentes, animações)
@@ -227,7 +227,7 @@ A saturação evita que um único político domine a escala por volume puro — 
 mede **intensidade de apoio ativo**, e a página mostra sempre os números crus ao lado
 (votos ativos, revogações, peso efetivo) para nada ficar oculto.
 
-> **ICM v1.0 (Índice de Confiança MudaBrasil)**: em produção,
+> **ICM v1.0 (Índice de Confiança VotaBrasil)**: em produção,
 > `ICM = 0.40·resposta + 0.35·cumprimento + 0.25·(1 − devoluções usadas)`.
 > Este protótipo implementa a **componente de confiança** (o índice acima); as demais
 > componentes virão com as fontes de dados de produção (TSE/Transparência/CNJ).
@@ -349,7 +349,7 @@ Resposta de `GET /api/voto?code=…` (o nome só é retornado já mascarado):
 Resposta de `GET /api/termometro` (agregado irreversível — nunca revela quem votou em quem):
 ```json
 { "mode":"real", "ok": true,
-  "metodo":"Índice de Confiança MudaBrasil (ICM) — componente de confiança",
+  "metodo":"Índice de Confiança VotaBrasil (ICM) — componente de confiança",
   "icm": { "versao":"v1.0", "pesos": { "resposta":0.40, "cumprimento":0.35, "devolucao":0.25 } },
   "decadencia": { "cheioDias":90, "pisoDias":180, "piso":0.5 },
   "totalVotosAtivos":123, "totalRevogados":4, "totalRegistros":127,
@@ -489,7 +489,7 @@ node server/index.js
 ### 🚚 Deploy (setembro/2026)
 - **Front:** GitHub Pages — automático a cada push na `main` (workflow `pages.yml`).
 - **Backend:** Railway — automático a cada push na `main` (Source repo conectado,
-  auto-deploy ON). Manual, se um dia precisar: `railway up --service mudabrasil-redesign`.
+  auto-deploy ON). Manual, se um dia precisar: `railway up --service votabrasil-redesign`.
 - **Manutenção automática** (workflow `manutencao.yml`): snapshot de notícias
   diário (09:15), backup do SQLite diário (09:45, artifact 14 dias), candidaturas
   TSE diárias (10:05), enriquecimento de produção/presença semanal (seg 10:30).

@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — Módulo TSE (candidatos de eleições)
+   VOTABRASIL — Módulo TSE (candidatos de eleições)
    ------------------------------------------------------------
    Fonte oficial: DivulgaCandContas (TSE) + Dados Abertos TSE.
 

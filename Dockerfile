@@ -1,5 +1,5 @@
 # ============================================================
-# MudaBrasil — Dockerfile para Railway (Fase 2)
+# VotaBrasil — Dockerfile para Railway (Fase 2)
 # Node 22-alpine para suporte nativo a node:sqlite (>=22.13)
 # Servidor HTTP puro (sem Express) na porta 8080
 # ============================================================

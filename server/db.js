@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — CAMADA DE ARMAZENAMENTO (VOTOS + PARLAMENTARES + RECLAMAÇÕES)
+   VOTABRASIL — CAMADA DE ARMAZENAMENTO (VOTOS + PARLAMENTARES + RECLAMAÇÕES)
    ------------------------------------------------------------
    Backends suportados:
    - SQLITE (padrão, Node 22.5+): banco nativo do Node (`node:sqlite`)

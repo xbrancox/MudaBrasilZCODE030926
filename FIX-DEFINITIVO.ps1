@@ -1,4 +1,4 @@
-cd C:\Users\euler\MudaBrasil
+cd C:\Users\euler\VotaBrasil
 [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
 Write-Host "RESCREVER COMPLETO: app.js limpo + validado" -ForegroundColor Cyan
 $b64=@'
@@ -13,7 +13,7 @@ $ix=@'
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061a3a">
-<title>MudaBrasil - Urna Digital</title>
+<title>VotaBrasil - Urna Digital</title>
 <link rel="manifest" href="manifest.webmanifest?v=11">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">

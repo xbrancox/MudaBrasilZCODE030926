@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PLs no Congresso · MudaBrasil</title>
+<title>PLs no Congresso · VotaBrasil</title>
 <meta name="description" content="Opine nos Projetos de Lei em tramitação no Congresso Nacional: ementa, autor real e a opinião da população em cada PL.">
-<link rel="canonical" href="https://xbrancox.github.io/MudaBrZclone280826/pages/congresso.html">
-<meta property="og:title" content="PLs no Congresso · MudaBrasil">
+<link rel="canonical" href="https://mudabrasil-redesign-production.up.railway.app/pages/congresso.html">
+<meta property="og:title" content="PLs no Congresso · VotaBrasil">
 <meta property="og:description" content="Opine nos Projetos de Lei em tramitação no Congresso Nacional: ementa, autor real e a opinião da população em cada PL.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://xbrancox.github.io/MudaBrZclone280826/pages/congresso.html">
-<meta property="og:image" content="https://xbrancox.github.io/MudaBrZclone280826/og-image.png">
-<meta property="og:site_name" content="MudaBrasil">
+<meta property="og:url" content="https://mudabrasil-redesign-production.up.railway.app/pages/congresso.html">
+<meta property="og:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
+<meta property="og:site_name" content="VotaBrasil">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://xbrancox.github.io/MudaBrZclone280826/og-image.png">
+<meta name="twitter:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="../config.js"></script>
+<script src="../config.local.js"></script>
 <style>
 :root{--bg:#061a3a;--c1:#0d2242;--c2:#123059;--gold:#FFD700;--green:#2ECC71;--red:#E74C3C;--grey:#8a97ab;--txt:#eaf1fb;--line:#1d3a66}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -158,7 +158,7 @@ h2{margin:26px 0 10px}
   <div class="card" id="dna" style="margin-top:12px"><div class="vazio">Vote em matérias na Urna (inclusive nas JÁ VOTADAS) e clique pra descobrir quem vota como você.</div></div>
 </main>
 
-<footer>© 2026 MudaBrasil · Protótipo demonstrativo, sem valor jurídico. · <a href="../privacidade.html">Privacidade</a> · <a href="../termos.html">Termos</a></footer>
+<footer>© 2026 VotaBrasil · Protótipo demonstrativo, sem valor jurídico. · <a href="../privacidade.html">Privacidade</a> · <a href="../termos.html">Termos</a></footer>
 <button id="fab" onclick="document.getElementById('urna').scrollIntoView({behavior:'smooth'})">🗳️ Votar nas PLs</button>
 
 <div id="popup"><div class="box">
@@ -168,7 +168,7 @@ h2{margin:26px 0 10px}
 </div></div>
 
 <script>
-const API=(window.MudaBrasil&&window.MudaBrasil.API_BASE)||'';
+const API=(window.VotaBrasil&&window.VotaBrasil.API_BASE)||'';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 let PLS=[],VOT=[],VOTOS={},MAPVOT={},POVO={},temaAtivo='',perAtivo=30,pular=[],fila=[],ultimaKey='';
@@ -366,7 +366,7 @@ document.addEventListener('click',e=>{
 ['u-num','u-tema','u-parl'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',()=>renderUrna())});
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-compartilhar]');if(!b)return;
- window.open('https://twitter.com/intent?text='+encodeURIComponent(b.dataset.compartilhar+' · #MudaBrasil'),'_blank')});
+ window.open('https://twitter.com/intent?text='+encodeURIComponent(b.dataset.compartilhar+' · #VotaBrasil'),'_blank')});
 $('#busca').addEventListener('input',aplicaFiltro);
 if(!LS.get('mb_popup_congresso',0))$('#popup').style.display='flex';
 $('#popup-ok').onclick=()=>{LS.set('mb_popup_congresso',1);$('#popup').style.display='none'};

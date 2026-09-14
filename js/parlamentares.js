@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — PARLAMENTARES
+   VOTABRASIL — PARLAMENTARES
    Aba unificada: Candidatos + Radar + PLs + Revogados + Conferir + Revogar
    Alinhado com os .docx do projeto
    ============================================================ */
@@ -12,7 +12,7 @@
   const escapeHtml = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   const session = () => {
-    try { return JSON.parse(localStorage.getItem('mudabrasil.session') || 'null'); }
+    try { return JSON.parse(localStorage.getItem('votabrasil.session') || 'null'); }
     catch (_) { return null; }
   };
 
@@ -1046,7 +1046,7 @@
   function erroConferir() {
     const out = $('#conferir-result');
     out.className = 'mb-conferir-result error';
-    out.innerHTML = `ℹ️ <strong>Verificação indisponível no modo site</strong><br>Consultar a base de votos exige o servidor do MudaBrasil em execução (localmente: <code>node server/index.js</code>). Seu código continua válido e guardado por você.`;
+    out.innerHTML = `ℹ️ <strong>Verificação indisponível no modo site</strong><br>Consultar a base de votos exige o servidor do VotaBrasil em execução (localmente: <code>node server/index.js</code>). Seu código continua válido e guardado por você.`;
   }
 
   async function generateCode() {
@@ -1064,9 +1064,9 @@
         const parts = d.code.match(/.{4}/g);
         $$('.mb-code-group').forEach((inp, i) => inp.value = parts[i] || '');
         // salva para consulta futura
-        const list = JSON.parse(localStorage.getItem('mudabrasil.codes') || '[]');
+        const list = JSON.parse(localStorage.getItem('votabrasil.codes') || '[]');
         list.unshift({ code: d.formatted, createdAt: Date.now() });
-        localStorage.setItem('mudabrasil.codes', JSON.stringify(list.slice(0, 10)));
+        localStorage.setItem('votabrasil.codes', JSON.stringify(list.slice(0, 10)));
       } else { toast(d.error || 'Erro', 'error'); }
     } catch (e) { toast('Erro de conexão', 'error'); }
   }
@@ -1167,7 +1167,7 @@
           body: JSON.stringify({ idToken: 'google:' + email + ':' + name })
         });
         const d = await r.json();
-        if (d.ok) { localStorage.setItem('mudabrasil.session', JSON.stringify(d.session)); toast('Logado como ' + d.session.voter.name); hideModal('auth-modal'); }
+        if (d.ok) { localStorage.setItem('votabrasil.session', JSON.stringify(d.session)); toast('Logado como ' + d.session.voter.name); hideModal('auth-modal'); }
         else toast(d.error || 'Erro', 'error');
       } catch (e) { toast('Erro de conexão', 'error'); }
     });
@@ -1195,7 +1195,7 @@
           body: JSON.stringify({ phone, code })
         });
         const d = await r.json();
-        if (d.ok) { localStorage.setItem('mudabrasil.session', JSON.stringify(d.session)); toast('Logado!'); hideModal('auth-modal'); }
+        if (d.ok) { localStorage.setItem('votabrasil.session', JSON.stringify(d.session)); toast('Logado!'); hideModal('auth-modal'); }
         else toast(d.error || 'Erro', 'error');
       } catch (e) { toast('Erro de conexão', 'error'); }
     });

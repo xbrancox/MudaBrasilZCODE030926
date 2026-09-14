@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — AUTENTICAÇÃO DE ELEITORES (UI)
+   VOTABRASIL — AUTENTICAÇÃO DE ELEITORES (UI)
    Login via Google OAuth ou Telefone (SMS OTP)
    ============================================================ */
 
@@ -9,7 +9,7 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-  const SESSION_KEY = 'mudabrasil.session';
+  const SESSION_KEY = 'votabrasil.session';
 
   const state = {
     session: loadSession(),

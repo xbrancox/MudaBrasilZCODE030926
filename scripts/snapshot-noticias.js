@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — SNAPSHOT ANTI-VAZIO DE NOTÍCIAS
+   VOTABRASIL — SNAPSHOT ANTI-VAZIO DE NOTÍCIAS
    ------------------------------------------------------------
    Regenera data/noticias.json a partir do backend (que agrega
    10 feeds nacionais + 27 G1 estaduais). O front usa esse

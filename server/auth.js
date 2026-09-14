@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL - AUTENTICACAO DE ELEITORES
+   VOTABRASIL - AUTENTICACAO DE ELEITORES
    ------------------------------------------------------------
    Login via Google OAuth 2.0, Telefone (SMS OTP) ou E-mail (OTP).
    Sem Gov.br - apenas identificacao basica.
@@ -77,7 +77,7 @@ async function sendOtp(phone) {
     try {
       const twilio = require('twilio')(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
       await twilio.messages.create({
-        body: '[MudaBrasil] Seu codigo: ' + code + '. Valido por 5 min.',
+        body: '[VotaBrasil] Seu codigo: ' + code + '. Valido por 5 min.',
         from: TWILIO_PHONE, to: '+' + cleanPhone
       });
     } catch (e) {

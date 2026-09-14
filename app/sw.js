@@ -1,4 +1,33 @@
-const CACHE='vb-app-v15';
-self.addEventListener('install',function(e){self.skipWaiting()});
-self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).then(function(){return self.clients.claim()}))});
-self.addEventListener('fetch',function(e){var u=new URL(e.request.url);if(u.pathname.indexOf('/api/')>=0)return;if(e.request.method!=='GET')return;if(u.origin!==location.origin)return;e.respondWith(fetch(e.request).then(function(r){var cp=r.clone();caches.open(CACHE).then(function(c){c.put(e.request,cp).catch(function(){})});return r}).catch(function(){return caches.match(e.request).then(function(h){return h||caches.match('./index.html')})}))});
+const CACHE = 'votabrasil-v20';
+const ASSETS = [
+  './',
+  './index.html',
+  './config.local.js',
+  './manifest.webmanifest',
+  './icon.svg',
+  './logo.svg'
+];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+      const copy = resp.clone();
+      caches.open(CACHE).then(c => c.put(e.request, copy));
+      return resp;
+    }).catch(() => caches.match('./index.html')))
+  );
+});

@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — HEADER COMPARTILHADO
+   VOTABRASIL — HEADER COMPARTILHADO
    Injeta navbar oficial em todas as páginas.
    Deve ser incluido no <head> de cada pagina antes de
    qualquer outro script.
@@ -155,12 +155,9 @@
     return `
 <header class="mb-header">
   <div class="mb-nav-inner">
-    <a href="${prefix}index.html" class="mb-logo" aria-label="MudaBrasil">
-      <svg width="34" height="34" viewBox="0 0 40 40" fill="none">
-        <circle cx="20" cy="20" r="17" stroke="#3465A4" stroke-width="4" fill="none"/>
-        <path d="M13 21 L19 27 L28 15" stroke="#AECF00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
-      <span>MudaBrasil</span>
+    <a href="${prefix}index.html" class="mb-logo" aria-label="VotaBrasil">
+      <img src="${prefix}icon.svg" alt="" width="34" height="34" style="border-radius:8px">
+      <span>VotaBrasil</span>
     </a>
     <nav aria-label="Navegação principal">
       <ul class="mb-nav-links" id="mb-nav-links">

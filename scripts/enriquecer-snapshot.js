@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — ENRIQUECIMENTO DO SNAPSHOT DE PARLAMENTARES
+   VOTABRASIL — ENRIQUECIMENTO DO SNAPSHOT DE PARLAMENTARES
    ------------------------------------------------------------
    Conta as proposições autorais de cada parlamentar usando as
    APIs abertas oficiais e grava no snapshot data/politicos.json
@@ -21,7 +21,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const SNAP = path.join(ROOT, 'data', 'politicos.json');
-const UA = 'MudaBrasil/1.0 (plataforma civica de transparencia; dados abertos)';
+const UA = 'VotaBrasil/1.0 (plataforma civica de transparencia; dados abertos)';
 const DELAY_MS = 150;          // ~6-7 req/s, respeitoso com as APIs
 const CAP_PAGINAS = 5;         // 5 x 100 = teto 500 proposições contadas
 const SALVAR_A_CADA = 25;
