@@ -507,12 +507,31 @@ function irConferir(){
 async function votarDeNovo(){
   const comp=JSON.parse(localStorage.getItem(LS.comprov)||'null');
   if(!comp||!comp.codigo){showToast('⚠️ Nenhum voto nesta demonstração.');return}
-  if(!confirm('Zerar seus '+Object.keys(getRascunho()).length+' votos desta SIMULAÇÃO e recomeçar?\n\nNa votação real isso não existirá.'))return;
+  const n=(comp.gravados!=null?comp.gravados:Object.keys(getRascunho()).length);
+  if(!confirm('Zerar seus '+n+' votos desta SIMULAÇÃO e recomeçar?\n\nNa votação real isso não existirá.'))return;
   try{
-    const tok=await garantirSessao();
-    await fetchJson('/api/voto/demonstracao',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionToken:tok,codigo:comp.codigo})});
+    let tok=await garantirSessao();
+    /* a sessao pode ter morrido em redeploy: o codigo e do eleitor antigo.
+       Recupera o hash real pelo conferir (publico) e reabre sessao ate casar. */
+    let rem=null;
+    for(let i=0;i<3;i++){
+      try{
+        const j=await fetchJson('/api/voto/demonstracao',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionToken:tok,codigo:comp.codigo})});
+        rem=j.removidos;break;
+      }catch(e){
+        if(e.status!==401&&e.status!==400)throw e;
+        let me=null;try{me=await fetchJson('/api/auth/me?sessionToken='+encodeURIComponent(tok))}catch(_){}
+        if(me&&me.ok&&me.voter){
+          let owner=null;try{const k=await fetchJson('/api/voto/conferir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:comp.codigo})});owner=k.voterHash}catch(_){}
+          if(owner&&owner===me.voter.voterHash){localStorage.removeItem(LS.session);continue}
+        }else{localStorage.removeItem(LS.session);continue}
+        showToast('⚠️ Este código pertence a outra sessão de demonstração.');
+        localStorage.removeItem(LS.comprov);localStorage.removeItem(LS.rascunho);startVote();return;
+      }
+    }
+    if(rem==null)throw new Error('Não foi possível zerar a demonstração.');
     localStorage.removeItem(LS.comprov);localStorage.removeItem(LS.rascunho);
-    startVote();showToast('🔄 Demonstração zerada. Monte nova cédula!');
+    startVote();showToast('🔄 Demonstração zerada ('+rem+' votos). Monte nova cédula!');
   }catch(e){showToast('⚠️ '+(e.message||'Erro ao zerar'))}
 }
 
