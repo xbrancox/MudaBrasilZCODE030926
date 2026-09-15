@@ -163,6 +163,60 @@ function applyQuery(list, q) {
   return out;
 }
 
+/* Enriquecimento dos candidatos com os campos reais do snapshot versionado
+   data/politicos.json (presença em sessões, proposições autorais, votações do
+   plenário). O snapshot é gerado por scripts/enriquecer-snapshot.js a partir das
+   mesmas APIs abertas da Câmara/Senado. Cache em memória + revalidação por
+   mtime para não ler o disco a cada request. */
+let _snapCache = { mtime: -1, map: null };
+function snapshotEnrichMap() {
+  const fp = path.join(ROOT, 'data', 'politicos.json');
+  try {
+    const st = fs.statSync(fp);
+    if (_snapCache.map && st.mtimeMs === _snapCache.mtime) return _snapCache.map;
+    const snap = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    const map = new Map();
+    for (const c of (snap.candidatos || [])) {
+      if (!c || !c.id) continue;
+      map.set(c.id, {
+        billsAuthored: c.billsAuthored != null ? c.billsAuthored : null,
+        attendanceRate: c.attendanceRate != null ? c.attendanceRate : null,
+        attendanceContext: c.attendanceContext || null,
+        votesPlenary2026: c.votesPlenary2026 != null ? c.votesPlenary2026 : null,
+        hasFullData: !!c.hasFullData
+      });
+    }
+    _snapCache = { mtime: st.mtimeMs, map };
+    return map;
+  } catch (_) {
+    return _snapCache.map || new Map();
+  }
+}
+
+function mergeSnapshotEnrichment(list) {
+  const map = snapshotEnrichMap();
+  if (!map.size) return list;
+  return list.map(c => {
+    const e = map.get(c.id);
+    if (!e) return c;
+    const out = { ...c };
+    if (out.billsAuthored == null && e.billsAuthored != null) out.billsAuthored = e.billsAuthored;
+    if (out.attendanceRate == null && e.attendanceRate != null) {
+      out.attendanceRate = e.attendanceRate;
+      if (e.attendanceContext) out.attendanceContext = e.attendanceContext;
+    }
+    if (out.votesPlenary2026 == null && e.votesPlenary2026 != null) out.votesPlenary2026 = e.votesPlenary2026;
+    if (e.hasFullData) {
+      out.hasFullData = true;
+      const extra = [];
+      if (e.billsAuthored != null) extra.push('Proposições autorais: API de Dados Abertos da Câmara');
+      if (e.attendanceRate != null) extra.push('Presença: API de Sessões Deliberativas da Câmara');
+      if (extra.length) out.dataSources = [...(out.dataSources || []), ...extra];
+    }
+    return out;
+  });
+}
+
 /* ===== Cédula de 5 cargos: validação contra o snapshot real do TSE ===== */
 /* No DF não há Deputado Estadual (cargo 7): o registro TSE é Deputado Distrital (cargo 8). */
 const CARGO_TSE_NUM = { 'Presidente': 1, 'Governador': 3, 'Senador': 5, 'Deputado Federal': 6, 'Deputado Estadual': 7, 'Deputado Distrital': 8 };
@@ -519,8 +573,15 @@ async function handleApi(req, res, url) {
       const deputados = depResult.list.map(d => ({ ...d, position: 'Deputado Federal' }));
       const senadores = senResult.list.map(s => ({ ...s, position: 'Senador Federal' }));
       const todos = [...deputados, ...senadores];
+      /* Enriquecimento real: o snapshot data/politicos.json carrega os campos
+         que as APIs vivas da Câmara/Senado não devolvem na listagem — presença
+         em sessões deliberativas (attendanceRate/attendanceContext), proposições
+         autorais (billsAuthored) e votações do plenário (votesPlenary2026).
+         Mesma fonte oficial (dados abertos Câmara/Senado); só muda o momento da
+         coleta. Sem o snapshot, a página nasceria com fichas vazias. */
+      const enriched = mergeSnapshotEnrichment(todos);
       const verSet = new Set(Object.keys(verificacao.getAllVerified()));
-      const candidatos = applyQuery(todos, q).map(c => (verSet.has(c.id) ? { ...c, selo: true, verificado: true } : c));
+      const candidatos = applyQuery(enriched, q).map(c => (verSet.has(c.id) ? { ...c, selo: true, verificado: true } : c));
       return sendJson(res, 200, {
         mode: 'real',
         source: 'Câmara dos Deputados + Senado Federal',
@@ -568,6 +629,9 @@ async function handleApi(req, res, url) {
           cand.hasFullData = true;
         }
       }
+      /* Complementa com o snapshot real (presença, votações do plenário e
+         autoria de senadores) — mesmos campos da listagem. */
+      cand = mergeSnapshotEnrichment([cand])[0];
       return sendJson(res, 200, { ok: true, mode: 'real', source: fonte, candidato: cand });
     } catch (e) {
       return sendJson(res, 502, { error: e.message });
