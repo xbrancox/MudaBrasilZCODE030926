@@ -445,6 +445,6 @@ function revokeBallotById(ballotId, ip) {
 module.exports = {
   castVote, revokeVote, reaffirmVote, viewVote, getTermometro, getAcompanhamento,
   getRevogados, getBallotsForVoter, revokeBallotById,
-  voteWeight, onVoteChange, totals,
+  voteWeight, onVoteChange, notifyChange, checkRateLimit, totals,
   DECADENCIA, ICM, K_SATURACAO, VOTOS_FILE, VOTOS_DB, db
 };

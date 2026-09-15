@@ -87,7 +87,8 @@ const JSON_FILES = {
   voters: path.join(DATA_DIR, 'voters.json'),
   pls: path.join(DATA_DIR, 'pls.json'),
   pl_votes: path.join(DATA_DIR, 'pl_votes.json'),
-  vote_codes: path.join(DATA_DIR, 'vote_codes.json')
+  vote_codes: path.join(DATA_DIR, 'vote_codes.json'),
+  cargo_votes: path.join(DATA_DIR, 'cargo_votes.json')
 };
 
 function jsonReadFile(key) {
@@ -232,6 +233,24 @@ function openSqlite() {
       used            INTEGER NOT NULL DEFAULT 0,
       created_at      INTEGER NOT NULL
     );
+
+    /* Votos por cargo (cédula de 5 cargos). codigo = comprovante unificado
+       do eleitor (mesmo código para todos os cargos da votação). */
+    CREATE TABLE IF NOT EXISTS cargo_votes (
+      id              TEXT PRIMARY KEY,
+      voter_hash      TEXT NOT NULL,
+      codigo          TEXT,
+      cargo           TEXT NOT NULL,
+      politician_id   TEXT NOT NULL,
+      nome_urna       TEXT,
+      partido         TEXT,
+      numero          TEXT,
+      uf              TEXT,
+      sq_tse          TEXT,
+      created_at      INTEGER NOT NULL,
+      UNIQUE(voter_hash, cargo)
+    );
+    CREATE INDEX IF NOT EXISTS idx_cargo_votes_codigo ON cargo_votes(codigo);
   `);
 }
 
@@ -271,6 +290,7 @@ function init() {
   if (BACKEND === 'sqlite') {
     openSqlite();
     try { db.prepare('ALTER TABLE ballots ADD COLUMN voter_hash TEXT').run(); } catch (_) { }
+    try { db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_cargo_votes_voter_cargo ON cargo_votes(voter_hash, cargo)').run(); } catch (_) { }
     const n = db.prepare('SELECT COUNT(*) AS n FROM ballots').get().n;
     if (n === 0) {
       const legacy = jsonReadFile('ballots');
@@ -893,6 +913,90 @@ function markCodeUsed(code) {
   }
 }
 
+/* ===== VOTOS POR CARGO (cédula de 5 cargos com código unificado) ===== */
+const rowToCargoVote = r => ({
+  id: r.id, voterHash: r.voter_hash, codigo: r.codigo, cargo: r.cargo,
+  politicianId: r.politician_id, nomeUrna: r.nome_urna, partido: r.partido,
+  numero: r.numero, uf: r.uf, sqTse: r.sq_tse, createdAt: r.created_at
+});
+
+function getCargoVotesByCodigo(codigo) {
+  const clean = String(codigo || '').replace(/\D/g, '');
+  if (!clean) return [];
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    return db.prepare('SELECT * FROM cargo_votes WHERE codigo = ? ORDER BY created_at ASC').all(clean).map(rowToCargoVote);
+  }
+  const all = jsonReadFile('cargo_votes') || {};
+  return Object.values(all).filter(v => v.codigo === clean).sort((a, b) => a.createdAt - b.createdAt);
+}
+
+function getCargoVotesByVoter(voterHash) {
+  if (!voterHash) return [];
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    return db.prepare('SELECT * FROM cargo_votes WHERE voter_hash = ? ORDER BY created_at ASC').all(voterHash).map(rowToCargoVote);
+  }
+  const all = jsonReadFile('cargo_votes') || {};
+  return Object.values(all).filter(v => v.voterHash === voterHash).sort((a, b) => a.createdAt - b.createdAt);
+}
+
+/* Substitui TODOS os votos por cargo do eleitor pelo lote novo, atômico.
+   votos = [{cargo, politicianId, nomeUrna, partido, numero, uf, sqTse}] */
+function replaceVoterCargoVotes(voterHash, votos, codigo) {
+  const now = Date.now();
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    db.exec('BEGIN');
+    try {
+      db.prepare('DELETE FROM cargo_votes WHERE voter_hash = ?').run(voterHash);
+      const ins = db.prepare(`INSERT INTO cargo_votes
+        (id, voter_hash, codigo, cargo, politician_id, nome_urna, partido, numero, uf, sq_tse, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      for (const v of votos) {
+        ins.run(v.id, voterHash, codigo, v.cargo, v.politicianId,
+          v.nomeUrna || null, v.partido || null, v.numero || null,
+          v.uf || null, v.sqTse || null, now);
+      }
+      db.exec('COMMIT');
+    } catch (e) {
+      try { db.exec('ROLLBACK'); } catch (_) { }
+      throw e;
+    }
+    return votos.length;
+  }
+  const all = jsonReadFile('cargo_votes') || {};
+  for (const k of Object.keys(all)) {
+    if (all[k].voterHash === voterHash) delete all[k];
+  }
+  for (const v of votos) {
+    all[v.id] = {
+      id: v.id, voterHash, codigo, cargo: v.cargo, politicianId: v.politicianId,
+      nomeUrna: v.nomeUrna || null, partido: v.partido || null, numero: v.numero || null,
+      uf: v.uf || null, sqTse: v.sqTse || null, createdAt: now
+    };
+  }
+  jsonWriteFile('cargo_votes', all);
+  return votos.length;
+}
+
+function deleteCargoVotesByCodigo(codigo) {
+  const clean = String(codigo || '').replace(/\D/g, '');
+  if (!clean) return 0;
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    const r = db.prepare('DELETE FROM cargo_votes WHERE codigo = ?').run(clean);
+    return Number(r.changes) || 0;
+  }
+  const all = jsonReadFile('cargo_votes') || {};
+  let n = 0;
+  for (const k of Object.keys(all)) {
+    if (all[k].codigo === clean) { delete all[k]; n++; }
+  }
+  if (n) jsonWriteFile('cargo_votes', all);
+  return n;
+}
+
 function getRevokedStats() {
   if (BACKEND === 'sqlite') {
     openSqlite();
@@ -961,7 +1065,7 @@ function getPoliticianFullDetails(id) {
 
 /* ===== Backup: dump completo de todas as tabelas ===== */
 const DUMP_TABLES = ['ballots', 'politicians', 'verifications', 'complaints',
-  'supports', 'responses', 'voters', 'pls', 'pl_votes', 'vote_codes'];
+  'supports', 'responses', 'voters', 'pls', 'pl_votes', 'vote_codes', 'cargo_votes'];
 function dumpAll() {
   const out = {};
   if (BACKEND === 'sqlite') {
@@ -987,6 +1091,7 @@ module.exports = {
   hashVoter, upsertVoter, getVoterById, getVoterByGoogleId, getVoterByPhone, getVoterByHash, getVoterByEmail,
   upsertPl, getPl, readAllPls, getPlsByFilters, castPlVote, getPlVoteForVoter,
   generateVoteCode, getVoteCodesForVoter, verifyVoteCode, markCodeUsed,
+  getCargoVotesByCodigo, getCargoVotesByVoter, replaceVoterCargoVotes, deleteCargoVotesByCodigo,
   getRevokedStats, dumpAll,
   VOTOS_DB, VOTOS_FILE
 };

@@ -162,6 +162,24 @@ function applyQuery(list, q) {
   return out;
 }
 
+/* ===== Cédula de 5 cargos: validação contra o snapshot real do TSE ===== */
+const CARGO_TSE_NUM = { 'Presidente': 1, 'Governador': 3, 'Senador': 5, 'Deputado Federal': 6, 'Deputado Estadual': 7 };
+const CARGOS_LAB = Object.keys(CARGO_TSE_NUM);
+
+function getCandidatoTseKey(sq) {
+  /* cache do índice TSE por sq (registro único do candidato) */
+  if (!getCandidatoTseKey._map) {
+    const map = new Map();
+    try {
+      for (const c of (tse.getCandidatos().candidatos || [])) {
+        if (c.sq) map.set(String(c.sq), c);
+      }
+    } catch (_) { }
+    getCandidatoTseKey._map = map;
+  }
+  return getCandidatoTseKey._map.get(String(sq));
+}
+
 /* Resolve politicianId aceitando formatos cru (204379) ou prefixado (camara-204379) */
 function resolvePoliticianId(id) {
   const raw = String(id || '').trim();
@@ -867,10 +885,14 @@ async function handleApi(req, res, url) {
     if (!rec) return sendJson(res, 404, { ok: false, error: 'Código não encontrado' });
     let vinculados = [];
     try { vinculados = (db.getBallotsByVoter(rec.voterHash) || []).filter(b => !b.revoked); } catch (_) { }
+    /* cédula de 5 cargos (simulação): UM código resolve TODOS os votos por cargo */
+    let cedula = [];
+    try { cedula = db.getCargoVotesByCodigo(code); } catch (_) { }
     return sendJson(res, 200, {
       ok: true,
       voterHash: rec.voterHash,
-      votos: vinculados.map(b => ({ id: b.ballotId, politicianId: b.politicianId, createdAt: b.createdAt }))
+      votos: vinculados.map(b => ({ id: b.ballotId, politicianId: b.politicianId, createdAt: b.createdAt })),
+      cargos: cedula.map(v => ({ cargo: v.cargo, nomeUrna: v.nomeUrna, partido: v.partido, numero: v.numero, uf: v.uf }))
     });
   }
 
@@ -883,6 +905,76 @@ async function handleApi(req, res, url) {
       const codes = db.getVoteCodesForVoter(voter.voterHash);
       const code = (codes && codes.length) ? codes[0].code : db.generateVoteCode(voter.voterHash);
       return sendJson(res, 200, { ok: true, code, formatted: code.replace(/(.{4})/g, '$1 ').trim() });
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  /* ===== CÉDULA DE 5 CARGOS — lote com UM código unificado (simulação) ===== */
+  if (p === '/api/voto/cargo-lote' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    const voter = auth.getVoterFromToken(body.sessionToken || '');
+    if (!voter) return sendJson(res, 401, { ok: false, error: 'Faça login para registrar sua cédula' });
+    const rlLote = votes.checkRateLimit(clientIp(req), 'cargo-lote');
+    if (!rlLote.allowed) return sendJson(res, 429, { ok: false, error: 'Muitas tentativas em pouco tempo. Aguarde um instante.' });
+    const cargosIn = body.cargos && typeof body.cargos === 'object' ? body.cargos : null;
+    if (!cargosIn) return sendJson(res, 400, { ok: false, error: 'Envie { cargos: { Presidente: <sq>, ... } }' });
+    const entradas = Object.entries(cargosIn).filter(([, sq]) => sq != null && String(sq).trim() !== '');
+    if (!entradas.length) return sendJson(res, 400, { ok: false, error: 'Nenhum cargo escolhido' });
+    if (entradas.length > CARGOS_LAB.length) return sendJson(res, 400, { ok: false, error: 'No máximo ' + CARGOS_LAB.length + ' cargos' });
+    /* valida cada escolha contra o snapshot real do TSE */
+    const votosValidos = [];
+    for (const [cargo, sq] of entradas) {
+      if (!CARGOS_LAB.includes(cargo)) return sendJson(res, 400, { ok: false, error: 'Cargo inválido: ' + cargo });
+      const cand = getCandidatoTseKey(sq);
+      if (!cand) return sendJson(res, 400, { ok: false, error: 'Candidato não encontrado no registro TSE (' + cargo + ')' });
+      if (CARGO_TSE_NUM[cargo] !== Number(cand.cargo)) {
+        return sendJson(res, 400, { ok: false, error: 'Candidato informado não concorre ao cargo ' + cargo });
+      }
+      votosValidos.push({
+        id: 'cv-' + crypto.createHash('sha256').update(voter.voterHash + '|' + cargo + '|' + cand.sq).digest('hex').slice(0, 24),
+        cargo, politicianId: 'tse-' + cand.sq, nomeUrna: cand.nomeUrna, partido: cand.partido,
+        numero: String(cand.numero || ''), uf: cand.uf, sqTse: String(cand.sq)
+      });
+    }
+    try {
+      const codes = db.getVoteCodesForVoter(voter.voterHash);
+      const codigo = (codes && codes.length) ? codes[0].code : db.generateVoteCode(voter.voterHash);
+      const gravados = db.replaceVoterCargoVotes(voter.voterHash, votosValidos, codigo);
+      votes.notifyChange('cargo-lote');
+      return sendJson(res, 200, {
+        ok: true, codigo, formatado: codigo.replace(/(.{4})/g, '$1 ').trim(),
+        gravados, votos: db.getCargoVotesByCodigo(codigo)
+      });
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  /* Zera os votos por cargo daquele código (modo demonstração).
+     Só existe enquanto a votação é SIMULAÇÃO/pesquisa de opinião. */
+  if (p === '/api/voto/demonstracao' && req.method === 'POST') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { ok: false, error: e.message }); }
+    const voter = auth.getVoterFromToken(body.sessionToken || '');
+    if (!voter) return sendJson(res, 401, { ok: false, error: 'Faça login para zerar a demonstração' });
+    const codigo = String(body.codigo || '').replace(/\D/g, '');
+    const rec = codigo ? db.verifyVoteCode(codigo) : null;
+    if (!rec || rec.voterHash !== voter.voterHash) {
+      return sendJson(res, 400, { ok: false, error: 'Código inválido ou de outro eleitor' });
+    }
+    try {
+      const removidos = db.deleteCargoVotesByCodigo(codigo);
+      votes.notifyChange('demonstracao');
+      return sendJson(res, 200, { ok: true, removidos });
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+
+  if (p === '/api/voto/cargo/meus' && req.method === 'GET') {
+    const voter = auth.getVoterFromToken(q.sessionToken || (req.headers.authorization || '').replace('Bearer ', ''));
+    if (!voter) return sendJson(res, 401, { ok: false, error: 'Faça login para ver sua cédula' });
+    try {
+      const votos = db.getCargoVotesByVoter(voter.voterHash);
+      const codes = db.getVoteCodesForVoter(voter.voterHash);
+      const codigo = (codes && codes.length) ? codes[0].code : null;
+      return sendJson(res, 200, { ok: true, codigo, formatado: codigo ? codigo.replace(/(.{4})/g, '$1 ').trim() : null, votos });
     } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
   }
 
