@@ -102,4 +102,38 @@ function getResumo() {
   };
 }
 
-module.exports = { getPartidos, getCandidatos, getResumo, keyPol, SNAPSHOT_FILE };
+/* Exportação CSV (ponto-e-vírgula, padrão Excel pt-BR) dos dados
+   públicos do fundo — para jornalistas, pesquisadores e cidadãos. */
+function csvEscape(v) {
+  const s = String(v == null ? '' : v);
+  return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function brl(v) {
+  return Number(v || 0).toFixed(2).replace('.', ',');
+}
+function getCSV() {
+  const d = carregarSnapshot();
+  const linhas = ['sigla_partido;nome_partido;valor_total_brl;percentual_do_fundo;cota_2pct_registrados_brl;cota_35pct_votos_camara_brl;cota_48pct_bancada_camara_brl;cota_15pct_bancada_senado_brl'];
+  for (const p of (d.porPartido || [])) {
+    const c = {};
+    for (const q of (p.cotas || [])) {
+      if (/^Cota 2%/.test(q.destino)) c.c2 = q.valor;
+      else if (/^Cota 35%/.test(q.destino)) c.c35 = q.valor;
+      else if (/^Cota 48%/.test(q.destino)) c.c48 = q.valor;
+      else if (/^Cota 15%/.test(q.destino)) c.c15 = q.valor;
+    }
+    linhas.push([csvEscape(p.sigla), csvEscape(p.nome), brl(p.valor), String(p.percentual == null ? '' : p.percentual).replace('.', ','), brl(c.c2), brl(c.c35), brl(c.c48), brl(c.c15)].join(';'));
+  }
+  // candidatos (quando existirem prestações de contas publicadas)
+  if ((d.porPolitico || []).length) {
+    linhas.push('');
+    linhas.push('nome_candidato;cargo;uf;sigla_partido;ano;valor_recebido_brl;origem');
+    for (const c of d.porPolitico) {
+      linhas.push([csvEscape(c.nome), csvEscape(c.cargo), csvEscape(c.uf), csvEscape(c.partido), csvEscape(c.ano), brl(c.valor), csvEscape(c.origem)].join(';'));
+    }
+  }
+  // BOM UTF-8: Excel abre acentos corretamente
+  return '\uFEFF' + linhas.join('\r\n') + '\r\n';
+}
+
+module.exports = { getPartidos, getCandidatos, getResumo, getCSV, keyPol, SNAPSHOT_FILE };

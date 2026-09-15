@@ -197,9 +197,10 @@
     <div id="cg" class="cd">— — — — —</div>
     <div class="bk">
       <button class="b bp" onclick="copyCode()">📋 Copiar código</button>
-      <button class="b bo" onclick="irConferir()">🔍 Conferir no site</button>
+      <button class="b bo" onclick="abrirConferirNoSite()">🔍 Conferir no site</button>
       <button class="bdem" onclick="votarDeNovo()" title="Refaz sua simulação zerando estes votos. Na votação real isso não existirá.">🔄 Votar de novo (demonstração)</button>
     </div>
+    <button class="lg" onclick="copiarLinkSite()">🔗 Copiar link do site para conferir</button>
     <p class="ht" style="margin-top:14px">✅ Comprovante gravado neste aparelho. <strong>Isto é uma demonstração:</strong> seus votos alimentam a pesquisa e podem ser zerados por você. Na votação real haverá login por e-mail/telefone e o comprovante será enviado automaticamente.</p>
   </div>
   <div class="fw">Guarde este código: ele é seu único comprovante. Um mesmo código vale para os 5 cargos.</div>
@@ -403,6 +404,11 @@ function irConferir(){
   go('s-conf');
   if(comp&&comp.codigo)[...document.querySelectorAll('#s-conf input.ci')].forEach((i,j)=>i.value=comp.codigo.slice(j*4,j*4+4));
 }
+/* Link para conferir no SITE oficial VotaBrasil (mesmo contrato de API).
+   Troque a constante se publicar o site num domínio próprio. */
+const SITE_CONFERIR='https://mudabrasil-redesign-production.up.railway.app/index.html#conferir-voto';
+function abrirConferirNoSite(){window.open(SITE_CONFERIR,'_blank','noopener')}
+function copiarLinkSite(){navigator.clipboard.writeText(SITE_CONFERIR).then(()=>showToast('🔗 Link do site copiado!'))}
 async function votarDeNovo(){
   const comp=JSON.parse(localStorage.getItem(LS.comprov)||'null');
   if(!comp||!comp.codigo){showToast('⚠️ Nenhum voto nesta demonstração.');return}

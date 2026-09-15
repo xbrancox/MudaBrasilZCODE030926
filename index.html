@@ -179,7 +179,7 @@ footer{background:#08142e;border-top:1px solid var(--line);padding:44px 0 20px;m
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);color:var(--ink);padding:12px 18px;border-radius:12px;z-index:300;display:none;max-width:90%}
 @media(max-width:960px){#radList{grid-template-columns:1fr}.explore{grid-template-columns:repeat(2,1fr)}.donuts{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:1fr}.filtros{grid-template-columns:1fr 1fr}.ft{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(2,1fr)}nav{display:none}.ham{display:inline-flex}}
 </style>
-  <script src="js/site-header.js?v=2"></script>
+  <script src="js/site-header.js?v=3"></script>
 </head>
 <body>
 
@@ -189,7 +189,7 @@ footer{background:#08142e;border-top:1px solid var(--line);padding:44px 0 20px;m
 <div class="l2"><span class="g">não acaba</span> no <span class="y">dia da eleição.</span></div>
 <div class="l3">Seu voto <span class="g">coloca</span>. Seu voto <span class="r">tira</span>.</div>
 <p>Acompanhe a opinião do Brasil, cobre promessas no Radar Político, <b style="color:var(--ink)">participe dos Projetos de Leis no Congresso</b>, confira seu voto com segurança. Analise o currículo dos candidatos. Tenha a oportunidade de tirar o mal político revogando seu voto.</p>
-<div class="cta"><button class="btn gold" onclick="toast('Votação somente no app.')"><i class="fa-solid fa-check-to-slot"></i> Votar <small>Somente no App</small></button><button class="btn" onclick="go('conferir')">Conferir Voto</button><button class="btn" onclick="go('revogar')">Revogar Voto</button></div>
+<div class="cta"><a class="btn gold" href="app/" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px"><i class="fa-solid fa-mobile-screen-button"></i> Abrir o App <small>Cédula no celular</small></a><button class="btn" onclick="go('conferir')">Conferir Voto</button><button class="btn" onclick="go('revogar')">Revogar Voto</button></div>
 <div class="cta" style="margin-top:12px"><span class="badge" id="bVotos">6 votos simulados</span><span class="badge blue" id="bReais">carregando…</span><span class="badge" id="bPls">6 PLs em análise</span></div>
 </div>
 <div class="wrap">
@@ -313,7 +313,7 @@ footer{background:#08142e;border-top:1px solid var(--line);padding:44px 0 20px;m
 <p style="color:var(--gold);font-weight:800;font-size:13px">"Seu voto coloca, seu voto tira."</p></div>
 <div><h5>Navegar</h5><a onclick="go('radar')">Radar Político</a><a href="pages/fundo-eleitoral.html">Fundo Eleitoral</a><a href="pages/congresso.html">PLs no Congresso</a><a onclick="go('conferir')">Conferir Voto</a><a onclick="go('revogados')">Revogados</a></div>
 <div><h5>Participar</h5><a onclick="go('conferir')">Meus Votos</a><a onclick="go('radar')">Reclame Aqui</a><a onclick="abrirForm(-1,'rec')">📝 Reclamar ou 👍 Apoiar</a><a onclick="abrirLogin()">Sou Político/Candidato</a></div>
-<div><h5>Institucional</h5><a onclick="go('quem')">Sobre Nós</a><a href="termos.html">Termos de Uso</a><a href="privacidade.html">Política de Privacidade</a><a>Contato</a></div>
+<div><h5>Institucional</h5><a href="app/">📱 App de Votação</a><a onclick="go('quem')">Sobre Nós</a><a href="termos.html">Termos de Uso</a><a href="privacidade.html">Política de Privacidade</a><a>Contato</a></div>
 </div><div class="fbot"><span>© 2026 VotaBrasil. Protótipo demonstrativo.</span><span>votabrasil.app</span></div></div></footer>
 <div class="cmpbar" id="cmpbar"><span id="cmpcount" class="muted">0 fixados</span><div style="display:flex;gap:8px"><button class="btn sm" onclick="limparPin()">Limpar</button><button class="btn gold sm" onclick="abrirCmp()">Comparar lado a lado</button></div></div>
 <div class="overlay" id="mCmp"><div class="modal"><h3 style="margin-bottom:12px">🆚 Comparação lado a lado</h3><div id="cmpBody" class="cmpgrid"></div><button class="btn" style="width:100%;margin-top:12px" onclick="fechar('mCmp')">Fechar</button></div></div>

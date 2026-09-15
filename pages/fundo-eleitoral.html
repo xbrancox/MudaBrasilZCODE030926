@@ -44,7 +44,7 @@
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="../config.local.js"></script>
-  <script src="../js/site-header.js?v=2"></script>
+  <script src="../js/site-header.js?v=3"></script>
 </head>
 <body>
   <!-- ===================== TÍTULO DA PÁGINA ===================== -->
@@ -89,6 +89,11 @@
       <div class="fx-panel" id="fx-dica-c" hidden>
         <p>💡 Enquanto os repasses individuais não são publicados, você pode acompanhar os candidatos reais no <a href="parlamentares.html">Radar Político</a> — a ficha de cada político mostra o valor do fundo quando houver dado público disponível.</p>
       </div>
+    </div>
+
+    <div class="fx-panel" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between">
+      <p style="margin:0">📊 Quer os números brutos para planilha, matéria ou análise? Baixe o CSV oficial com todos os partidos e cotas.</p>
+      <a class="mb-btn-primary" id="fx-csv" href="#" download style="text-decoration:none;white-space:nowrap">⬇️ Baixar CSV (Excel)</a>
     </div>
 
     <p class="mb-muted-sm" id="fx-fonte" style="margin-top:8px"></p>
@@ -193,6 +198,7 @@
     });
 
     carregar();
+    document.getElementById('fx-csv').href = BASE + '/api/fundo-eleitoral/export.csv';
     return { renderPartidos: renderPartidos, renderCandidatos: renderCandidatos };
   })();
   </script>

@@ -292,9 +292,10 @@ header{position:sticky;top:0;background:var(--navy);padding:12px 16px;z-index:10
     <div id="cg" class="cd">— — — — —</div>
     <div class="bk">
       <button class="b bp" onclick="copyCode()">📋 Copiar código</button>
-      <button class="b bo" onclick="irConferir()">🔍 Conferir no site</button>
+      <button class="b bo" onclick="abrirConferirNoSite()">🔍 Conferir no site</button>
       <button class="bdem" onclick="votarDeNovo()" title="Refaz sua simulação zerando estes votos. Na votação real isso não existirá.">🔄 Votar de novo (demonstração)</button>
     </div>
+    <button class="lg" onclick="copiarLinkSite()">🔗 Copiar link do site para conferir</button>
     <p class="ht" style="margin-top:14px">✅ Comprovante gravado neste aparelho. <strong>Isto é uma demonstração:</strong> seus votos alimentam a pesquisa e podem ser zerados por você. Na votação real haverá login por e-mail/telefone e o comprovante será enviado automaticamente.</p>
   </div>
   <div class="fw">Guarde este código: ele é seu único comprovante. Um mesmo código vale para os 5 cargos.</div>
@@ -360,7 +361,8 @@ header{position:sticky;top:0;background:var(--navy);padding:12px 16px;z-index:10
     <button class="b bp" onclick="conf()">Conferir no site</button>
     <button class="b bo" onclick="confEx()">Testar com exemplo</button>
   </div>
-  <button class="lg" onclick="copyConfLink()">🔗 Copiar link de conferência</button>
+  <button class="lg" onclick="abrirConferirNoSite()">🌐 Abrir Conferir no site (votabrasil) →</button>
+  <button class="lg" onclick="copyConfLink()">🔗 Copiar link de conferência do site</button>
   <div id="conf-box" class="conf-box"></div>
 </section>
 
@@ -608,7 +610,11 @@ async function conf(){
   }
 }
 function confEx(){const d='16948051304534262993';[...document.querySelectorAll('#s-conf input.ci')].forEach((i,j)=>i.value=d.slice(j*4,j*4+4));conf()}
-function copyConfLink(){const u=location.href.split('#')[0]+'#conferir';navigator.clipboard.writeText(u).then(()=>showToast('🔗 Link copiado!'))}
+const SITE=(API||location.origin).replace(/\/$/,'');
+function linkConferirSite(){return SITE+'/index.html#conferir-voto'}
+function abrirConferirNoSite(){window.open(linkConferirSite(),'_blank','noopener')}
+function copiarLinkSite(){navigator.clipboard.writeText(linkConferirSite()).then(()=>showToast('🔗 Link do site copiado!'))}
+function copyConfLink(){navigator.clipboard.writeText(linkConferirSite()).then(()=>showToast('🔗 Link de conferência copiado!'))}
 
 /* ===== v27 — RADAR POLÍTICO REAL (Câmara+Senado via /api/candidatos) + reclamação/apoio/respostas/verificação ===== */
 let POLS=[],POL_RANK={},FUNDO_MAP=null,POL_SHOWN=50,POL_OPEN=null;

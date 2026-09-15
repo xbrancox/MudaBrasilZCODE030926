@@ -29,6 +29,7 @@
     '#mbtopo .hbadge{border:1px solid #2ECC71;color:#2ECC71;border-radius:999px;padding:5px 9px;font-size:10.5px;white-space:nowrap}',
     '#mbtopo .hbtn{border-radius:999px;padding:7px 13px;font-size:12px;white-space:nowrap;font-weight:700;text-decoration:none;cursor:pointer;border:1px solid #1d3a66;background:#123059;color:#eaf1fb;font-family:inherit}',
     '#mbtopo .hbtn.gold{background:#FFD700;color:#061a3a;border-color:#FFD700}',
+    '#mbtopo .hbtn.mint{background:#AECF00;color:#061a3a;border-color:#AECF00;font-weight:800}',
     '#mbtopo .ham{display:none;background:none;border:1px solid #1d3a66;border-radius:10px;color:#eaf1fb;font-size:18px;cursor:pointer;padding:6px 12px}',
     '#mbtopo .mnav{display:none;flex-direction:column;background:#0d2242;border-top:1px solid #1d3a66;padding:10px 16px;flex-basis:100%}',
     '#mbtopo .mnav.open{display:flex}',
@@ -99,10 +100,12 @@
       ' <button class="ham" aria-label="Menu" onclick="document.getElementById(\'mbtopo-mnav\').classList.toggle(\'open\')"><i class="fa-solid fa-bars"></i></button>' +
       ' <nav>' + nav + '</nav>' +
       ' <div class="hact"><span class="hbadge" id="mbtopo-badge" hidden>conectando\u2026</span>' +
+      ' <a class="hbtn mint" href="' + R + 'app/" title="Aplicativo de votação (funciona offline no celular)">📱 App</a>' +
+      ' <a class="hbtn" href="' + R + 'index.html#conferir-voto">Conferir</a>' +
       ' <a class="hbtn"' + (naHomeAgora ? ' onclick="if(window.abrirLogin)window.abrirLogin();return false" href="#conferir-voto"' : ' href="' + R + 'index.html"') + '>Entrar</a>' +
       ' <a class="hbtn gold"' + (naHomeAgora ? ' onclick="if(window.abrirLogin)window.abrirLogin();return false" href="#conferir-voto"' : ' href="' + R + 'index.html"') + '>Cadastrar</a></div>' +
       '</header>' +
-      '<div class="mnav" id="mbtopo-mnav">' + mnav + '</div>';
+      '<div class="mnav" id="mbtopo-mnav">' + mnav + '<a href="' + R + 'app/">📱 Abrir o App de Votação</a><a href="' + R + 'index.html#conferir-voto">🔍 Conferir Voto</a></div>';
 
     var alvo = document.body;
     alvo.insertBefore(topo, alvo.firstChild);

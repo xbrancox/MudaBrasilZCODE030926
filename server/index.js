@@ -775,6 +775,17 @@ async function handleApi(req, res, url) {
     try { return sendJson(res, 200, fundoEleitoral.getResumo()); }
     catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
   }
+  if (p === '/api/fundo-eleitoral/export.csv' && req.method === 'GET') {
+    try {
+      const csv = fundoEleitoral.getCSV();
+      res.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="fundo-eleitoral-2026.csv"',
+        'Cache-Control': 'public, max-age=3600'
+      });
+      return res.end(csv);
+    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
 
   if (p === '/api/reclamacoes' && req.method === 'POST') {
     let body;
