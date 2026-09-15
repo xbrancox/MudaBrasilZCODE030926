@@ -163,7 +163,8 @@ function applyQuery(list, q) {
 }
 
 /* ===== Cédula de 5 cargos: validação contra o snapshot real do TSE ===== */
-const CARGO_TSE_NUM = { 'Presidente': 1, 'Governador': 3, 'Senador': 5, 'Deputado Federal': 6, 'Deputado Estadual': 7 };
+/* No DF não há Deputado Estadual (cargo 7): o registro TSE é Deputado Distrital (cargo 8). */
+const CARGO_TSE_NUM = { 'Presidente': 1, 'Governador': 3, 'Senador': 5, 'Deputado Federal': 6, 'Deputado Estadual': 7, 'Deputado Distrital': 8 };
 const CARGOS_LAB = Object.keys(CARGO_TSE_NUM);
 
 function getCandidatoTseKey(sq) {
@@ -920,7 +921,7 @@ async function handleApi(req, res, url) {
     if (!cargosIn) return sendJson(res, 400, { ok: false, error: 'Envie { cargos: { Presidente: <sq>, ... } }' });
     const entradas = Object.entries(cargosIn).filter(([, sq]) => sq != null && String(sq).trim() !== '');
     if (!entradas.length) return sendJson(res, 400, { ok: false, error: 'Nenhum cargo escolhido' });
-    if (entradas.length > CARGOS_LAB.length) return sendJson(res, 400, { ok: false, error: 'No máximo ' + CARGOS_LAB.length + ' cargos' });
+    if (entradas.length > 5) return sendJson(res, 400, { ok: false, error: 'No máximo 5 cargos' });
     /* valida cada escolha contra o snapshot real do TSE */
     const votosValidos = [];
     for (const [cargo, sq] of entradas) {

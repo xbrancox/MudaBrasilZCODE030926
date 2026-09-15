@@ -1,4 +1,4 @@
-const CACHE = 'votabrasil-v25';
+const CACHE = 'votabrasil-v26';
 const ASSETS = [
   './',
   './index.html',

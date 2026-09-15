@@ -370,6 +370,15 @@ function flowGo(id){document.querySelectorAll('.f').forEach(x=>x.classList.remov
 /* ===== v23 — CÉDULA REAL (TSE), rascunho local, código único 20 dígitos ===== */
 const LS={rascunho:'mb_rascunho',uf:'mb_uf',session:'mb_session',comprov:'mb_comprovante'};
 const CARGOS=[['Presidente',1],['Governador',3],['Senador',5],['Deputado Federal',6],['Deputado Estadual',7]];
+/* No DF não existe Deputado Estadual: o TSE registra cargo 8 = Deputado Distrital.
+   A linha da cédula vira "Deputado Distrital" quando a UF escolhida é DF. */
+const DEP_LAB='Deputado Estadual';
+/* UF do deputado: a chave localStorage é estável (DEP_LAB) mesmo quando o rótulo
+   exibido vira "Deputado Distrital" no DF — senão o select perde a chave ao trocar. */
+const ufDep=()=>localStorage.getItem(LS.uf+':'+DEP_LAB)||'';
+const isDf=()=>ufDep()==='DF';
+const numDep=()=>isDf()?8:7;
+const labDep=()=>isDf()?'Deputado Distrital':DEP_LAB;
 const UFS=['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const getRascunho=()=>{try{return JSON.parse(localStorage.getItem(LS.rascunho)||'{}')}catch(_){return{}}};
@@ -395,16 +404,18 @@ async function garantirSessao(){
 function renderCedula(){
   const r=getRascunho();
   document.getElementById('cedula-list').innerHTML=CARGOS.map(([lab,num])=>{
+      if(lab===DEP_LAB){num=numDep();lab=labDep()}
     const e=r[lab];
-    const dots=CARGOS.map(([l2])=>'<div class="dotd'+(r[l2]?' a':'')+'"></div>').join('');
+    const dots=CARGOS.map(([l2])=>'<div class="dotd'+(r[l2===DEP_LAB?labDep():l2]?' a':'')+'"></div>').join('');
     const corpo=e
       ?'<button class="escolhido" onclick="abrirSheet(\''+lab+'\')" aria-label="Trocar '+esc(lab)+'"><div class="av">'+(e.sq?'<img src="'+fotoUrl(e.sq)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<span>'+esc((e.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(e.nomeUrna)+'</h4><p>'+esc(e.partido)+' · '+esc(e.uf)+' · nº '+esc(e.numero)+'</p></div><span class="cb-ok">✓</span></button>'
       :'<button class="escolhido vazio" onclick="abrirSheet(\''+lab+'\')">Escolher candidato →</button>';
-    return '<div class="cargo-card"><div class="ch-in"><span class="ch-t">'+esc(lab)+'</span><div class="dots">'+dots+'</div></div><div class="uf-pick">UF <select class="uf-s" data-cargo="'+esc(lab)+'" onchange="mudarUf(this)"><option value="">BR/TODOS</option>'+UFS.map(u=>'<option'+(getUF(lab)===u?' selected':'')+'>'+u+'</option>').join('')+'</select></div>'+corpo+'</div>';
+    const ufSel=lab===DEP_LAB?ufDep():getUF(lab);
+    return '<div class="cargo-card"><div class="ch-in"><span class="ch-t">'+esc(lab)+'</span><div class="dots">'+dots+'</div></div><div class="uf-pick">UF <select class="uf-s" data-cargo="'+esc(DEP_LAB)+'" onchange="mudarUf(this)"><option value="">BR/TODOS</option>'+UFS.map(u=>'<option'+(ufSel===u?' selected':'')+'>'+u+'</option>').join('')+'</select></div>'+corpo+'</div>';
   }).join('');
   atualizarCta();
 }
-function mudarUf(sel){setUF(sel.dataset.cargo,sel.value)}
+function mudarUf(sel){setUF(sel.dataset.cargo,sel.value);renderCedula()}
 function atualizarCta(){
   const n=Object.keys(getRascunho()).length;
   const b=document.getElementById('btn-revisar');
@@ -422,8 +433,8 @@ function abrirSheet(cargo){
 }
 function fecharSheet(){document.getElementById('cand-sheet').classList.remove('on')}
 async function carregarCandidatos(){
-  const num=(CARGOS.find(c=>c[0]===sheetCargo)||[,0])[1];
-  const uf=getUF(sheetCargo);
+  const num=sheetCargo===labDep()?numDep():(CARGOS.find(c=>c[0]===sheetCargo)||[,0])[1];
+  const uf=sheetCargo===labDep()?ufDep():getUF(sheetCargo);
   const busca=document.getElementById('cand-busca').value.trim();
   const st=document.getElementById('cand-status');
   st.textContent='Buscando candidatos reais do TSE…';
@@ -458,6 +469,7 @@ function escolher(sq){
 function abrirRevisao(){
   const r=getRascunho();
   document.getElementById('review-list').innerHTML=CARGOS.map(([lab])=>{
+    if(lab===DEP_LAB)lab=labDep();
     const e=r[lab];
     return '<div class="vi"><div class="vn"><h3>'+esc(lab)+'</h3><p>'+(e?esc(e.nomeUrna)+' · '+esc(e.partido)+' · '+esc(e.uf)+' · nº '+esc(e.numero):'— ainda não escolhido')+'</p></div><button class="bt" onclick="abrirSheet(\''+lab+'\')">TROCAR</button></div>';
   }).join('');
@@ -468,7 +480,7 @@ function abrirExplicacao(){flowGo('f3')}
 /* --- finalizar: POST cargo-lote com UM código unificado --- */
 async function finalizarVoto(btn){
   const r=getRascunho();
-  const cargos={};for(const [lab] of CARGOS){if(r[lab])cargos[lab]=r[lab].sq}
+  const cargos={};for(const [lab] of CARGOS){const k=lab===DEP_LAB?labDep():lab;if(r[k])cargos[k]=r[k].sq}
   if(!Object.keys(cargos).length){showToast('⚠️ Escolha ao menos um candidato.');flowGo('f1');return}
   btn.disabled=true;btn.textContent='Registrando seu voto…';
   try{
