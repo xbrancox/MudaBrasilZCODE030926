@@ -2,7 +2,7 @@
    VOTABRASIL — CABEÇALHO ÚNICO (todas as páginas)
    ------------------------------------------------------------
    Injeta o mesmo cabeçalho em qualquer página, com:
-   - menu de 10 itens, item ativo detectado pela URL/hash
+   - menu de 11 itens, item ativo detectado pela URL/hash
    - badge "backend ativo" (usa window.VotaBrasil.API_BASE se
      config.js estiver carregado antes deste script)
    - Entrar/Cadastrar: na home chama abrirLogin(), fora aponta
@@ -39,6 +39,7 @@
   var ITENS = [
     { chave: 'inicio',    pagina: 'index.html',            rotulo: 'In\u00edcio' },
     { chave: 'radar',     pagina: 'parlamentares.html',    rotulo: 'Radar Pol\u00edtico' },
+    { chave: 'fundo',     pagina: 'fundo-eleitoral.html',  rotulo: 'Fundo Eleitoral' },
     { chave: 'congresso', pagina: 'congresso.html',        rotulo: 'PLs no Congresso' },
     { chave: 'votacoes',  pagina: 'votacoes.html',         rotulo: 'Vota\u00e7\u00f5es' },
     { chave: 'eleicoes',  pagina: 'eleicoes-2026.html',    rotulo: 'Elei\u00e7\u00f5es 2026' },
@@ -65,7 +66,7 @@
 
   function chaveAtiva() {
     if (!naHome) {
-      var mapa = { 'parlamentares.html': 'radar', 'congresso.html': 'congresso', 'votacoes.html': 'votacoes', 'eleicoes-2026.html': 'eleicoes' };
+      var mapa = { 'parlamentares.html': 'radar', 'fundo-eleitoral.html': 'fundo', 'congresso.html': 'congresso', 'votacoes.html': 'votacoes', 'eleicoes-2026.html': 'eleicoes' };
       return mapa[arquivoAtual] || null;
     }
     var mapaHash = { 'radar': 'radar', 'conferir-voto': 'conferir', 'revogar-voto': 'revogar', 'revogados': 'revogados', 'ajuda': 'ajuda', 'quem-somos': 'quem' };

@@ -38,6 +38,7 @@ const db = require('./db');
 const auth = require('./auth');
 const verificacao = require('./verificacao');
 const reclamacoes = require('./reclamacoes');
+const fundoEleitoral = require('./fundo-eleitoral');
 const seedPls = require('./seed_pls');
 const tse = require('./tse');
 
@@ -759,6 +760,20 @@ async function handleApi(req, res, url) {
   if (p.startsWith('/api/verificacao/politico/') && req.method === 'GET') {
     const pid = decodeURIComponent(p.replace('/api/verificacao/politico/', ''));
     return sendJson(res, 200, { ok: true, details: verificacao.getVerificationDetails(pid), stats: reclamacoes.getPoliticianStats(pid) });
+  }
+
+  /* ===== FUNDO ELEITORAL (dados públicos TSE — FEFC 2026) ===== */
+  if (p === '/api/fundo-eleitoral/partidos' && req.method === 'GET') {
+    try { return sendJson(res, 200, fundoEleitoral.getPartidos()); }
+    catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+  if (p === '/api/fundo-eleitoral/candidatos' && req.method === 'GET') {
+    try { return sendJson(res, 200, fundoEleitoral.getCandidatos()); }
+    catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+  if (p === '/api/fundo-eleitoral/resumo' && req.method === 'GET') {
+    try { return sendJson(res, 200, fundoEleitoral.getResumo()); }
+    catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
   }
 
   if (p === '/api/reclamacoes' && req.method === 'POST') {

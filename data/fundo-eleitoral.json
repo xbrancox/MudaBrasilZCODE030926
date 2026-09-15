@@ -1,0 +1,588 @@
+{
+  "fonte": "TSE — Cálculo de distribuição dos recursos do FEFC (Eleições 2026)",
+  "urlFonte": "https://www.tse.jus.br/eleicoes/eleicoes-2026-content/prestacao-de-contas/distribuicao-dos-recursos-do-fundo-especial-de-financiamento-de-campanha-fefc-eleicoes-2026",
+  "licenca": "Dados públicos (Justiça Eleitoral)",
+  "ano": 2026,
+  "atualizadoEm": "2026-09-15",
+  "totalDistribuido": 4961519777,
+  "porPartido": [
+    {
+      "sigla": "PL",
+      "nome": "Partido Liberal",
+      "valor": 881657477.34,
+      "percentual": 17.77,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 285578750.45
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 454951053.24
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 137819993.81
+        }
+      ]
+    },
+    {
+      "sigla": "PT",
+      "nome": "Partido dos Trabalhadores",
+      "valor": 615367980.2,
+      "percentual": 12.4,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 213687981.41
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 315680322.65
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 82691996.28
+        }
+      ]
+    },
+    {
+      "sigla": "UNIAO",
+      "nome": "União Brasil",
+      "valor": 526242858.11,
+      "percentual": 10.61,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 166440794.28
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 264614388.11
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 91879995.87
+        }
+      ]
+    },
+    {
+      "sigla": "PSD",
+      "nome": "Partido Social Democrático",
+      "valor": 421008404.89,
+      "percentual": 8.49,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 121653706.77
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 194979022.82
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 101067995.46
+        }
+      ]
+    },
+    {
+      "sigla": "PP",
+      "nome": "Progressistas",
+      "valor": 417067738.4,
+      "percentual": 8.41,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 140441249.79
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 218190811.25
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 55127997.52
+        }
+      ]
+    },
+    {
+      "sigla": "MDB",
+      "nome": "Movimento Democrático Brasileiro",
+      "valor": 400000239.99,
+      "percentual": 8.06,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 123663898.73
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 190336665.13
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 82691996.28
+        }
+      ]
+    },
+    {
+      "sigla": "REPUBLICANOS",
+      "nome": "Republicanos",
+      "valor": 348587815.77,
+      "percentual": 7.03,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 127379472.03
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 190336665.13
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 27563998.76
+        }
+      ]
+    },
+    {
+      "sigla": "PODE",
+      "nome": "Podemos",
+      "valor": 245969763.68,
+      "percentual": 4.96,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 85498933
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 92847153.72
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 64315997.11
+        }
+      ]
+    },
+    {
+      "sigla": "PDT",
+      "nome": "Partido Democrático Trabalhista",
+      "valor": 169285643.92,
+      "percentual": 3.41,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 64136242.33
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 74277722.98
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 27563998.76
+        }
+      ]
+    },
+    {
+      "sigla": "PSB",
+      "nome": "Partido Socialista Brasileiro",
+      "valor": 152252956.07,
+      "percentual": 3.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 70121911.34
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 69635365.29
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 9187999.59
+        }
+      ]
+    },
+    {
+      "sigla": "PSDB",
+      "nome": "Partido da Social Democracia Brasileira",
+      "valor": 147895172.4,
+      "percentual": 2.98,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 47484844.28
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 60350649.92
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 36751998.35
+        }
+      ]
+    },
+    {
+      "sigla": "PSOL",
+      "nome": "Partido Socialismo e Liberdade",
+      "valor": 131506284.42,
+      "percentual": 2.65,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 67847954.65
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 60350649.92
+        }
+      ]
+    },
+    {
+      "sigla": "SOLIDARIEDADE",
+      "nome": "Solidariedade",
+      "valor": 88526669.83,
+      "percentual": 1.78,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 43534486.59
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 32496503.8
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 9187999.59
+        }
+      ]
+    },
+    {
+      "sigla": "AVANTE",
+      "nome": "Avante",
+      "valor": 72516777.19,
+      "percentual": 1.46,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 36712593.53
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 32496503.8
+        }
+      ]
+    },
+    {
+      "sigla": "PRD",
+      "nome": "Partido Renovação Democrática",
+      "valor": 71819227.37,
+      "percentual": 1.45,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 45299759.09
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 23211788.43
+        }
+      ]
+    },
+    {
+      "sigla": "PCdoB",
+      "nome": "Partido Comunista do Brasil",
+      "valor": 60531914.25,
+      "percentual": 1.22,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 24727730.59
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 32496503.8
+        }
+      ]
+    },
+    {
+      "sigla": "CIDADANIA",
+      "nome": "Cidadania",
+      "valor": 60174157.11,
+      "percentual": 1.21,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 24466689.24
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 23211788.43
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 9187999.59
+        }
+      ]
+    },
+    {
+      "sigla": "PV",
+      "nome": "Partido Verde",
+      "valor": 45183873.26,
+      "percentual": 0.91,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 14022047.29
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 27854146.12
+        }
+      ]
+    },
+    {
+      "sigla": "NOVO",
+      "nome": "Partido Novo",
+      "valor": 37044203.26,
+      "percentual": 0.75,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 19809450.35
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 13927073.06
+        }
+      ]
+    },
+    {
+      "sigla": "REDE",
+      "nome": "Rede Sustentabilidade",
+      "valor": 35803821.03,
+      "percentual": 0.72,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        },
+        {
+          "destino": "Cota 35% — votos Câmara",
+          "valor": 14023426.22
+        },
+        {
+          "destino": "Cota 48% — bancada Câmara",
+          "valor": 9284715.37
+        },
+        {
+          "destino": "Cota 15% — bancada Senado",
+          "valor": 9187999.59
+        }
+      ]
+    },
+    {
+      "sigla": "AGIR",
+      "nome": "Agir",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "DC",
+      "nome": "Democracia Cristã",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "DEMOCRATA",
+      "nome": "Democrata Cristiano",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "MISSAO",
+      "nome": "Missão",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "MOBILIZA",
+      "nome": "Mobilização Nacional",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "PCB",
+      "nome": "Partido Comunista Brasileiro",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "PCO",
+      "nome": "Partido da Causa Operária",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "PRTB",
+      "nome": "Partido Renovador Trabalhista Brasileiro",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "PSTU",
+      "nome": "Partido Socialista dos Trabalhadores Unificado",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    },
+    {
+      "sigla": "UP",
+      "nome": "Unidade Popular",
+      "valor": 3307679.85,
+      "percentual": 0.07,
+      "cotas": [
+        {
+          "destino": "Cota 2% — partidos registrados",
+          "valor": 3307679.85
+        }
+      ]
+    }
+  ],
+  "porPolitico": [],
+  "avisoPorPolitico": "Os repasses individuais aos candidatos são publicados nas prestações de contas após as eleições de outubro/2026 (DivulgaCandContas/TSE). Até lá, só existe o valor por partido."
+}
