@@ -549,7 +549,7 @@ document.addEventListener('paste',e=>{if(!document.getElementById('s-conf').clas
 /* hidratar comprovante salvo no aparelho + restaurar rascunho */
 (function initV23(){
   const comp=JSON.parse(localStorage.getItem(LS.comprov)||'null');
-  if(comp&&comp.codigo){document.getElementById('cg').textContent=fmtCod(comp.codigo)}
+  if(comp&&comp.codigo){document.getElementById('cg').textContent=fmtCod(comp.codigo);flowGo('f4')}
   renderCedula();
 })();
 if(location.hash==='#conferir')go('s-conf');
