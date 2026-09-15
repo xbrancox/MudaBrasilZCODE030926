@@ -1,6 +1,6 @@
 # 🗳️ VotaBrasil — Redesign v2.0
 
-Plataforma cívica de **voto contínuo e revogável** com foco em **transparência total**.
+Plataforma cívica de **revogação do voto** com foco em **transparência total**.
 Esta é a versão **redesign**, criada em arquivos novos sem alterar o projeto original.
 
 > ✨ **Modo duplo de dados:** com o servidor Node rodando, o site exibe a **lista REAL
@@ -104,7 +104,7 @@ votaBrasil-redesign/
 │       └── .salt              # Sal criptográfico do ambiente (gerado na 1ª execução)
 ├── pages/
 │   ├── candidatos.html        # ⭐ Comparação de candidatos (dados reais)
-│   ├── termometro.html        # 🌡️ Voto contínuo e revogável + índice de confiança ao vivo
+│   ├── termometro.html        # 🌡️ Revogação do voto + índice de confiança ao vivo
 │   ├── proposta.html          # Manifesto editável da proposta
 │   ├── status.html            # Painel ao vivo: métricas reais do termômetro (SSE + fallback demo)
 │   ├── revogar.html           # Fluxo de revogação com assinaturas e debate
@@ -176,7 +176,7 @@ No modo real básico, o índice aparece apenas quando os dados necessários est�
 
 ---
 
-## 🌡️ Termômetro de Confiança — Voto Contínuo e Revogável
+## 🌡️ Termômetro de Confiança — Revogação do Voto
 
 `pages/termometro.html` é o coração da plataforma: o eleitor **coloca** seu apoio a um
 parlamentar, acompanha um **índice de confiança ao vivo** e pode **tirar** (revogar) ou

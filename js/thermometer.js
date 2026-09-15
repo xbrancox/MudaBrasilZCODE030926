@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL - TERMÔMETRO DE CONFIANÇA (voto contínuo revogável)
+   VOTABRASIL - TERMÔMETRO DE CONFIANÇA (revogação do voto)
    ------------------------------------------------------------
    Dual-mode: tenta a API real (/api/termometro, /api/candidatos);
    se o servidor não responde, cai no modo demo com dados
@@ -12,7 +12,7 @@
    - R6: "meu voto" mascarado por padrão (anti-print), revelar por toque
    - Anonimato / anti-coerção: a UI nunca expõe "quem votou em quem"
    - Sem pedido de voto: tom neutro, oferece a ferramenta sem pressionar
-   - Terminologia: "voto contínuo e revogável" / "votos revogáveis"
+   - Terminologia: "revogação do voto" / "votos revogáveis"
    ============================================================ */
 (function () {
   'use strict';

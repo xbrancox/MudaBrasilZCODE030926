@@ -12,7 +12,7 @@
      GET /api/candidatos/:id      detalhe + enriquecimento sob demanda
      GET /api/status              metadados da fonte (origem, modo)
 
-   Rotas de VOTO (motor de voto contínuo e revogável):
+   Rotas de VOTO (motor de revogação do voto):
      POST /api/voto               registrar voto de confiança → {code}
      POST /api/voto/revogar       revogar voto (código)
      POST /api/voto/manter        reafirmar ("manter meu voto")

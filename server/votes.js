@@ -1,5 +1,5 @@
 /* ============================================================
-   VOTABRASIL - MOTOR DE VOTO CONTÍNUO E REVOGÁVEL
+   VOTABRASIL - MOTOR DE REVOGAÇÃO DO VOTO
    ------------------------------------------------------------
    O coração da plataforma: um "termômetro de confiança" em que o
    cidadão expressa VOTO DE CONFIANÇA em um parlamentar e pode

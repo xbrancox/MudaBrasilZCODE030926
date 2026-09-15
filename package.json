@@ -1,7 +1,7 @@
 {
   "name": "votabrasil-backend",
   "version": "1.0.0",
-  "description": "VotaBrasil — Backend de voto contínuo e revogável",
+  "description": "VotaBrasil — Backend de revogação do voto",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",

@@ -1,5 +1,5 @@
 /* ============================================================
-   MUDABRASIL — TEMPO REAL (SSE) COM FALLBACK
+   VOTABRASIL — TEMPO REAL (SSE) COM FALLBACK
    ------------------------------------------------------------
    Conecta o cliente ao /api/stream (Server-Sent Events) e
    chama refreshFn() sempre que o servidor notifica uma
