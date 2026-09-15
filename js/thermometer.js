@@ -1,9 +1,12 @@
 /* ============================================================
    VOTABRASIL - TERMÔMETRO DE CONFIANÇA (revogação do voto)
    ------------------------------------------------------------
-   Dual-mode: tenta a API real (/api/termometro, /api/candidatos);
-   se o servidor não responde, cai no modo demo com dados
-   sintéticos (nunca quebra).
+   Regra "tudo real": só dados oficiais. O antigo bloco DEMO com
+   nomes sintéticos foi removido — sem backend acessível a tela
+   mostra aviso honesto, nunca gente inventada.
+
+   Dual-mode agora significa: tenta a API real (/api/termometro,
+   /api/candidatos); se ela não responde, exibe erro claro + retry.
 
    Regras do fundador respeitadas aqui:
    - R3: mensagem antes de confirmar o voto
@@ -21,6 +24,12 @@
   const LS_LOCAL = 'mb_local';
   const REFRESH_MS = 15000;      // rede de segurança (SSE é o canal principal)
 
+  /* Base da API: absoluta em file:// (config.local.js aponta p/ Railway),
+     relativa ('') quando servido por http(s) na mesma origem do backend. */
+  const API = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
+    ? window.VotaBrasil.API_BASE
+    : 'https://mudabrasil-redesign-production.up.railway.app';
+
   /* ---------- ESTADO ---------- */
   let mode = 'demo';
   let politicians = [];          // lista real p/ o seletor
@@ -30,34 +39,6 @@
   let live = null;               // controlador de tempo real (MBLive)
 
   const $ = id => document.getElementById(id);
-
-  /* ---------- DADOS DEMO (sintéticos, só p/ demonstrar) ---------- */
-  function demoTrend() {
-    const out = [];
-    let base = 96;
-    for (let d = 29; d >= 0; d--) {
-      const dt = new Date(Date.now() - d * 86400000);
-      base += Math.round(Math.sin(d / 3) * 4 + (Math.random() * 6 - 2));
-      if (base < 40) base = 40;
-      out.push({ at: dt.toISOString().slice(0, 10), ativos: base });
-    }
-    return out;
-  }
-  const DEMO = {
-    mode: 'demo',
-    source: 'Modo demo — dados sintéticos',
-    totalVotosAtivos: 132,
-    totalRevogados: 27,
-    totalRegistros: 159,
-    topN: [
-      { name: 'Ana Beatriz Souza', party: 'PT', state: 'SP', indice: 87, votosAtivos: 42, revogacoes: 3, photo: null },
-      { name: 'Mariana Oliveira', party: 'PSB', state: 'MG', indice: 79, votosAtivos: 31, revogacoes: 1, photo: null },
-      { name: 'Fernanda Costa', party: 'NOVO', state: 'DF', indice: 71, votosAtivos: 25, revogacoes: 2, photo: null },
-      { name: 'Carlos Eduardo Lima', party: 'PL', state: 'RJ', indice: 58, votosAtivos: 18, revogacoes: 5, photo: null },
-      { name: 'Paulo Henrique Santos', party: 'REPUBLICANOS', state: 'BA', indice: 44, votosAtivos: 12, revogacoes: 7, photo: null }
-    ],
-    tendencia: demoTrend()
-  };
 
   /* ---------- HELPERS ---------- */
   function fetchWithTimeout(url, ms = 5000, opts = {}) {
@@ -89,7 +70,7 @@
     if (code) { try { localStorage.setItem(LS_CODE, code); } catch (_) {} }
   }
 
-  /* ---------- MODO (real/demo) ---------- */
+  /* ---------- MODO (real/erro) ---------- */
   function setMode(m, source) {
     mode = m;
     const badge = $('source-badge');
@@ -97,13 +78,12 @@
     if (m === 'real') {
       badge.className = 'source-badge-pill real';
       badge.textContent = '📡 Dados reais · Câmara dos Deputados · voto anônimo ao vivo';
-      $('demo-notice').style.display = 'none';
+      if ($('demo-notice')) $('demo-notice').style.display = 'none';
       if (search) { search.disabled = false; search.placeholder = 'Nome, partido ou estado…'; }
     } else {
       badge.className = 'source-badge-pill demo';
-      badge.textContent = '🧪 Modo demo — dados sintéticos';
-      $('demo-notice').style.display = 'block';
-      if (search) { search.disabled = true; search.placeholder = 'Disponível apenas em modo real (com o servidor)'; }
+      badge.textContent = '⚠️ Sem conexão com o servidor de dados';
+      if (search) { search.disabled = true; search.placeholder = 'Disponível apenas com o servidor conectado'; }
     }
   }
 
@@ -131,7 +111,7 @@
   function renderThermoList(items) {
     const wrap = $('thermo-list');
     if (!items.length) {
-      wrap.innerHTML = '<p class="thermo-empty">Ainda não há votos registrados. ' +
+      wrap.innerHTML = '<p class="thermo-empty">Ainda não há votos registrados nesta base. ' +
         (mode === 'real' ? 'Seja a primeira pessoa a expressar confiança.' : '') + '</p>';
       return;
     }
@@ -258,7 +238,7 @@
     try {
       let uf = null;
       try { uf = (JSON.parse(localStorage.getItem(LS_LOCAL) || '{}') || {}).uf || null; } catch (_) {}
-      const res = await fetchWithTimeout('/api/voto', 6000, {
+      const res = await fetchWithTimeout(API + '/api/voto', 6000, {
         method: 'POST',
         body: JSON.stringify({ politicianId: selectedId, uf })
       });
@@ -292,7 +272,7 @@
     if (!code) { alert('Informe seu código de verificação.'); return; }
     setCode(code);
     try {
-      const res = await fetchWithTimeout('/api/voto?code=' + encodeURIComponent(code), 6000);
+      const res = await fetchWithTimeout(API + '/api/voto?code=' + encodeURIComponent(code), 6000);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       const pol = politicians.find(p => p.id === data.ballot.politicianId);
@@ -342,7 +322,7 @@
     if (!code) { alert('Informe seu código para revogar.'); return; }
     if (!confirm('Tem certeza que deseja REVOGAR seu voto de confiança? Esta ação é irreversível.')) return;
     try {
-      const res = await fetchWithTimeout('/api/voto/revogar', 6000, { method: 'POST', body: JSON.stringify({ code }) });
+      const res = await fetchWithTimeout(API + '/api/voto/revogar', 6000, { method: 'POST', body: JSON.stringify({ code }) });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       currentVote = null;
@@ -357,7 +337,7 @@
     const code = codeFromInput();
     if (!code) { alert('Informe seu código para reafirmar.'); return; }
     try {
-      const res = await fetchWithTimeout('/api/voto/manter', 6000, { method: 'POST', body: JSON.stringify({ code }) });
+      const res = await fetchWithTimeout(API + '/api/voto/manter', 6000, { method: 'POST', body: JSON.stringify({ code }) });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       $('my-vote-box').innerHTML = '<div class="my-vote-box my-vote-success">🔄 Voto reafirmado! O decaimento foi reiniciado (peso máximo restaurado).</div>';
@@ -381,7 +361,7 @@
   /* ---------- CARREGAMENTO ---------- */
   async function refreshThermometer() {
     try {
-      const res = await fetchWithTimeout('/api/termometro', 6000);
+      const res = await fetchWithTimeout(API + '/api/termometro', 6000);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       renderThermometer(await res.json());
       return true;
@@ -390,26 +370,33 @@
 
   async function loadReal() {
     // Termômetro (define modo) + lista de parlamentares (p/ o seletor)
-    const res = await fetchWithTimeout('/api/termometro', 6000);
+    const res = await fetchWithTimeout(API + '/api/termometro', 6000);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     setMode('real', data.source);
     renderThermometer(data);
 
-    const resC = await fetchWithTimeout('/api/candidatos', 8000);
+    const resC = await fetchWithTimeout(API + '/api/candidatos', 8000);
     if (resC.ok) {
       const jc = await resC.json();
-      if (jc.mode === 'real' && Array.isArray(jc.candidatos) && jc.candidatos.length) {
-        politicians = jc.candidatos;
-      }
+      const arr = Array.isArray(jc) ? jc : (jc.candidatos || jc.dados || []);
+      if (arr.length) politicians = arr.map(d => ({
+        id: d.id, name: d.name || d.nome, party: d.party || d.partido,
+        state: d.state || d.uf, photo: d.photo || d.foto
+      }));
     }
     return true;
   }
 
-  function renderDemo() {
-    setMode('demo', DEMO.source); // setMode também desabilita o seletor no demo
-    politicians = [];
-    renderThermometer(DEMO);
+  /* Sem backend acessível: nunca inventar gente. Mostra aviso honesto e
+     deixa o resto da página (histórico local via código) utilizável. */
+  function renderOfflineError() {
+    setMode('demo');
+    ['m-ativos', 'm-revogados', 'm-participantes', 'm-top'].forEach(id => { const el = $(id); if (el) el.textContent = '—'; });
+    const wrap = $('thermo-list');
+    if (wrap) wrap.innerHTML = '<p class="thermo-empty">⚠️ Não foi possível conectar ao servidor de dados públicos.<br>Tente novamente em instantes — nenhum dado é exibido sem fonte oficial.</p>';
+    const fu = $('footer-updated');
+    if (fu) fu.textContent = 'offline';
   }
 
   /* ---------- EVENTOS ---------- */
@@ -467,12 +454,11 @@
     bindEvents();
     // pré-preenche código salvo
     try { setCode(localStorage.getItem(LS_CODE) || ''); } catch (_) {}
-    renderDemo();          // demo imediato (sem flash)
     updateButtons();
     try {
       await loadReal();    // tenta modo real
     } catch (_) {
-      renderDemo();        // fallback
+      renderOfflineError(); // aviso honesto — nunca dados inventados
     }
     startLiveUpdates();
   }

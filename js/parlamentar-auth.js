@@ -11,6 +11,12 @@
 
   const SESSION_KEY = 'votabrasil.session';
 
+  /* Base do backend: funciona em file:// e GitHub Pages (fallback Railway).
+     NUNCA usar || com API_BASE — '' (mesma origem) é valor válido. */
+  const API_AUTH = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
+    ? window.VotaBrasil.API_BASE
+    : 'https://mudabrasil-redesign-production.up.railway.app';
+
   const state = {
     session: loadSession(),
     phoneInOtp: null
@@ -62,7 +68,7 @@
   async function logout() {
     if (state.session && state.session.sessionToken) {
       try {
-        await fetch('/api/auth/logout', {
+        await fetch(API_AUTH + '/api/auth/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionToken: state.session.sessionToken })
@@ -87,7 +93,7 @@
     }
     setFeedback('Autenticando...', 'info');
     try {
-      const res = await fetch('/api/auth/google', {
+      const res = await fetch(API_AUTH + '/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken: token })
@@ -116,7 +122,7 @@
     }
     setFeedback('Enviando código...', 'info');
     try {
-      const res = await fetch('/api/auth/otp/send', {
+      const res = await fetch(API_AUTH + '/api/auth/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone })
@@ -150,7 +156,7 @@
     }
     setFeedback('Verificando...', 'info');
     try {
-      const res = await fetch('/api/auth/otp/verify', {
+      const res = await fetch(API_AUTH + '/api/auth/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: state.phoneInOtp, code })

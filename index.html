@@ -17,7 +17,7 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="config.local.js"></script>
+<script src="config.local.js?v=2"></script>
 <style>
 :root{--bg:#061a3a;--card:#0d2242;--card2:#123059;--line:rgba(127,176,245,.22);--ink:#fff;--muted:#94A3B8;--gold:#FFD700;--blue:#115FCB;--blueL:#4a90f0;--green:#2ECC71;--red:#E74C3C;--r:14px}
 *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
@@ -364,7 +364,7 @@ footer{background:#08142e;border-top:1px solid var(--line);padding:44px 0 20px;m
 </div></div>
 <div id="toast"></div>
 <script>
-if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));}
+if('serviceWorker' in navigator&&location.protocol!=='file:'){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));}
 if(window.caches){caches.keys().then(ks=>ks.forEach(k=>caches.delete(k)));}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 /* API_BASE vem do config.local.js (carregado no <head>) — não redeclarar aqui, isso quebrava o script todo */
@@ -389,18 +389,17 @@ $$('#nav a').forEach(a=>a.onclick=()=>go(a.dataset.p));
 })();
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
 const CORES=['#2ECC71','#FFD700','#4a90f0','#E74C3C','#A855F7'],NOMES=['Maria','Carlos','Ana','João','Outros'];
-let POL=[],ready=false,PINS=[],SESS=LS.get('mb_sess',null),DET={},FTAB={},REMOTE_REC={},REMOTE_APO={},BACKEND_OK=false,VOT_CACHE={ts:0,list:[]},VOTOS_BY_ID={};
+let POL=[],ready=false,PINS=[],SESS=LS.get('mb_sess',null),DET={},FTAB={},REMOTE_REC={},REMOTE_APO={},REMOTE_RESP={},BACKEND_OK=false,VOT_CACHE={ts:0,list:[]},VOTOS_BY_ID={};
 const CARGOS_F=['Presidente','Governador','Senador','Deputado Federal','Deputado Estadual','Prefeito','Vereador'];
-const SEED_REC=['Não cumpriu a promessa da creche do bairro.','Faltou às sessões sem justificativa.','Não respondeu ao pedido de informação sobre emendas.','Prometeu a reforma da rodovia e não entregou.','Não destinou verba à saúde como prometido.'];
-const SEED_RESP=['Equipe incluiu a demanda no cronograma da próxima quinzena. — Gabinete','Prestação de contas publicada no portal oficial. — Gabinete'];
-const SEED_APO=['Destinou emenda pra reforma da escola municipal.','Atendeu o mutirão de saúde no bairro.'];
+/* Regra "tudo real": sem textos inventados. As SEED_* sintéticas de reclamação/
+   apoio/resposta foram removidas — contadores e listas vêm só do backend. */
 async function carregaPol(){POL=[];
 try{const r=await fetch(API_BASE+'/api/candidatos');const j=await r.json();const arr=Array.isArray(j)?j:(j.dados||j.candidatos||[]);
-if(arr.length){arr.forEach(d=>{const numId=parseInt(String(d.id||d.num||'').replace(/\D/g,''),10)||0;POL.push({nome:d.nome||d.name||d.nomeCivil||'',partido:d.partido||d.party||d.siglaPartido||'',uf:d.uf||d.state||d.siglaUf||'',cargo:d.cargo||d.position||'Deputado Federal',foto:d.foto||d.urlFoto||d.photo||'',num:numId||d.id||0,real:1,rec:(numId%90)+5,selo:!!(d.selo||d.verificado||d.verified)});});
+if(arr.length){arr.forEach(d=>{const numId=parseInt(String(d.id||d.num||'').replace(/\D/g,''),10)||0;POL.push({nome:d.nome||d.name||d.nomeCivil||'',partido:d.partido||d.party||d.siglaPartido||'',uf:d.uf||d.state||d.siglaUf||'',cargo:d.cargo||d.position||'Deputado Federal',foto:d.foto||d.urlFoto||d.photo||'',num:numId||d.id||0,real:1,rec:0,selo:!!(d.selo||d.verificado||d.verified)});});
 BACKEND_OK=true;$('#apiStatus').style.display='inline-block';}}catch(e){}
 if(!POL.length){
-try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/deputados?itens=513&ordem=ASC&ordenarPor=nome');const j=await r.json();(j.dados||[]).forEach(d=>POL.push({nome:d.nome,partido:d.siglaPartido||'',uf:d.siglaUf||'',cargo:'Deputado Federal',foto:d.urlFoto||'',num:d.id,real:1,rec:(d.id%90)+5,selo:false}));}catch(e){}
-try{const r=await fetch('https://legis.senado.leg.br/dadosabertos/senador/lista/legislatura/57?formato=json');const j=await r.json();const L=(j.lista&&j.lista.senador)||[];L.forEach(s=>{const p=s.IdentificacaoParlamentar||{};const id=Number(p.CodigoParlamentar||50);POL.push({nome:p.NomeParlamentar||'',partido:p.SiglaPartido||'',uf:p.Uf||'',cargo:'Senador',foto:p.UrlFotoParlamentar||'',num:p.CodigoParlamentar||'',real:1,rec:(id%90)+5,selo:false});});}catch(e){}}
+try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/deputados?itens=513&ordem=ASC&ordenarPor=nome');const j=await r.json();(j.dados||[]).forEach(d=>POL.push({nome:d.nome,partido:d.siglaPartido||'',uf:d.siglaUf||'',cargo:'Deputado Federal',foto:d.urlFoto||'',num:d.id,real:1,rec:0,selo:false}));}catch(e){}
+try{const r=await fetch('https://legis.senado.leg.br/dadosabertos/senador/lista/legislatura/57?formato=json');const j=await r.json();const L=(j.lista&&j.lista.senador)||[];L.forEach(s=>{const p=s.IdentificacaoParlamentar||{};POL.push({nome:p.NomeParlamentar||'',partido:p.SiglaPartido||'',uf:p.Uf||'',cargo:'Senador',foto:p.UrlFotoParlamentar||'',num:p.CodigoParlamentar||'',real:1,rec:0,selo:false});});}catch(e){}}
 ready=true;const el=document.getElementById('bReais');if(el)el.textContent=POL.length+' políticos reais'+(BACKEND_OK?' (backend)':'');
 popula();renderRad();carregaRemoteRec()}
 async function carregaStats(){
@@ -503,11 +502,12 @@ async function carregaRemoteRec(){
     const r=await fetch(API_BASE+'/api/reclamacoes');
     const j=await r.json();
     const arr=j.complaints||j.reclamacoes||j.feed||j||[];
-    REMOTE_REC={};REMOTE_APO={};
+    REMOTE_REC={};REMOTE_APO={};REMOTE_RESP={};
     if(Array.isArray(arr))arr.forEach(x=>{
       const k=String(x.politicianId||x.politico||x.politicoNum||'').replace(/\D/g,'');
       const item={txt:(x.titulo?x.titulo+' — ':'')+(x.descricao||x.content||x.texto||''),ts:x.createdAt||x.timestamp,tipo:x.tipo};
       if(x.tipo==='apoio'){(REMOTE_APO[k]=REMOTE_APO[k]||[]).push(item)}
+      else if(x.tipo==='resposta'){(REMOTE_RESP[k]=REMOTE_RESP[k]||[]).push({txt:item.txt,ts:item.ts})}
       else{(REMOTE_REC[k]=REMOTE_REC[k]||[]).push(item)}
     });
   }catch(e){console.warn('carregaRemoteRec failed:',e)}}
@@ -518,13 +518,12 @@ fill('fPol',POL.map(p=>p.nome),'Selecione…')}
 function av(p,cls){return p.foto?`<img class="${cls||'av'}" src="${p.foto}" alt="">`:`<div class="${cls||'av'}" style="background:${CORES[p.nome.length%5]};display:grid;place-items:center;color:#1a1400;font-weight:800">${p.nome[0]}</div>`}
 function txtUser(i){const m=LS.get('mb_rec_txt',{});return m[i]||[]}
 function elogUser(i){const m=LS.get('mb_elog_txt',{});return m[i]||[]}
-function txtSeed(p){const n=p.rec>=80?3:p.rec>=40?2:p.rec>=15?1:0;const o=[];for(let k=0;k<n;k++)o.push(SEED_REC[(p.num+k)%SEED_REC.length]);return o}
-function respList(p){return p.selo?SEED_RESP.slice(0,(p.num%2)+1):[]}
+function respList(p){return (REMOTE_RESP[p.num]||[]).map(r=>({txt:r.txt,ts:r.ts}))}
 function fmtTs(ts){if(!ts)return'';try{return new Date(ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(e){return''}}
-function recAll(p,i){const loc=txtUser(i).map(t=>({txt:t,ts:Date.now(),tipo:'reclamacao'}));const rem=(REMOTE_REC[p.num]||[]).map(r=>({txt:r.txt,ts:r.ts,tipo:r.tipo}));const seed=txtSeed(p).map(t=>({txt:t,ts:0,tipo:'reclamacao'}));return[...loc,...rem,...seed]}
-function apoAll(p,i){const loc=elogUser(i).map(t=>({txt:t,ts:Date.now(),tipo:'apoio'}));const rem=(REMOTE_APO[p.num]||[]).map(r=>({txt:r.txt,ts:r.ts,tipo:r.tipo}));const seed=SEED_APO.slice(0,(p.num%2)+1).map(t=>({txt:t,ts:0,tipo:'apoio'}));return[...loc,...rem,...seed]}
+function recAll(p,i){const loc=txtUser(i).map(t=>({txt:t,ts:Date.now(),tipo:'reclamacao'}));const rem=(REMOTE_REC[p.num]||[]).map(r=>({txt:r.txt,ts:r.ts,tipo:r.tipo}));return[...loc,...rem]}
+function apoAll(p,i){const loc=elogUser(i).map(t=>({txt:t,ts:Date.now(),tipo:'apoio'}));const rem=(REMOTE_APO[p.num]||[]).map(r=>({txt:r.txt,ts:r.ts,tipo:r.tipo}));return[...loc,...rem]}
 function countRec(p,i){return p.rec+txtUser(i).length+(REMOTE_REC[p.num]||[]).length}
-function countApo(p,i){return elogUser(i).length+(REMOTE_APO[p.num]||[]).length+(SEED_APO.slice(0,(p.num%2)+1).length)}
+function countApo(p,i){return elogUser(i).length+(REMOTE_APO[p.num]||[]).length}
 function idade(iso){if(!iso)return null;const n=new Date(iso);const h=new Date();let a=h.getFullYear()-n.getFullYear();const m=h.getMonth()-n.getMonth();if(m<0||(m===0&&h.getDate()<n.getDate()))a--;return a}
 function fmtData(iso){if(!iso)return null;return new Date(iso).toLocaleDateString('pt-BR')}
 async function preencheDetalhe(i){const p=POL[i];const det={props:[],votos:[]};
@@ -769,12 +768,12 @@ try{
     toast(data.error || 'Token inválido ou expirado.');
   }
 }catch(e){toast('Verificação real ativa na versão online completa.')}}
-let PLS=[];let TERM_RANK={};
-async function carregaPLS(){try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo=PL&itens=8&ordem=DESC&ordenarPor=id');const j=await r.json();PLS=(j.dados||[]).map(d=>({num:(d.siglaTipo||'PL')+' '+(d.numero||'')+'/'+(d.ano||''),txt:(d.ementa||d.titulo||'').slice(0,180),id:d.id,autor:d.autor||''}))}catch(e){PLS=[]}
-if(!PLS.length)PLS=[{num:'PL 5183/2026',txt:'Altera a Lei Rouanet para assegurar critérios específicos de avaliação e cota mínima de recursos.',id:1},{num:'PL 5182/2026',txt:'Institui o Programa Nacional de Recuperação de Rodovias Municipais com materiais recicláveis.',id:2}];renderPLS()}
-function renderPLS(){const q=($('#plBusca').value||'').toLowerCase();const l=PLS.filter(p=>(p.num+' '+p.txt+' '+p.autor).toLowerCase().includes(q));
-$('#plsList').innerHTML=l.map(p=>`<div class="card"><b style="color:var(--gold)">${p.num}</b><p class="muted" style="margin:8px 0">${p.txt}…</p>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn green sm" onclick="toast('Aprovo registrado.')">Aprovo</button><button class="btn red sm" onclick="toast('Não aprovo registrado.')">Não aprovo</button><button class="btn sm" onclick="abrirVotacoesPL('${p.id}','${(p.num||'').replace(/'/g,'')}')">🗳️ Votações</button><a class="btn sm" href="https://www.camara.leg.br/proposicoes/WebFichTramitacao?idProposicao=${p.id}" target="_blank">Inteiro teor</a></div></div>`).join('')||'<p class="muted">Nada encontrado.</p>'}
+let TERM_RANK={};
+/* Bloco morto removido: a lista de PLs agora vive em pages/congresso.html.
+   Antes carregaPLS() buscava na Câmara e, sem conexão, injetava 2 PLs
+   sintéticos (PL 5183/2026 "Lei Rouanet", PL 5182/2026 "Rodovias") — dados
+   fake que violam a regra "tudo real". O renderPLS() ainda quebrava com
+   TypeError porque #plBusca/#plsList não existem mais no DOM da home. */
 const DEMO_BAL={'Presidente':'Maria Santos (PT 13)','Governador':'Roberto Lima (MDB 15)','Senador':'BRANCO'};
 function usarDemo(){renderCedula('35001500100212345789',DEMO_BAL)}
 function conferir(){const raw=($('#chk').value||'').replace(/\D/g,'');if(raw.length!==20){toast('Código inválido (20 dígitos).');return}
@@ -802,13 +801,16 @@ let _newsRetry=0;
 async function news(){
  /* 1) Snapshot embutido: renderiza na hora — o espaço nunca fica em branco */
  try{
-  const rs=await fetch('../data/noticias.json');
-  if(rs.ok){
-   const d=await rs.json();
-   if(d.noticias&&d.noticias.length&&!window._NEWS.length){
-    window._NEWS=d.noticias;
-    nufContador();renderNews();
-    $('#nstatus').textContent='Última atualização: '+new Date(d.geradoEm).toLocaleString('pt-BR')+' — buscando ao vivo…';
+  /* Snapshot local só sob http(s): Chromium bloqueia fetch() de file://. */
+  if(location.protocol!=='file:'){
+   const rs=await fetch('data/noticias.json');
+   if(rs.ok){
+    const d=await rs.json();
+    if(d.noticias&&d.noticias.length&&!window._NEWS.length){
+     window._NEWS=d.noticias;
+     nufContador();renderNews();
+     $('#nstatus').textContent='Última atualização: '+new Date(d.geradoEm).toLocaleString('pt-BR')+' — buscando ao vivo…';
+    }
    }
   }
  }catch(e){}
@@ -854,7 +856,7 @@ function nufSet(v){NUF_FILTRO=v;const sel=document.getElementById('nf-uf'),g=doc
 function ncarScroll(dir){const c=document.getElementById('homeNews');if(c)c.scrollBy({left:dir*360,behavior:'smooth'})}
 async function newsOLD(){try{const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent('https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml'));const j=await r.json();const it=(j.items||[]).slice(0,2);
 $('#homeNews').innerHTML=it.map(n=>`<div class="ncard"><div class="th"><span class="cat">${(n.category||'Política').toString().slice(0,14)}</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>${n.title}</h4><p>${(n.description||'').replace(/<[^>]+>/g,'').slice(0,140)}</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a href="${n.link}" target="_blank">Ler →</a></div></div></div>`).join('')}catch(e){$('#homeNews').innerHTML='<div class="ncard"><div class="th"><span class="cat">Política</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>Brasil promete restaurar 163 mil km² de terras degradadas até 2030</h4><p>O Brasil apresentou as primeiras metas de Neutralidade da Degradação da Terra em evento internacional.</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a>Ler →</a></div></div></div>'}}
-try{carregaPol()}catch(e){console.error('carregaPol',e)}try{carregaPLS()}catch(e){console.error('carregaPLS',e)}try{news()}catch(e){console.error('news',e)}try{carregaStats()}catch(e){console.error('carregaStats',e)}
+try{carregaPol()}catch(e){console.error('carregaPol',e)}try{news()}catch(e){console.error('news',e)}try{carregaStats()}catch(e){console.error('carregaStats',e)}
 /* Fase 3 — SSE: inicia conexão após carregamento inicial */
 setTimeout(initSSE, 2000);
 </script>

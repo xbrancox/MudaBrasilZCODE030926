@@ -124,8 +124,10 @@
       document.head.appendChild(fa);
     }
 
-    // badge do backend
-    var base = (window.VotaBrasil && window.VotaBrasil.API_BASE) || '';
+    // badge do backend (API_BASE '' é válida — mesma origem; nunca usar || aqui)
+    var base = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
+      ? window.VotaBrasil.API_BASE
+      : '';
     var badge = document.getElementById('mbtopo-badge');
     if (badge) {
       fetch(base + '/api/health').then(function (r) {

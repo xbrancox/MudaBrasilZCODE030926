@@ -20,6 +20,11 @@
   function initLiveUpdate(refreshFn, opts) {
     opts = opts || {};
     const intervalMs = opts.intervalMs || 15000;
+    /* Base da API: absoluta em file:// (config.local.js aponta p/ Railway),
+       relativa ('') quando servido por http(s) na mesma origem do backend. */
+    const API = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
+      ? window.VotaBrasil.API_BASE
+      : 'https://mudabrasil-redesign-production.up.railway.app';
     let es = null;
     let timer = null;
     let sseFails = 0;
@@ -47,7 +52,7 @@
 
     function connectSSE() {
       if (!opts.enabled || typeof EventSource === 'undefined' || stopped) return;
-      try { es = new EventSource('/api/stream'); } catch (_) { es = null; }
+      try { es = new EventSource(API + '/api/stream'); } catch (_) { es = null; }
       if (!es) return;
 
       // Bem-vindo: sincroniza o estado assim que a conexão abre.

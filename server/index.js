@@ -1090,6 +1090,12 @@ function serveStatic(res, url) {
   const ext = path.extname(fp).toLowerCase();
   res.writeHead(200, {
     'Content-Type': MIME[ext] || 'application/octet-stream',
+    /* CORS liberado nos estáticos também: o site aberto via file:// busca o
+       snapshot real em data/*.json direto do backend (origem nula no fetch). */
+    'Access-Control-Allow-Origin': '*',
+    /* HTML/JS/CSS sempre revalidados: o site é atualizado com frequência e
+       cache antigo de .js já causou página exibindo dados demo ultrapassados. */
+    'Cache-Control': (ext === '.html' || ext === '.js' || ext === '.css') ? 'no-cache' : 'public, max-age=3600',
     'X-Content-Type-Options': SEC_HEADERS['X-Content-Type-Options'],
     'Referrer-Policy': SEC_HEADERS['Referrer-Policy']
   });

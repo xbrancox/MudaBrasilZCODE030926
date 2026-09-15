@@ -11,6 +11,12 @@
   const $$ = (s, p) => Array.from((p || document).querySelectorAll(s));
   const escapeHtml = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  /* Base da API: mesma origem quando servida pelo backend; Railway quando estática/file://.
+     NUNCA usar || com API_BASE — o valor '' (mesma origem) é válido e sumiria. */
+  const API = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
+    ? window.VotaBrasil.API_BASE
+    : 'https://mudabrasil-redesign-production.up.railway.app';
+
   const session = () => {
     try { return JSON.parse(localStorage.getItem('votabrasil.session') || 'null'); }
     catch (_) { return null; }
@@ -102,17 +108,10 @@
     {id:'marcos-vieira',name:'Marcos Vieira',position:'Senador',party:'MDB',state:'BA',focusArea:'Agricultura',integrityIndex:66,transparencyScore:74,lawsuits:1,attendanceRate:85,assets:'R$ 2.4M',photo:'',number:333,age:58,education:'Graduação',termCount:3,billsAuthored:55,sources:{tse:{name:'TSE',data:'Divulgacão de candidaturas',link:'https://divulgacand.tse.jus.br/'},camaraSenado:{name:'Senado Federal',data:'Proposituras e votações',link:'https://www25.senado.leg.br/web/senadores/'}}},
   ];
 
-  const FALLBACK_PLS = [
-    {id:'pl-1234',number:'1234/2026',chamber:'Câmara',status:'Tramitando',title:'Programa Nacional de Restauração Ambiental',ementa:'Programa Nacional de Restauração Ambiental (amostra offline)',author:'Dep. Carlos Souza',party:'MDB',approvalCount:0,rejectionCount:0},
-    {id:'pl-5678',number:'5678/2026',chamber:'Senado',status:'Tramitando',title:'Reforma do Ensino Médio com foco em tecnologia',ementa:'Reforma do Ensino Médio com foco em tecnologia (amostra offline)',author:'Sen. Ana Beatriz',party:'PSOL',approvalCount:0,rejectionCount:0},
-    {id:'pl-9101',number:'9101/2026',chamber:'Câmara',status:'Tramitando',title:'Ampliação do programa Saúde da Família',ementa:'Ampliação do programa Saúde da Família (amostra offline)',author:'Dep. Maria Silva',party:'PT',approvalCount:0,rejectionCount:0},
-    {id:'pl-8024',number:'8024/2026',chamber:'Câmara',status:'Pronto para pauta',title:'Lei de Proteção de Dados Eleitorais',ementa:'Lei de Proteção de Dados Eleitorais (amostra offline)',author:'Sen. Juliana Costa',party:'REDE',approvalCount:0,rejectionCount:0},
-  ];
-
   async function loadCandidatos() {
     // 1) Servidor Node com dados reais (desenvolvimento/produção com backend)
     try {
-      const r = await fetch('/api/candidatos');
+      const r = await fetch(API + '/api/candidatos');
       if (r.ok) {
         const d = await r.json();
         if (d.candidatos && d.candidatos.length) {
@@ -123,8 +122,10 @@
       }
     } catch (e) { /* tenta snapshot estático */ }
 
-    // 2) Snapshot estático embutido no deploy (GitHub Pages — dados reais de 24/08/2026)
-    if (!state.allPoliticians.length) {
+    // 2) Snapshot estático embutido no deploy (GitHub Pages — dados reais da Câmara/Senado)
+    //    Sob file:// o Chromium bloqueia fetch() de URLs locais ("URL scheme 'file' is not
+    //    supported"), então o snapshot só é tentado quando servido por http(s).
+    if (!state.allPoliticians.length && location.protocol !== 'file:') {
       try {
         const r2 = await fetch('../data/politicos.json');
         if (r2.ok) {
@@ -139,7 +140,9 @@
       } catch (e) { /* último recurso: sintéticos */ }
     }
 
-    // 3) Sintéticos (file:// ou offline)
+    // 3) Sintéticos — só quando nem a API nem o snapshot respondem (offline total).
+    // Em file:// com rede, o snapshot real acima já cobre; os nomes fictícios
+    // nunca devem aparecer enquanto houver dados reais disponíveis.
     if (!state.allPoliticians.length) {
       state.allPoliticians = FALLBACK_POLITICOS;
       state.dataMode = 'demo';
@@ -154,23 +157,31 @@
   function updateDataBanner() {
     const banner = $('.mb-demo-banner');
     if (!banner) return;
+    banner.hidden = false;
     const sub = $('.mb-hero-sub');
-    if (state.dataMode === 'real' || state.dataMode === 'snapshot') {
-      const n = state.allPoliticians.length;
-      const dep = (state.allPoliticians.filter(p => p.source === 'camara')).length;
-      const sen = n - dep;
-      const quando = state.dataUpdatedAt
-        ? new Date(state.dataUpdatedAt).toLocaleDateString('pt-BR')
-        : '';
+    if (state.dataMode === 'demo') {
+      /* Sem API E sem snapshot (offline total): nunca esconder que são exemplos. */
       banner.innerHTML = `
-        <span class="mb-pill-icon">📡</span>
-        <span><strong>Dados reais</strong> — ${dep} deputados federais + ${sen} senadores (${n} parlamentares)` +
-        (quando ? ` · snapshot de ${quando}` : '') +
-        `. Fontes: Câmara dos Deputados e Senado Federal.</span>`;
-      banner.style.borderColor = 'rgba(0,151,57,0.45)';
-      banner.style.background = 'rgba(0,151,57,0.08)';
-      if (sub) sub.innerHTML = 'Transparência total para o eleitor decidir. Lista <strong>real</strong> de parlamentares em exercício, obtida dos dados abertos oficiais.';
+        <span class="mb-pill-icon">📌</span>
+        <span><strong>Sem conexão agora</strong> — exibindo dados de exemplo. Reconecte para carregar os parlamentares reais.</span>`;
+      banner.style.borderColor = 'rgba(255,193,7,0.45)';
+      banner.style.background = 'rgba(255,193,7,0.08)';
+      return;
     }
+    const n = state.allPoliticians.length;
+    const dep = (state.allPoliticians.filter(p => p.source === 'camara')).length;
+    const sen = n - dep;
+    const quando = state.dataUpdatedAt
+      ? new Date(state.dataUpdatedAt).toLocaleDateString('pt-BR')
+      : '';
+    banner.innerHTML = `
+      <span class="mb-pill-icon">📡</span>
+      <span><strong>Dados reais</strong> — ${dep} deputados federais + ${sen} senadores (${n} parlamentares)` +
+      (quando ? ` · snapshot de ${quando}` : '') +
+      `. Fontes: Câmara dos Deputados e Senado Federal.</span>`;
+    banner.style.borderColor = 'rgba(0,151,57,0.45)';
+    banner.style.background = 'rgba(0,151,57,0.08)';
+    if (sub) sub.innerHTML = 'Transparência total para o eleitor decidir. Lista <strong>real</strong> de parlamentares em exercício, obtida dos dados abertos oficiais.';
   }
 
   function populateFilterOptions() {
@@ -349,7 +360,7 @@
   async function runCompare() {
     const ids = Array.from(state.compareSelection);
     try {
-      const r = await fetch('/api/candidatos/comparar', {
+      const r = await fetch(API + '/api/candidatos/comparar', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
       });
@@ -408,7 +419,7 @@
     if (c) renderCandidatoModal(c);
 
     try {
-      const r = await fetch('/api/candidatos/detalhes/' + encodeURIComponent(id));
+      const r = await fetch(API + '/api/candidatos/detalhes/' + encodeURIComponent(id));
       const d = await r.json();
       if (d.ok && d.candidato) { c = d.candidato; renderCandidatoModal(c); }
     } catch (e) { /* já mostrou fallback local */ }
@@ -512,7 +523,7 @@
     if (state.detail.tab === 'reclamacoes') {
       const el = document.getElementById('dtab-reclamacoes');
       try {
-        const r = await fetch('/api/reclamacoes?politicianId=' + encodeURIComponent(id) + '&limit=20');
+        const r = await fetch(API + '/api/reclamacoes?politicianId=' + encodeURIComponent(id) + '&limit=20');
         const d = await r.json();
         const list = (d.complaints || []);
         const cnt = $('#dt-cnt-reclamacoes'); if (cnt) cnt.textContent = list.length;
@@ -524,7 +535,7 @@
     } else if (state.detail.tab === 'apoios') {
       const el = document.getElementById('dtab-apoios');
       try {
-        const r = await fetch('/api/apoios?politicianId=' + encodeURIComponent(id) + '&limit=20');
+        const r = await fetch(API + '/api/apoios?politicianId=' + encodeURIComponent(id) + '&limit=20');
         const d = await r.json();
         const list = (d.supports || []);
         const cnt = $('#dt-cnt-apoios'); if (cnt) cnt.textContent = list.length;
@@ -536,7 +547,7 @@
     } else {
       const el = document.getElementById('dtab-respostas');
       try {
-        const r = await fetch('/api/estatisticas/politico/' + encodeURIComponent(id));
+        const r = await fetch(API + '/api/estatisticas/politico/' + encodeURIComponent(id));
         const d = await r.json();
         const stats = d.stats || {};
         const cnt = $('#dt-cnt-respostas'); if (cnt) cnt.textContent = stats.responses || 0;
@@ -603,7 +614,7 @@
       if (!pid) { toast('Escolha um político', 'error'); return; }
       if (descricao.length < 10) { toast('Escreva pelo menos 10 caracteres', 'error'); return; }
       try {
-        const r = await fetch('/api/reclamacoes/public', {
+        const r = await fetch(API + '/api/reclamacoes/public', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ politicianId: pid, tipo, titulo, descricao })
         });
@@ -657,21 +668,24 @@
       });
     }
     // Carrega feed real (reclamações + apoios mesclados) e rankings
+    // Feed: real quando há backend; sem servidor, painel vazio com aviso —
+    // nunca nomes fictícios (o selo 🧪 só marca registros legados de exemplo).
     let feed = [];
+    let feedOffline = false;
     try {
-      const r = await fetch('/api/feed?limit=50');
+      const r = await fetch(API + '/api/feed?limit=50');
       if (r.ok) {
         const d = await r.json();
         feed = (d.feed && d.feed.length) ? d.feed : [];
-      }
-    } catch (e) { /* fallback abaixo */ }
-    if (!feed.length) feed = FALLBACK_FEED;
+      } else feedOffline = true;
+    } catch (e) { feedOffline = true; }
     state.radarFeed = feed;
-    renderRadar(feed);
+    state.feedOffline = feedOffline;
+    renderRadar(feed, feedOffline);
     renderRadarSearch();
 
     try {
-      const rr = await fetch('/api/rankings');
+      const rr = await fetch(API + '/api/rankings');
       if (rr.ok) {
         const d = await rr.json();
         renderRadarLists(d.rankings || {});
@@ -681,30 +695,28 @@
     renderRadarLists(null);
   }
 
-  const FALLBACK_FEED = [
-    { id:'fb-r1', tipo:'reclamacao', politician:{ id:'maria-silva', name:'Maria Silva', party:'PT', state:'SP' }, content:'Prometeu auditar gastos da Câmara e ainda não apresentou o relatório.', createdAt: Date.now()-86400000, responded:false },
-    { id:'fb-s1', tipo:'apoio', politician:{ id:'beatriz-mendes', name:'Beatriz Mendes', party:'PDT', state:'RS' }, content:'Projeto de lei sobre transparência ativa excelente. Continue assim!', createdAt: Date.now()-172800000 },
-    { id:'fb-r2', tipo:'reclamacao', politician:{ id:'joao-pereira', name:'João Pereira', party:'PL', state:'MG' }, content:'Faltou a 8 sessões consecutivas sem justificativa.', createdAt: Date.now()-259200000, responded:false },
-    { id:'fb-s2', tipo:'apoio', politician:{ id:'ana-beatriz', name:'Ana Beatriz', party:'PSOL', state:'BA' }, content:'Trabalho consistente na área de educação.', createdAt: Date.now()-345600000 },
-  ];
-
   function renderRadarSearch() {
     const input = $('#radar-search');
     if (!input) return;
     input.addEventListener('input', () => {
       const q = input.value.toLowerCase().trim();
-      if (!q) { renderRadar(state.radarFeed); return; }
+      if (!q) { renderRadar(state.radarFeed, state.feedOffline); return; }
       renderRadar(state.radarFeed.filter(c => {
         const hay = [c.content, c.politician && c.politician.name, c.politician && c.politician.party].filter(Boolean).join(' ').toLowerCase();
         return hay.includes(q);
-      }));
+      }), state.feedOffline);
     });
   }
 
-  function renderRadar(items) {
+  function renderRadar(items, offline) {
     const feed = $('#radar-feed');
     if (!feed) return;
-    if (!items.length) { feed.innerHTML = '<p class="mb-muted">Nenhuma reclamação ainda. Seja o primeiro!</p>'; return; }
+    if (!items.length) {
+      feed.innerHTML = offline
+        ? '<p class="mb-muted">Sem conexão com o servidor de manifestações agora. Conecte-se ao backend para ver as reclamações e apoios reais.</p>'
+        : '<p class="mb-muted">Nenhuma reclamação ainda. Seja o primeiro!</p>';
+      return;
+    }
     feed.innerHTML = items.slice(0, 20).map(c => {
       const pol = c.politician || {};
       const polName = pol.name || 'Político';
@@ -777,7 +789,7 @@
   async function loadPls() {
     // 1) Servidor: PLs reais da Câmara (cache 24h) + votos da plataforma
     try {
-      const r = await fetch('/api/pls');
+      const r = await fetch(API + '/api/pls');
       if (r.ok) {
         const d = await r.json();
         if (d.pls && d.pls.length) {
@@ -787,8 +799,9 @@
       }
     } catch (e) { /* tenta snapshot estático */ }
 
-    // 2) Snapshot estático (GitHub Pages — PLs reais da Câmara)
-    if (!state.pls.length) {
+    // 2) Snapshot estático (GitHub Pages — PLs reais da Câmara). Sob file:// o Chromium
+    //    bloqueia fetch() de URLs locais, então só tentamos quando servido por http(s).
+    if (!state.pls.length && location.protocol !== 'file:') {
       try {
         const r2 = await fetch('../data/pls.json');
         if (r2.ok) {
@@ -800,7 +813,11 @@
         }
       } catch (e) { /* último recurso: amostra */ }
     }
-    if (!state.pls.length) state.pls = FALLBACK_PLS;
+    if (!state.pls.length) {
+      renderPls();
+      $('#pls-list').innerHTML = '<p class="mb-muted">Sem conexão com a lista de projetos agora. Conecte-se ao backend para ver os PLs reais em tramitação.</p>';
+      return;
+    }
 
     populatePlFilters();
     attachPlFilters();
@@ -871,7 +888,7 @@
     const sess = session();
     if (!sess) { toast('Entre para votar em PLs', 'error'); openAuthModal(); return; }
     try {
-      const r = await fetch('/api/pls/voto', {
+      const r = await fetch(API + '/api/pls/voto', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plId, vote, sessionToken: sess.token })
       });
@@ -894,25 +911,17 @@
   /* ============================================================
      REVOGADOS
      ============================================================ */
-  const FALLBACK_REVOGADOS = [
-    {id:'roberto-alves',name:'Roberto Alves',position:'Vereador',party:'NOVO',state:'PR',photo:'',activeVotes:4820,revokedVotes:342,cassationThreshold:3374,totalVotes:5162,progressToCassation:10,motivo:'Prometeu transparência e votou a favor de aumento do próprio salário.'},
-    {id:'felipe-santos',name:'Felipe Santos',position:'Senador',party:'PP',state:'MG',photo:'',activeVotes:6100,revokedVotes:1287,cassationThreshold:4270,totalVotes:7387,progressToCassation:30,motivo:'Mudou de posição sobre reforma após lobby.'},
-    {id:'joao-pereira',name:'João Pereira',position:'Dep. Estadual',party:'PL',state:'MG',photo:'',activeVotes:3950,revokedVotes:892,cassationThreshold:2765,totalVotes:4842,progressToCassation:32,motivo:'Abandonou 18 sessões consecutivas.'},
-    {id:'patricia-lima',name:'Patrícia Lima',position:'Prefeita',party:'PSD',state:'RS',photo:'',activeVotes:5200,revokedVotes:2154,cassationThreshold:3640,totalVotes:7354,progressToCassation:59,motivo:'Esquema de superfaturamento de obras.'},
-    {id:'camila-rocha',name:'Camila Rocha',position:'Dep. Estadual',party:'PSB',state:'RJ',photo:'',activeVotes:2980,revokedVotes:567,cassationThreshold:2086,totalVotes:3547,progressToCassation:27,motivo:'Votou contra proteção ambiental.'},
-    {id:'renato-vieira',name:'Renato Vieira',position:'Dep. Federal',party:'PTB',state:'SP',photo:'',activeVotes:7100,revokedVotes:3421,cassationThreshold:4970,totalVotes:10521,progressToCassation:69,motivo:'Flagrado em operação da PF.'},
-  ];
-
   async function loadRevogados() {
+    let rev = [];
     try {
-      const r = await fetch('/api/voto/revogados');
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const d = await r.json();
-      state.revStats = (d.politicos && d.politicos.length) ? d.politicos : FALLBACK_REVOGADOS;
-    } catch (e) {
-      console.warn('loadRevogados usando fallback:', e.message);
-      state.revStats = FALLBACK_REVOGADOS;
-    }
+      const r = await fetch(API + '/api/voto/revogados');
+      if (r.ok) {
+        const d = await r.json();
+        rev = (d.politicos && d.politicos.length) ? d.politicos : [];
+      }
+    } catch (e) { console.warn('loadRevogados: backend indisponível', e.message); }
+    // Sem dados reais de revogação, painel vazio com aviso — nunca nomes fictícios.
+    state.revStats = rev;
     // popula filtros
     const parties = new Set();
     const states = new Set();
@@ -1013,7 +1022,7 @@
       // Código do voto (16 caracteres, gerado na hora do voto)
       const formatado = cru.match(/.{4}/g).join('-');
       try {
-        const r = await fetch('/api/voto?code=' + encodeURIComponent(formatado));
+        const r = await fetch(API + '/api/voto?code=' + encodeURIComponent(formatado));
         const d = await r.json();
         if (d.ok) {
           const b = d.ballot || {};
@@ -1028,7 +1037,7 @@
     }
     // Código de verificação de 20 dígitos (conta logada)
     try {
-      const r = await fetch('/api/voto/conferir', {
+      const r = await fetch(API + '/api/voto/conferir', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: cru })
       });
@@ -1053,7 +1062,7 @@
     const sess = session();
     if (!sess) { toast('Entre para gerar código', 'error'); openAuthModal(); return; }
     try {
-      const r = await fetch('/api/voto/codigo', {
+      const r = await fetch(API + '/api/voto/codigo', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionToken: sess.token })
       });
@@ -1084,7 +1093,7 @@
   async function loadMeusVotos() {
     const sess = session();
     try {
-      const r = await fetch('/api/voto/meus?sessionToken=' + encodeURIComponent(sess.token));
+      const r = await fetch(API + '/api/voto/meus?sessionToken=' + encodeURIComponent(sess.token));
       const d = await r.json();
       const list = $('#revogar-list');
       if (!d.votos || !d.votos.length) { list.innerHTML = '<p class="mb-muted">Você ainda não tem votos ativos para revogar. <a href="meu-voto.html">Vote em alguém</a> primeiro.</p>'; return; }
@@ -1123,7 +1132,7 @@
     }, 1000);
     btn.onclick = async () => {
       try {
-        const r = await fetch('/api/voto/revogar', {
+        const r = await fetch(API + '/api/voto/revogar', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ballotId, sessionToken: session().token })
         });
@@ -1162,7 +1171,7 @@
       const name = $('#google-name').value.trim() || email.split('@')[0];
       if (!email) { toast('Informe um email', 'error'); return; }
       try {
-        const r = await fetch('/api/auth/google', {
+        const r = await fetch(API + '/api/auth/google', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idToken: 'google:' + email + ':' + name })
         });
@@ -1175,7 +1184,7 @@
       const phone = $('#phone-number').value.replace(/\D/g, '');
       if (phone.length < 10) { toast('Telefone inválido', 'error'); return; }
       try {
-        const r = await fetch('/api/auth/otp/send', {
+        const r = await fetch(API + '/api/auth/otp/send', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone })
         });
@@ -1190,7 +1199,7 @@
       const phone = $('#phone-number').value.replace(/\D/g, '');
       const code = $('#phone-code').value.trim();
       try {
-        const r = await fetch('/api/auth/otp/verify', {
+        const r = await fetch(API + '/api/auth/otp/verify', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, code })
         });

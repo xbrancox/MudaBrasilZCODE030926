@@ -18,7 +18,7 @@
 <link rel="icon" type="image/svg+xml" href="../icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="../config.local.js"></script>
+<script src="../config.local.js?v=2"></script>
 <style>
 :root{--bg:#061a3a;--c1:#0d2242;--c2:#123059;--gold:#FFD700;--green:#2ECC71;--red:#E74C3C;--grey:#8a97ab;--txt:#eaf1fb;--line:#1d3a66}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -168,7 +168,7 @@ h2{margin:26px 0 10px}
 </div></div>
 
 <script>
-const API=(window.VotaBrasil&&window.VotaBrasil.API_BASE)||'';
+const API=(window.VotaBrasil&&typeof window.VotaBrasil.API_BASE==='string')?window.VotaBrasil.API_BASE:'https://mudabrasil-redesign-production.up.railway.app';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 let PLS=[],VOT=[],VOTOS={},MAPVOT={},POVO={},temaAtivo='',perAtivo=30,pular=[],fila=[],ultimaKey='';
@@ -379,11 +379,15 @@ $('#popup-ok').onclick=()=>{LS.set('mb_popup_congresso',1);$('#popup').style.dis
  // Prefere PLs REAIS da Câmara (snapshot com autor, partido e UF reais) quando a
  // lista servida for a amostra/seeds com autoria genérica ("Deputado", "Senadora"…)
  try{
-  const rs=await fetch('../data/pls.json');
-  if(rs.ok){
-   const dr=await rs.json();
-   const generica=p=>!p.author||/^(deputado|deputada|senador|senadora|mesa|comiss|lideran|poder executivo)/i.test(String(p.author).trim());
-   if(Array.isArray(dr.pls)&&dr.pls.length&&PLS.some(generica)){PLS=dr.pls}
+  /* Snapshot local só vale sob http(s): o Chromium bloqueia fetch() de URLs file://
+     ("URL scheme 'file' is not supported"), então em file:// pulamos direto para a API. */
+  if(location.protocol!=='file:'){
+   const rs=await fetch('../data/pls.json');
+   if(rs.ok){
+    const dr=await rs.json();
+    const generica=p=>!p.author||/^(deputado|deputada|senador|senadora|mesa|comiss|lideran|poder executivo)/i.test(String(p.author).trim());
+    if(Array.isArray(dr.pls)&&dr.pls.length&&PLS.some(generica)){PLS=dr.pls}
+   }
   }
  }catch(e){}
  try{const j=await(await fetch(API+'/api/camara/votacoes')).json();VOT=Array.isArray(j)?j:(j.dados||[])}catch(e){}

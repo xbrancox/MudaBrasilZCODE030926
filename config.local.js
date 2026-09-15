@@ -19,6 +19,10 @@ if (SERVIDO_PELO_BACKEND) API_BASE = '';
 window.VotaBrasil = window.VotaBrasil || {};
 
 window.VotaBrasil.API_BASE = API_BASE;
+/* Global legado usado inline pela home (index.html). Sem ele, um <script> próprio
+   com `const API_BASE` lança SyntaxError e derruba TODA a lógica da página —
+   era isso que fazia o Radar Político cair no modo demo. */
+window.API_BASE = API_BASE;
 window.VotaBrasil.MODO = 'producao';
 window.VotaBrasil.SERVIDO_PELO_BACKEND = SERVIDO_PELO_BACKEND;
 

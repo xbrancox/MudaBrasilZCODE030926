@@ -43,7 +43,7 @@
 @media(max-width:960px){header nav{display:none}.ham{display:block}.mnav.open{display:flex}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="../config.local.js"></script>
+  <script src="../config.local.js?v=2"></script>
   <script src="../js/site-header.js?v=3"></script>
 </head>
 <body>
@@ -103,7 +103,9 @@
   /* ===== FUNDO ELEITORAL — dados públicos TSE via API ===== */
   var FX = (function () {
     'use strict';
-    var BASE = (window.VotaBrasil && window.VotaBrasil.API_BASE) || '';
+    var BASE = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
+      ? window.VotaBrasil.API_BASE
+      : 'https://mudabrasil-redesign-production.up.railway.app';
     var DADOS = null;
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
