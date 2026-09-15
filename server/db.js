@@ -290,6 +290,21 @@ function init() {
   if (BACKEND === 'sqlite') {
     openSqlite();
     try { db.prepare('ALTER TABLE ballots ADD COLUMN voter_hash TEXT').run(); } catch (_) { }
+    /* cargo_votes: tabelas criadas por build intermediário podem ter ficado
+       sem as colunas de detalhe (nome_urna, ...). Recria a tabela vazia se
+       necessário — só perde dados da SIMULAÇÃO, nunca os ballots reais. */
+    try {
+      const cols = db.prepare('PRAGMA table_info(cargo_votes)').all().map(r => r.name);
+      if (cols.length && !cols.includes('nome_urna')) {
+        db.prepare('DROP TABLE cargo_votes').run();
+        db.prepare(`CREATE TABLE cargo_votes (
+          id TEXT PRIMARY KEY, voter_hash TEXT NOT NULL, codigo TEXT,
+          cargo TEXT NOT NULL, politician_id TEXT NOT NULL, nome_urna TEXT,
+          partido TEXT, numero TEXT, uf TEXT, sq_tse TEXT,
+          created_at INTEGER NOT NULL, UNIQUE(voter_hash, cargo))`).run();
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_cargo_votes_codigo ON cargo_votes(codigo)').run();
+      }
+    } catch (_) { }
     try { db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_cargo_votes_voter_cargo ON cargo_votes(voter_hash, cargo)').run(); } catch (_) { }
     const n = db.prepare('SELECT COUNT(*) AS n FROM ballots').get().n;
     if (n === 0) {
