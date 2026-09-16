@@ -855,6 +855,15 @@ async function handleApi(req, res, url) {
     }
     catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
   }
+  if (p === '/api/fundo-eleitoral/detalhe' && req.method === 'GET') {
+    try {
+      const u = new URL(req.url, 'http://x');
+      const sq = (u.searchParams.get('sq') || '').trim();
+      if (!/^\d{1,20}$/.test(sq)) return sendJson(res, 400, { ok: false, error: 'sq numérico obrigatório' });
+      return sendJson(res, 200, fundoEleitoral.getDetalhe(sq));
+    }
+    catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
   if (p === '/api/fundo-eleitoral/export.csv' && req.method === 'GET') {
     try {
       const csv = fundoEleitoral.getCSV();

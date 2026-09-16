@@ -39,9 +39,26 @@ const path = require('path');
 
 const DATA_DIR = path.join(__dirname, 'data');
 const SNAPSHOT_FILE = path.join(__dirname, '..', 'data', 'fundo-eleitoral.json');
+const DETALHE_FILE = path.join(__dirname, '..', 'data', 'fundo-detalhe.json');
 
 let cache = null;
 let cacheMtime = 0;
+let detCache = null;
+let detCacheMtime = 0;
+
+/* Repasses linha-a-linha (arquivo oficial de receitas), por SQ.
+   Gerado junto do snapshot por scripts/atualizar-fundo-eleitoral.js. */
+function carregarDetalhe() {
+  try {
+    const st = fs.statSync(DETALHE_FILE);
+    if (detCache && st.mtimeMs === detCacheMtime) return detCache;
+    detCache = JSON.parse(fs.readFileSync(DETALHE_FILE, 'utf8'));
+    detCacheMtime = st.mtimeMs;
+    return detCache;
+  } catch (e) {
+    return detCache || {}; // arquivo ausente não derruba o endpoint
+  }
+}
 
 function carregarSnapshot() {
   try {
@@ -81,9 +98,14 @@ function getCandidatos() {
     urlFonte: d.urlFonte,
     atualizadoEm: d.atualizadoEm,
     aviso: d.avisoPorPolitico,
-    candidatos: d.porPolitico || []
+    candidatos: (d.porPolitico || []).map(c => ({ ...c, cargoNome: nomeCargo(c.cargo) }))
   };
 }
+
+/* Código de cargo TSE → nome legível (mesma tabela usada no cadastro
+   de candidaturas; DF usa 8 = Deputado Distrital). */
+const CARGO_NAMES = { 1: 'Presidente', 3: 'Governador', 5: 'Senador', 6: 'Deputado Federal', 7: 'Deputado Estadual', 8: 'Deputado Distrital', 9: 'Vice' };
+function nomeCargo(c) { return CARGO_NAMES[c] || ''; }
 
 function getResumo() {
   const d = carregarSnapshot();
@@ -127,11 +149,26 @@ function getPolitico({ sq, nome, partido }) {
     registro = (d.porPolitico || []).find(p => keyPol(p.nome, p.partido) === keyPol(nome, partido)) || null;
   }
   const pt = registro ? (d.porPartido || []).find(x => x.sigla === registro.partido) : null;
+  /* Comparativo honesto: quanto o partido recebeu do FEFC × quanto os
+     candidatos dele já declararam ter recebido na prestação de contas
+     (soma da fonte pública). Dado real dos dois lados — nunca estimativa. */
+  let comparativo = null;
+  if (pt) {
+    const declaradoPartido = (d.porPolitico || [])
+      .filter(p => p.partido === pt.sigla)
+      .reduce((s, p) => s + (p.valor || 0), 0);
+    comparativo = {
+      totalPartido: pt.valor,
+      declaradoCandidatos: Math.round(declaradoPartido * 100) / 100,
+      percentualDeclarado: pt.valor > 0 ? Math.round(declaradoPartido / pt.valor * 1000) / 10 : 0
+    };
+  }
   return {
     ok: true,
     encontrado: !!registro,
     candidato: registro || null,
     partido: pt ? { sigla: pt.sigla, nome: pt.nome, valor: pt.valor, percentual: pt.percentual } : null,
+    comparativo,
     ano: d.ano,
     atualizadoEm: d.atualizadoEm,
     aviso: d.avisoPorPolitico,
@@ -139,6 +176,28 @@ function getPolitico({ sq, nome, partido }) {
     urlFonte: d.urlFonte,
     fontePorPolitico: d.fontePorPolitico || null,
     urlFontePorPolitico: d.urlFontePorPolitico || null
+  };
+}
+
+/* Detalhe linha-a-linha dos repasses FEFC de um candidato (chave
+   oficial SQ_CANDIDATO). Usado pelo botão "ver todos os repasses"
+   do popup. Sem registro → linhas vazias (nunca inventa). */
+function getDetalhe(sq) {
+  const d = carregarSnapshot();
+  const det = carregarDetalhe();
+  const registro = (d.porPolitico || []).find(p => String(p.sq) === String(sq)) || null;
+  const linhas = (det[String(sq)] || []).map(l => ({
+    data: l.data, doador: l.doador, esfera: l.esfera, tipo: l.tipo, valor: l.valor
+  }));
+  return {
+    ok: true,
+    encontrado: !!registro || linhas.length > 0,
+    candidato: registro,
+    linhas,
+    soma: Math.round(linhas.reduce((s, l) => s + l.valor, 0) * 100) / 100,
+    atualizadoEm: d.atualizadoEm,
+    fonte: d.fontePorPolitico || d.fonte,
+    urlFonte: d.urlFontePorPolitico || d.urlFonte
   };
 }
 
@@ -176,4 +235,4 @@ function getCSV() {
   return '\uFEFF' + linhas.join('\r\n') + '\r\n';
 }
 
-module.exports = { getPartidos, getCandidatos, getPolitico, getResumo, getCSV, keyPol, SNAPSHOT_FILE };
+module.exports = { getPartidos, getCandidatos, getPolitico, getDetalhe, getResumo, getCSV, keyPol, SNAPSHOT_FILE };

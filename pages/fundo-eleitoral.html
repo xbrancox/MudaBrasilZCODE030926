@@ -82,6 +82,11 @@
 
     <!-- ABA 2: POR POLÍTICO -->
     <div class="mb-tab-panel" id="tab-candidatos" role="tabpanel">
+      <div class="fx-panel" id="fx-ranking-top">
+        <h3>🏆 Maiores beneficiários do FEFC até agora</h3>
+        <p class="mb-muted-sm" style="margin-bottom:10px;">Ranking dos candidatos que mais declararam ter recebido do Fundo na prestação de contas pública (fonte TSE, snapshot abaixo). Clique em um nome para abrir a ficha no Radar Político.</p>
+        <div id="fx-ranking-lista"><p class="mb-muted">Carregando…</p></div>
+      </div>
       <div class="fx-panel" id="fx-lista-c"><p class="mb-muted">Carregando…</p></div>
       <div class="mb-search-bar" id="fx-busca-c" hidden>
         <input type="search" id="fx-q" class="mb-input" placeholder="Buscar nome ou partido…" oninput="FX.renderCandidatos()">
@@ -122,7 +127,7 @@
       Promise.all([api('/api/fundo-eleitoral/partidos'), api('/api/fundo-eleitoral/candidatos'), api('/api/fundo-eleitoral/resumo')])
         .then(function (rs) {
           DADOS = { partidos: rs[0].partidos || [], candidatos: rs[1].candidatos || [], resumo: rs[2], aviso: rs[1].aviso || '', urlFonte: rs[0].urlFonte || '' };
-          renderResumo(); renderPartidos(); renderCandidatos();
+          renderResumo(); renderPartidos(); renderRankingTop(); renderCandidatos();
         })
         .catch(function (e) {
           document.getElementById('fx-resumo').innerHTML = '<div class="fx-panel"><p>⚠️ Não foi possível carregar os dados agora (' + esc(e.message) + '). Recarregue a página em instantes.</p></div>';
@@ -164,6 +169,30 @@
       }).join('');
     }
 
+    function renderRankingTop() {
+      var el = document.getElementById('fx-ranking-lista');
+      if (!el || !DADOS) return;
+      if (!DADOS.candidatos.length) { el.innerHTML = '<p class="mb-muted">Sem repasses individuais publicados ainda.</p>'; return; }
+      var top = DADOS.candidatos.slice().sort(function (a, b) { return (b.valor || 0) - (a.valor || 0); }).slice(0, 20);
+      var mx = top[0].valor || 1;
+      var PREPS = { da:1, de:1, do:1, das:1, dos:1, e:1, a:1, o:1, ab:1, del:1, di:1, du:1, la:1, le:1, van:1 };
+      function titleCase(s) {
+        var low = String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        return low.split(' ').map(function (w, i) {
+          if (i > 0 && PREPS[w]) return w;
+          return w.charAt(0).toUpperCase() + w.slice(1);
+        }).join(' ');
+      }
+      el.innerHTML = '<div>' + top.map(function (c, i) {
+        var nome = titleCase(c.nome);
+        return '<div class="fx-row"><div class="fx-line"><span class="fx-nome">' + (i + 1) + 'º · ' + esc(nome) +
+          ' <small>· ' + esc(c.cargoNome || c.cargo || '') + ' ' + esc(c.partido || '') + '/' + esc(c.uf || '') + '</small></span>' +
+          '<span class="fx-val">' + brl(c.valor) + '</span></div>' +
+          '<div class="fx-bar"><i style="width:' + Math.max(1.5, 100 * (c.valor || 0) / mx).toFixed(1) + '%"></i></div>' +
+          '<div class="fx-cotas">' + esc(c.origem || '') + ' · <a href="parlamentares.html?busca=' + encodeURIComponent(String(c.nome || '').split(' ').slice(0, 2).join(' ')) + '">ver ficha no Radar →</a></div></div>';
+      }).join('') + '</div>';
+    }
+
     function renderCandidatos() {
       var el = document.getElementById('fx-lista-c');
       if (!DADOS) return;
@@ -183,7 +212,7 @@
       var mx = Math.max.apply(null, DADOS.candidatos.map(function (c) { return c.valor || 0; }).concat([1]));
       el.innerHTML = '<div>' + lista.map(function (c) {
         return '<div class="fx-row"><div class="fx-line"><span class="fx-nome">' + esc(c.nome) +
-          ' <small>· ' + esc(c.cargo || '') + ' ' + esc(c.partido || '') + '/' + esc(c.uf || '') + '</small></span>' +
+          ' <small>· ' + esc(c.cargoNome || c.cargo || '') + ' ' + esc(c.partido || '') + '/' + esc(c.uf || '') + '</small></span>' +
           '<span class="fx-val">' + brl(c.valor) + '</span></div>' +
           '<div class="fx-bar"><i style="width:' + Math.max(1.5, 100 * (c.valor || 0) / mx).toFixed(1) + '%"></i></div>' +
           '<div class="fx-cotas">' + esc(c.origem || '') + ' · ' + esc(c.ano || '') + '</div></div>';
