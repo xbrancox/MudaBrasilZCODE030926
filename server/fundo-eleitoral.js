@@ -23,12 +23,15 @@
 
    SOBRE "VALOR POR POLÍTICO":
      Os repasses do FEFC aos candidatos são publicados nas
-     prestações de contas pós-eleição (DivulgaCandContas). Para
-     as Eleições 2026 (1º turno em 04/10/2026) esses arquivos
-     ainda NÃO existem — hoje só há o montante que cada PARTIDO
-     recebeu. Este módulo nunca inventa valor individual: o
-     campo porPolitico fica vazio até a fonte publicar, e a UI
-     mostra isso com honestidade.
+     prestações de contas (Dados Abertos / DivulgaCandContas).
+     Para as Eleições 2026 o snapshot já inclui porPolitico:
+     soma das receitas declaradas de origem Fundo Especial,
+     agrupadas por SQ_CANDIDATO no arquivo oficial de receitas
+     (captura pública de 04/09/2026 — fonte citada no JSON). São
+     valores DECLARADOS pelos próprios candidatos; cobertura
+     parcial é esperada (prestações em andamento), e a UI cita a
+     data da fonte. Este módulo nunca inventa valor individual:
+     sem registro na fonte, não há linha.
    ============================================================ */
 
 const fs = require('fs');
@@ -84,9 +87,13 @@ function getCandidatos() {
 
 function getResumo() {
   const d = carregarSnapshot();
+  /* Índice por nome|partido (heurística) E por SQ_CANDIDATO (join
+     exato oficial). Os dois coexistem: o app usa o que tiver. */
   const map = {};
+  const mapSq = {};
   for (const p of (d.porPolitico || [])) {
     map[keyPol(p.nome, p.partido)] = p;
+    if (p.sq) mapSq[String(p.sq)] = p;
   }
   return {
     ok: true,
@@ -98,7 +105,40 @@ function getResumo() {
     fonte: d.fonte,
     urlFonte: d.urlFonte,
     aviso: d.avisoPorPolitico,
-    map
+    fontePorPolitico: d.fontePorPolitico || null,
+    urlFontePorPolitico: d.urlFontePorPolitico || null,
+    map,
+    mapSq
+  };
+}
+
+/* Lookup individual — para o popup "Fundo Eleitoral" dos cards.
+   Aceita ?sq= (chave oficial TSE, join exato) ou ?nome=&partido=
+   (heurística nome normalizado + sigla). Retorna também o total
+   distribuído ao PARTIDO e metadados de fonte/aviso para a UI
+   citar com honestidade. */
+function getPolitico({ sq, nome, partido }) {
+  const d = carregarSnapshot();
+  let registro = null;
+  if (sq) {
+    registro = (d.porPolitico || []).find(p => String(p.sq) === String(sq)) || null;
+  }
+  if (!registro && nome) {
+    registro = (d.porPolitico || []).find(p => keyPol(p.nome, p.partido) === keyPol(nome, partido)) || null;
+  }
+  const pt = registro ? (d.porPartido || []).find(x => x.sigla === registro.partido) : null;
+  return {
+    ok: true,
+    encontrado: !!registro,
+    candidato: registro || null,
+    partido: pt ? { sigla: pt.sigla, nome: pt.nome, valor: pt.valor, percentual: pt.percentual } : null,
+    ano: d.ano,
+    atualizadoEm: d.atualizadoEm,
+    aviso: d.avisoPorPolitico,
+    fonte: d.fonte,
+    urlFonte: d.urlFonte,
+    fontePorPolitico: d.fontePorPolitico || null,
+    urlFontePorPolitico: d.urlFontePorPolitico || null
   };
 }
 
@@ -136,4 +176,4 @@ function getCSV() {
   return '\uFEFF' + linhas.join('\r\n') + '\r\n';
 }
 
-module.exports = { getPartidos, getCandidatos, getResumo, getCSV, keyPol, SNAPSHOT_FILE };
+module.exports = { getPartidos, getCandidatos, getPolitico, getResumo, getCSV, keyPol, SNAPSHOT_FILE };

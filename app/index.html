@@ -646,8 +646,9 @@ function filterPol(){POL_SHOWN=50;renderPol()}
 function fmtR$(v){return v==null?'—':'R$ '+Number(v).toLocaleString('pt-BR',{maximumFractionDigits:0})}
 const keyPol=(n,pt)=>String(n||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim()+'|'+String(pt||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 async function fundoDe(p){
-  if(!FUNDO_MAP){try{const j=await fetchJson('/api/fundo-eleitoral/resumo');FUNDO_MAP=j.map||{}}catch(_){FUNDO_MAP=FUNDO_MAP||{}}}
-  return FUNDO_MAP[keyPol(p.name,p.party)]||null;
+  if(!FUNDO_MAP){try{const j=await fetchJson('/api/fundo-eleitoral/resumo');FUNDO_MAP={map:j.map||{},mapSq:j.mapSq||{}}}catch(_){FUNDO_MAP=FUNDO_MAP||{map:{},mapSq:{}}}}
+  /* join exato pelo SQ_CANDIDATO oficial quando o cadastro tiver; senão heurística nome|partido */
+  return (p.sqTse&&FUNDO_MAP.mapSq[String(p.sqTse)])||FUNDO_MAP.map[keyPol(p.name,p.party)]||null;
 }
 async function polAcao(ev,tipo){
   ev.stopPropagation();

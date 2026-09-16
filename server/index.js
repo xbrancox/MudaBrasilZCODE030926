@@ -183,6 +183,7 @@ function snapshotEnrichMap() {
         attendanceRate: c.attendanceRate != null ? c.attendanceRate : null,
         attendanceContext: c.attendanceContext || null,
         votesPlenary2026: c.votesPlenary2026 != null ? c.votesPlenary2026 : null,
+        sqTse: c.sqTse || null,
         hasFullData: !!c.hasFullData
       });
     }
@@ -206,6 +207,10 @@ function mergeSnapshotEnrichment(list) {
       if (e.attendanceContext) out.attendanceContext = e.attendanceContext;
     }
     if (out.votesPlenary2026 == null && e.votesPlenary2026 != null) out.votesPlenary2026 = e.votesPlenary2026;
+    /* Vínculo oficial TSE: SQ_CANDIDATO do incumbente na chapa 2026.
+       É a chave exata que o popup de Fundo Eleitoral usa para buscar
+       o valor recebido na prestação de contas (sem heurística de nome). */
+    if (!out.sqTse && e.sqTse) out.sqTse = e.sqTse;
     if (e.hasFullData) {
       out.hasFullData = true;
       const extra = [];
@@ -837,6 +842,17 @@ async function handleApi(req, res, url) {
   }
   if (p === '/api/fundo-eleitoral/resumo' && req.method === 'GET') {
     try { return sendJson(res, 200, fundoEleitoral.getResumo()); }
+    catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+  }
+  if (p === '/api/fundo-eleitoral/politico' && req.method === 'GET') {
+    try {
+      const u = new URL(req.url, 'http://x');
+      return sendJson(res, 200, fundoEleitoral.getPolitico({
+        sq: u.searchParams.get('sq') || '',
+        nome: u.searchParams.get('nome') || '',
+        partido: u.searchParams.get('partido') || ''
+      }));
+    }
     catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
   }
   if (p === '/api/fundo-eleitoral/export.csv' && req.method === 'GET') {

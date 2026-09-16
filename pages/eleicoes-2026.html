@@ -166,27 +166,34 @@ async function buscar(p){
   }
  }
 }
+const NOME_CARGO={'1':'Presidente','3':'Governador','5':'Senador','6':'Deputado Federal','7':'Deputado Estadual','9':'Vice-Presidente','11':'Suplente de Senador','12':'1º Suplente de Senador','13':'2º Suplente de Senador','14':'Delegado'};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function brl(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function card(c,i){
  const sit=(c.situacao||'').toUpperCase();
  const cls=sit.includes('INDEF')?'red':(sit.includes('DEFERIDO')?'ok':'amb');
  return `<div class="card" onclick="abrirIdx(${i})">
- <div style="display:flex;gap:10px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="">`:`<div class="av" style="display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold)">${(c.nomeUrna||c.nome||'?')[0]}</div>`}
- <div><b style="font-size:14px">${c.nomeUrna||c.nome||'—'}</b><div class="muted">${c.numero||''} · ${c.partido||''} · ${c.uf||''}</div>
- <span class="badge ${cls}" style="margin-top:4px;display:inline-block">${c.situacao||'—'}</span></div></div></div>`;
+ <div style="display:flex;gap:10px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="">`:`<div class="av" style="display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold)">${(c.nomeUrna||c.nomeCivil||'?')[0]}</div>`}
+ <div style="flex:1"><b style="font-size:14px">${c.nomeUrna||c.nomeCivil||'—'}</b><div class="muted">${c.numero||''} · ${c.partido||''} · ${c.uf||''}${c.idade?' · '+c.idade+' anos':''}${c.escolaridade?' · '+esc(c.escolaridade.toLowerCase()):''}</div>
+ <span class="badge ${cls}" style="margin-top:4px;display:inline-block">${c.situacao||'—'}</span>
+ ${c.fundoEleitoralRecebido?`<div style="margin-top:5px;font-size:12.5px;font-weight:700;color:var(--green,#19c37d)">💰 Fundo eleitoral: ${brl(c.fundoEleitoralRecebido)}</div>`:''}</div></div></div>`;
 }
 function abrirIdx(i){abrir(LAST[i])}
 function abrir(c){
  const bens=c.bens||[];
- $('#detBody').innerHTML=`<h3 style="margin-bottom:6px">${c.nomeUrna||c.nome||''}</h3>
- <div class="muted">${c.nome||''} · ${c.numero||''} · ${c.partido||''} · ${c.uf||''} · ${c.cargo||''}</div>
+ $('#detBody').innerHTML=`<h3 style="margin-bottom:6px">${esc(c.nomeUrna||c.nomeCivil||'')}</h3>
+ <div class="muted">${esc(c.nomeCivil||'')} · ${c.numero||''} · ${esc(c.partido||'')} · ${c.uf||''} · ${esc(NOME_CARGO[c.cargo]||c.cargo||'')}${c.idade?' · '+c.idade+' anos':''}</div>
  <div class="stats">
- <div class="stat"><small>Situação</small><b>${c.situacao||'—'}</b></div>
+ <div class="stat"><small>Situação</small><b>${esc(c.situacao||'—')}</b></div>
+ <div class="stat"><small>Escolaridade</small><b>${c.escolaridade?esc(c.escolaridade):'—'}</b></div>
+ <div class="stat"><small>Fundo eleitoral recebido</small><b style="color:var(--green)">${c.fundoEleitoralRecebido?brl(c.fundoEleitoralRecebido):'Nada declarado'}</b></div>
  <div class="stat"><small>Bens declarados</small><b>${bens.length}</b></div>
- <div class="stat"><small>Valor total</small><b>${c.bensTotal?'R$ '+Number(c.bensTotal).toLocaleString('pt-BR'):'—'}</b></div>
+ <div class="stat"><small>Valor total dos bens</small><b>${c.bensTotal?'R$ '+Number(c.bensTotal).toLocaleString('pt-BR'):'—'}</b></div>
  <div class="stat"><small>Fonte</small><b>TSE</b></div>
  </div>
+ <p class="muted" style="font-size:12px;margin-top:8px;line-height:1.5">💰 Fundo eleitoral: valor de recursos do FEFC na prestação de contas ao TSE${c.fundoEleitoralRecebido?'':' — este candidato ainda não declarou recebimento (cobertura parcial é normal até a eleição).'} Detalhes e ranking completo em <a href="fundo-eleitoral.html" style="color:var(--gold)">Fundo Eleitoral →</a>.</p>
  <h4 style="font-size:13px;color:var(--gold);margin-top:8px">💰 Bens declarados</h4>
- ${bens.length?bens.slice(0,10).map(b=>`<div class="quote">${b.descricao||b.tipo||'Bem'} — <b>R$ ${Number(b.valor||0).toLocaleString('pt-BR')}</b></div>`).join(''):'<p class="muted">Sem bens declarados.</p>'}`;
+ ${bens.length?bens.slice(0,10).map(b=>`<div class="quote">${esc(b.descricao||b.tipo||'Bem')} — <b>R$ ${Number(b.valor||0).toLocaleString('pt-BR')}</b></div>`).join(''):'<p class="muted">Sem bens declarados.</p>'}`;
  $('#mDet').classList.add('open');
 }
 function fechar(){$('#mDet').classList.remove('open')}

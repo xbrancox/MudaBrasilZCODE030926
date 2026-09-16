@@ -107,17 +107,19 @@ async function ingestReal(){
 
 /* ---------- Snapshot commitado (candidatos reais 2026) ---------- */
 let SNAPSHOT = null; /* em memória após a 1ª leitura */
+let SNAP_MTIME = 0;
 function readSnapshot(){
-  if(SNAPSHOT) return SNAPSHOT;
   try{
-    if(!fs.existsSync(SNAPSHOT_FILE)) return null;
+    if(!fs.existsSync(SNAPSHOT_FILE)) return SNAPSHOT || null;
+    const st = fs.statSync(SNAPSHOT_FILE);
+    if(SNAPSHOT && st.mtimeMs === SNAP_MTIME) return SNAPSHOT;
     const obj = JSON.parse(fs.readFileSync(SNAPSHOT_FILE, 'utf8'));
     if(obj && Array.isArray(obj.candidatos) && obj.candidatos.length){
-      SNAPSHOT = obj;
+      SNAPSHOT = obj; SNAP_MTIME = st.mtimeMs;
       return SNAPSHOT;
     }
   }catch(e){ console.warn('[tse] falha ao ler snapshot:', e.message); }
-  return null;
+  return SNAPSHOT || null;
 }
 
 function getCandidatos(){

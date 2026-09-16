@@ -10,6 +10,7 @@
   const $ = (s, p) => (p || document).querySelector(s);
   const $$ = (s, p) => Array.from((p || document).querySelectorAll(s));
   const escapeHtml = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = escapeHtml; /* atalho usado no popup de Fundo Eleitoral */
 
   /* Base da API: mesma origem quando servida pelo backend; Railway quando estática/file://.
      NUNCA usar || com API_BASE — o valor '' (mesma origem) é válido e sumiria. */
@@ -309,12 +310,18 @@
         ${integrityBlock}
         <div class="mb-cand-actions">
           <button class="mb-btn-secondary" data-action="details" data-id="${escapeHtml(p.id)}">VER DETALHES</button>
+          <button class="mb-btn-secondary" data-action="fundo" data-id="${escapeHtml(p.id)}" title="Quanto este político recebeu do Fundo Eleitoral (dados públicos TSE)">💰 FUNDO ELEITORAL</button>
         </div>
         <div class="mb-cand-source">📋 Fonte: ${p.dataSources && p.dataSources.length ? escapeHtml(p.dataSources.join(', ')) : 'TSE, Portal da Transparência, Câmara/Senado, CNJ'}</div>
       </article>`;
     }).join('');
 
     grid.querySelectorAll('[data-action="details"]').forEach(b => b.addEventListener('click', e => openCandidato(e.currentTarget.dataset.id)));
+    grid.querySelectorAll('[data-action="fundo"]').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      const p = state.allPoliticians.find(x => x.id === e.currentTarget.dataset.id);
+      if (p) openFundoModal(p);
+    }));
     grid.querySelectorAll('.mb-cand-compare').forEach(b => b.addEventListener('click', e => {
       e.stopPropagation();
       toggleCompare(e.currentTarget.dataset.id);
@@ -484,6 +491,7 @@
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
         <button class="mb-btn-primary" id="cand-btn-reclamar" style="flex:1;">📝 Fazer reclamação</button>
         <button class="mb-btn-mint" id="cand-btn-apoiar" style="flex:1;">👍 Dar apoio</button>
+        <button class="mb-btn-secondary" id="cand-btn-fundo" style="flex:1;">💰 Fundo Eleitoral</button>
       </div>
     `;
 
@@ -503,6 +511,7 @@
 
     $('#cand-btn-reclamar').addEventListener('click', () => openComplaintModal('rec', c.id, c.name));
     $('#cand-btn-apoiar').addEventListener('click', () => openComplaintModal('apoio', c.id, c.name));
+    $('#cand-btn-fundo').addEventListener('click', () => openFundoModal(c));
     $('#cand-view-all').addEventListener('click', () => {
       // Vai para a aba Radar com o nome pré-filtrado no campo de busca
       const radarTab = document.querySelector('.mb-tab[data-tab="radar"]');
@@ -589,6 +598,72 @@
         </div>
         <div style="margin-top:6px;font-size:0.9rem;">${escapeHtml(s.content)}</div>
       </div>`;
+  }
+
+  /* ============================================================
+     FUNDO ELEITORAL — popup por político (dados reais TSE)
+     O valor vem da prestação de contas 2026 via join exato pelo
+     SQ_CANDIDATO (p.sqTse, enriquecido em /api/candidatos). Sem
+     vínculo ou sem registro na fonte, o popup diz isso com
+     honestidade e aponta a fonte oficial. Nunca inventa número.
+     ============================================================ */
+  function fmtBRL(v) {
+    return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  async function openFundoModal(p) {
+    const body = $('#fundo-modal-body');
+    body.innerHTML = '<h2>💰 Fundo Eleitoral</h2><p class="mb-muted">⏳ Consultando os dados públicos do TSE…</p>';
+    showModal('fundo-modal');
+    try {
+      const qs = new URLSearchParams();
+      if (p.sqTse) qs.set('sq', p.sqTse);
+      else { qs.set('nome', p.name || ''); qs.set('partido', p.party || ''); }
+      const r = await fetch(API + '/api/fundo-eleitoral/politico?' + qs.toString());
+      const d = await r.json();
+      renderFundoModal(p, d);
+    } catch (e) {
+      body.innerHTML = '<h2>💰 Fundo Eleitoral</h2><p class="mb-muted">⚠️ Não foi possível consultar agora (' + escapeHtml(e.message) + '). Recarregue a página.</p>';
+    }
+  }
+
+  function renderFundoModal(p, d) {
+    const body = $('#fundo-modal-body');
+    const c = d.encontrado && d.candidato;
+    const pt = d.partido;
+    const urlPC = 'https://www.tse.jus.br/eleicoes/eleicoes-2026-content/prestacao-de-contas';
+    const urlDA = d.urlFontePorPolitico || 'https://dadosabertos.tse.jus.br/dataset/prestacao-de-contas-eleitorais-2026';
+    const urlFEFC = d.urlFonte || '';
+    const quando = (d.atualizadoEm || '').slice(0, 10).split('-').reverse().join('/');
+    body.innerHTML = `
+      <h2 style="margin-bottom:4px;">💰 Fundo Eleitoral</h2>
+      <div class="mb-muted" style="margin-bottom:14px;">${escapeHtml(p.name)} · ${escapeHtml(p.party || '')} · ${escapeHtml(p.state || '')}</div>
+      ${c ? `
+        <div class="mb-card-inner" style="margin-bottom:10px;">
+          <div class="mb-muted-sm">Recebeu do FEFC (${esc(d.candidato.ano || '')})</div>
+          <strong style="font-size:24px;color:var(--mb-mint,#009739);">${fmtBRL(c.valor)}</strong>
+          <div class="mb-muted-sm" style="margin-top:4px;">${escapeHtml(c.origem || 'Prestação de contas — recursos do FEFC')} · declarado por ${escapeHtml(c.nome || p.name)}</div>
+        </div>` : `
+        <div class="mb-card-inner" style="margin-bottom:10px;">
+          <div class="mb-muted-sm">Valor individual</div>
+          <strong>${p.sqTse ? 'Sem repasse do FEFC declarado até agora' : 'Não localizado na fonte TSE'}</strong>
+          <div class="mb-muted-sm" style="margin-top:4px;">${p.sqTse ? 'Este candidato ainda não declarou recebimento de recursos do Fundo na prestação de contas pública.' : 'A plataforma não encontrou este nome no cadastro oficial de candidaturas 2026 — pode não ser candidato neste pleito.'}</div>
+        </div>`}
+      ${pt ? `
+        <div class="mb-card-inner" style="margin-bottom:10px;">
+          <div class="mb-muted-sm">Total distribuído ao partido (${escapeHtml(pt.sigla)})</div>
+          <strong>${fmtBRL(pt.valor)}</strong>
+          <div class="mb-muted-sm" style="margin-top:4px;">${esc(pt.percentual)}% do fundo · cabe à direção partidária repassar às campanhas</div>
+        </div>` : ''}
+      <p class="mb-muted-sm" style="margin:10px 0 14px;line-height:1.6;">⚖️ ${escapeHtml(d.aviso || 'Valores declarados pelos candidatos na prestação de contas; nem todo repasse pode estar declarado ainda.')}</p>
+      <h3 style="margin-bottom:8px;">🔎 Para saber mais</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+        <li>📖 <a href="${escapeHtml(urlFEFC)}" target="_blank" rel="noopener">Como o FEFC é dividido entre os partidos (TSE) ↗</a></li>
+        <li>🧾 <a href="${escapeHtml(urlPC)}" target="_blank" rel="noopener">Prestação de contas eleitorais 2026 (TSE) ↗</a></li>
+        <li>📊 <a href="${escapeHtml(urlDA)}" target="_blank" rel="noopener">Dados abertos — receitas por candidato (CSV) ↗</a></li>
+        <li>💰 <a href="fundo-eleitoral.html">Ranking completo do Fundo Eleitoral no VotaBrasil →</a></li>
+      </ul>
+      <p class="mb-src-footer">Fonte: ${escapeHtml(d.fontePorPolitico || d.fonte || 'TSE Dados Abertos')}${quando ? ' · snapshot de ' + esc(quando) : ''}. Dados públicos, reproduzidos sem alteração.</p>`;
   }
 
   /* ============================================================

@@ -139,7 +139,9 @@
         '<div class="fx-stat"><b>' + (r.candidatosBeneficiados || 0) + '</b><span>candidatos com repasse publicado</span></div>' +
         '</div>' +
         '<p class="mb-muted-sm" style="margin-bottom:18px">Fonte: ' + esc(r.fonte) + ' · snapshot de ' + esc((r.atualizadoEm || '').slice(0, 10)) + '.</p>';
-      document.getElementById('fx-fonte').innerHTML = 'Fonte oficial: <a href="' + esc(DADOS.urlFonte) + '" target="_blank" rel="noopener">TSE — Cálculo de distribuição dos recursos do FEFC ↗</a>. Dados públicos, reproduzidos sem alteração; para fins oficiais consulte sempre a fonte original.';
+      document.getElementById('fx-fonte').innerHTML = 'Fonte oficial: <a href="' + esc(DADOS.urlFonte) + '" target="_blank" rel="noopener">TSE — Cálculo de distribuição dos recursos do FEFC ↗</a>' +
+        (DADOS.resumo && DADOS.resumo.urlFontePorPolitico ? ' · valores por candidato: <a href="' + esc(DADOS.resumo.urlFontePorPolitico) + '" target="_blank" rel="noopener">Prestação de Contas Eleitorais 2026 / Dados Abertos TSE ↗</a>' : '') +
+        '. Dados públicos, reproduzidos sem alteração; para fins oficiais consulte sempre a fonte original.';
     }
 
     function renderPartidos() {
