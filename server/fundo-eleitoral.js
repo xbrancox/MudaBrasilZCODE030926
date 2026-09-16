@@ -166,7 +166,7 @@ function getPolitico({ sq, nome, partido }) {
   return {
     ok: true,
     encontrado: !!registro,
-    candidato: registro || null,
+    candidato: registro ? { ...registro, cargoNome: nomeCargo(registro.cargo) } : null,
     partido: pt ? { sigla: pt.sigla, nome: pt.nome, valor: pt.valor, percentual: pt.percentual } : null,
     comparativo,
     ano: d.ano,

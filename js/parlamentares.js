@@ -67,21 +67,7 @@
     setupConferir();
     setupRevogar();
     setupCompare();
-    deepLinkRadar();
   });
-
-  /* Link vindo de outras páginas (ex.: ranking do Fundo Eleitoral):
-     ?busca=Nome → abre a aba Radar com o nome já filtrado. */
-  function deepLinkRadar() {
-    const q = new URLSearchParams(location.search).get('busca');
-    if (!q) return;
-    const tab = document.querySelector('.mb-tab[data-tab="radar"]');
-    if (tab) tab.click();
-    const input = $('#radar-search');
-    if (input) { input.value = q; input.dispatchEvent(new Event('input')); }
-    const feed = $('#radar-feed');
-    if (feed) setTimeout(() => feed.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
-  }
 
   /* ============================================================
      TABS
@@ -669,18 +655,6 @@
           <strong>${fmtBRL(pt.valor)}</strong>
           <div class="mb-muted-sm" style="margin-top:4px;">${esc(pt.percentual)}% do fundo · cabe à direção partidária repassar às campanhas</div>
         </div>` : ''}
-      ${d.comparativo ? `
-        <div class="mb-card-inner" style="margin-bottom:10px;">
-          <div class="mb-muted-sm">Quanto do dinheiro do ${escapeHtml((pt && pt.sigla) || 'partido')} já apareceu em nome de candidatos</div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:2px;"><strong>${fmtBRL(d.comparativo.declaradoCandidatos)}</strong><span class="mb-muted-sm">de ${fmtBRL(d.comparativo.totalPartido)}</span></div>
-          <div style="height:8px;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden;margin-top:6px;"><div style="height:100%;width:${Math.min(100, d.comparativo.percentualDeclarado)}%;background:var(--mb-mint,#009739);"></div></div>
-          <div class="mb-muted-sm" style="margin-top:6px;">${esc(d.comparativo.percentualDeclarado)}% do valor já declarado nas prestações de contas até agora. O restante está retido nos diretórios ou ainda não foi publicado — prestação de contas é fase em andamento.</div>
-        </div>` : ''}
-      ${c && p.sqTse ? `
-        <details id="fundo-repasses" style="margin-bottom:12px;" ontoggle="if(this.open&&!this.dataset.loaded){window.VotaBrasilCarregarRepasses&&window.VotaBrasilCarregarRepasses('${esc(String(p.sqTse))}',this);}">
-          <summary style="cursor:pointer;font-weight:600;color:var(--mb-mint,#009739);padding:6px 0;">📑 Ver todos os repasses recebidos</summary>
-          <div id="fundo-repasses-body" class="mb-muted-sm" style="padding:8px 0;">⏳ Carregando linhas da prestação de contas…</div>
-        </details>` : ''}
       <p class="mb-muted-sm" style="margin:10px 0 14px;line-height:1.6;">⚖️ ${escapeHtml(d.aviso || 'Valores declarados pelos candidatos na prestação de contas; nem todo repasse pode estar declarado ainda.')}</p>
       <h3 style="margin-bottom:8px;">🔎 Para saber mais</h3>
       <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
@@ -691,40 +665,6 @@
       </ul>
       <p class="mb-src-footer">Fonte: ${escapeHtml(d.fontePorPolitico || d.fonte || 'TSE Dados Abertos')}${quando ? ' · snapshot de ' + esc(quando) : ''}. Dados públicos, reproduzidos sem alteração.</p>`;
   }
-
-  /* Repasses linha-a-linha (endpoint /detalhe), carregado sob demanda
-     quando o usuário abre o "📑 Ver todos os repasses". Uma requisição
-     por político (dataset.loaded). */
-  async function carregarRepasses(sq, detailsEl) {
-    const box = document.getElementById('fundo-repasses-body');
-    if (!box) return;
-    detailsEl.dataset.loaded = '1';
-    try {
-      const r = await fetch(API + '/api/fundo-eleitoral/detalhe?sq=' + encodeURIComponent(sq));
-      const d = await r.json();
-      if (!d.ok || !d.linhas || !d.linhas.length) {
-        box.innerHTML = 'Nenhuma linha de repasse publicada na fonte TSE para este candidato até agora.';
-        return;
-      }
-      const fmtV = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-      const linhas = d.linhas.map(l =>
-        '<tr><td style="padding:6px 8px;white-space:nowrap;border-bottom:1px solid rgba(0,0,0,.07);">' + esc(l.data) + '</td>' +
-        '<td style="padding:6px 8px;border-bottom:1px solid rgba(0,0,0,.07);">' + esc(l.doador) + ' <span class="mb-muted-sm">· ' + esc(l.esfera || '') + (l.tipo === 'Outro candidato' ? ' · repasse entre candidatos' : '') + '</span></td>' +
-        '<td style="padding:6px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid rgba(0,0,0,.07);font-weight:600;">' + fmtV(l.valor) + '</td></tr>').join('');
-      box.innerHTML =
-        '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
-        '<th style="text-align:left;padding:6px 8px;">Data</th><th style="text-align:left;padding:6px 8px;">Quem repassou</th><th style="text-align:right;padding:6px 8px;">Valor</th></tr></thead>' +
-        '<tbody>' + linhas + '</tbody>' +
-        '<tfoot><tr><td colspan="2" style="padding:6px 8px;text-align:right;font-weight:700;">Total declarado</td>' +
-        '<td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--mb-mint,#009739);">' + fmtV(d.soma) + '</td></tr></tfoot></table>' +
-        '<p class="mb-muted-sm" style="margin-top:8px;">Cada linha é um recebimento publicado na prestação de contas eleitoral deste candidato (fonte: ' +
-        '<a href="' + esc(d.urlFonte || '#') + '" target="_blank" rel="noopener">Dados Abertos TSE ↗</a>). Valores podem sofrer retificação pelo próprio candidato.</p>';
-    } catch (e) {
-      delete detailsEl.dataset.loaded;
-      box.innerHTML = '⚠️ Não foi possível carregar as linhas agora (' + escapeHtml(e.message) + '). Feche e reabra para tentar de novo.';
-    }
-  }
-  window.VotaBrasilCarregarRepasses = carregarRepasses;
 
   /* ============================================================
      MODAL DE RECLAMAÇÃO / APOIO
