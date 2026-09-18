@@ -10,7 +10,7 @@ echo   VOTABRASIL - ENVIANDO CORRECOES PRO GITHUB
 echo ====================================================
 echo.
 echo  Mudancas desta rodada:
-echo    * Rebrand completo: MudaBrasil agora e VotaBrasil (nome, logo SVG, dominio)
+echo    * Rebrand completo: VotaBrasil agora e VotaBrasil (nome, logo SVG, dominio)
 echo    * Config global virou config.local.js (nunca versionar segredos)
 echo    * SW votabrasil-v20 + namespace window.VotaBrasil
 echo.
@@ -29,7 +29,7 @@ echo.
 echo ====================================================
 echo   PRONTO!
 echo.
-echo   Abra no celular: https://mudabrasil-redesign-production.up.railway.app/app/
+echo   Abra no celular: https://VotaBrasil-redesign-production.up.railway.app/app/
 echo   IMPORTANTE: feche o app completamente (recentes - arrasta pra cima)
 echo   e abra 2 vezes para o novo SW substituir o antigo.
 echo.

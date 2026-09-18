@@ -1,6 +1,5 @@
 {
-  "updatedAt": "2026-08-19T00:59:31.383Z",
-  "source": "dadosabertos.camara.leg.br/api/v2/deputados",
+  "updatedAt": "2026-09-18T19:35:22.635Z",
   "dados": [
     {
       "id": 204379,
@@ -2357,6 +2356,17 @@
       "email": "dep.gilbertonascimento@camara.leg.br"
     },
     {
+      "id": 74581,
+      "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/74581",
+      "nome": "Gilmar Machado",
+      "siglaPartido": "PT",
+      "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/36844",
+      "siglaUf": "MG",
+      "idLegislatura": 57,
+      "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/74581.jpg",
+      "email": "dep.gilmarmachado@camara.leg.br"
+    },
+    {
       "id": 220529,
       "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/220529",
       "nome": "Gilson Daniel",
@@ -2421,17 +2431,6 @@
       "idLegislatura": 57,
       "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/204419.jpg",
       "email": "dep.glaustindafokus@camara.leg.br"
-    },
-    {
-      "id": 236284,
-      "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/236284",
-      "nome": "Glaycon Franco",
-      "siglaPartido": "PSDB",
-      "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/36835",
-      "siglaUf": "MG",
-      "idLegislatura": 57,
-      "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/236284.jpg",
-      "email": "dep.glayconfranco@camara.leg.br"
     },
     {
       "id": 107283,
@@ -2575,6 +2574,17 @@
       "idLegislatura": 57,
       "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/204539.jpg",
       "email": "dep.herciliocoelhodiniz@camara.leg.br"
+    },
+    {
+      "id": 178884,
+      "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/178884",
+      "nome": "Hildo Rocha",
+      "siglaPartido": "MDB",
+      "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/36899",
+      "siglaUf": "MA",
+      "idLegislatura": 57,
+      "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/178884.jpg",
+      "email": "dep.hildorocha@camara.leg.br"
     },
     {
       "id": 141450,
@@ -2889,7 +2899,7 @@
       "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/74140",
       "nome": "José Carlos Araujo",
       "siglaPartido": "DC",
-      "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37902",
+      "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/36786",
       "siglaUf": "BA",
       "idLegislatura": 57,
       "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/74140.jpg",
@@ -4951,17 +4961,6 @@
       "idLegislatura": 57,
       "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/220620.jpg",
       "email": "dep.rosangelareis@camara.leg.br"
-    },
-    {
-      "id": 73806,
-      "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/73806",
-      "nome": "Roseana Sarney",
-      "siglaPartido": "MDB",
-      "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/36899",
-      "siglaUf": "MA",
-      "idLegislatura": 57,
-      "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/73806.jpg",
-      "email": "dep.roseanasarney@camara.leg.br"
     },
     {
       "id": 74371,

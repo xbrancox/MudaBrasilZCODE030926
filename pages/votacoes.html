@@ -5,17 +5,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Votações nominais · VotaBrasil</title>
 <meta name="description" content="Como cada deputado e senador votou nas votações nominais da Câmara e do Senado — histórico completo e verificável.">
-<link rel="canonical" href="https://mudabrasil-redesign-production.up.railway.app/pages/votacoes.html">
+<link rel="canonical" href="https://VotaBrasil-redesign-production.up.railway.app/pages/votacoes.html">
 <meta property="og:title" content="Votações nominais · VotaBrasil">
 <meta property="og:description" content="Como cada deputado e senador votou nas votações nominais da Câmara e do Senado — histórico completo e verificável.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://mudabrasil-redesign-production.up.railway.app/pages/votacoes.html">
-<meta property="og:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
+<meta property="og:url" content="https://VotaBrasil-redesign-production.up.railway.app/pages/votacoes.html">
+<meta property="og:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
 <meta property="og:site_name" content="VotaBrasil">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
-<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<meta name="twitter:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
+
+<link rel="icon" type="image/x-icon" href="/images/logo/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/logo/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/logo/favicon-180x180.png">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="../config.local.js?v=2"></script>
@@ -114,7 +118,7 @@ footer a{color:var(--gold)}
 
 <script>
 /* FIX: API_BASE pode ser '' (mesma origem) — não usar ||, que trocaria '' pela URL de produção */
-const API_B = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string') ? window.VotaBrasil.API_BASE : 'https://mudabrasil-redesign-production.up.railway.app';
+const API_B = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string') ? window.VotaBrasil.API_BASE : 'https://VotaBrasil-redesign-production.up.railway.app';
 const $ = s => document.querySelector(s);
 
 let VOTS = [];
@@ -131,16 +135,20 @@ async function carregar(retry){
     const r = await fetch(API_B + '/api/camara/votacoes?itens=30&ordem=DESC&ordenarPor=data');
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    VOTS = (j.dados || []).map(v => ({
-      id: v.id,
-      data: v.data,
-      dataHora: v.dataHoraRegistro,
-      descricao: v.descricao || '(sem descrição)',
-      aprovacao: v.aprovacao,
-      uri: v.uri,
-      uriProposicao: v.uriProposicaoObjeto,
-      placar: parsePlacar(v.descricao)
-    }));
+    VOTS = (j.dados || []).map(v => {
+      const propId = v.uriProposicaoObjeto ? (v.uriProposicaoObjeto.match(/\/(\d+)/) || [])[1] : '';
+      const votId = v.id || (v.uri ? (v.uri.match(/\/(\d+(?:-\d+)?)/) || [])[1] : '');
+      return {
+        id: v.id,
+        data: v.data,
+        dataHora: v.dataHoraRegistro,
+        descricao: v.descricao || '(sem descrição)',
+        aprovacao: v.aprovacao,
+        webProposicao: propId ? 'https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=' + propId : '',
+        webOficial: votId ? 'https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=' + votId : '',
+        placar: parsePlacar(v.descricao)
+      };
+    });
     $('#bModo').textContent = 'dados reais';
     $('#bTotal').textContent = VOTS.length + ' votação(ões)';
     clearTimeout(_timeoutId);
@@ -193,10 +201,10 @@ function render(){
     return '<div class="card">' +
       '<h3 style="font-size:15px;line-height:1.35">' + escapeHtml(v.descricao) + '</h3>' +
       placar +
-      '<div class="data"><i class="fa-regular fa-calendar"></i> ' + dataFmt + (v.uriProposicao ? ' · <a href="' + v.uriProposicao + '" target="_blank" rel="noopener">Proposição no site oficial →</a>' : '') + '</div>' +
+      '<div class="data"><i class="fa-regular fa-calendar"></i> ' + dataFmt + (v.webProposicao ? ' · <a href="' + v.webProposicao + '" target="_blank" rel="noopener">Proposição no site oficial →</a>' : '') + '</div>' +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">' +
         '<button class="btn sm" onclick="toggleVotos(\'' + v.id + '\')" id="btn-' + v.id + '"><i class="fa-solid fa-users"></i> Ver votos individuais</button>' +
-        (v.uri ? '<a class="btn sm" href="' + v.uri + '" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Fonte oficial</a>' : '') +
+        (v.webOficial ? '<a class="btn sm" href="' + v.webOficial + '" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Fonte oficial</a>' : '') +
       '</div>' +
       '<div id="det-' + v.id + '" style="margin-top:10px">' + expandido + '</div>' +
       '</div>';

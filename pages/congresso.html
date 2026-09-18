@@ -5,17 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PLs no Congresso · VotaBrasil</title>
 <meta name="description" content="Opine nos Projetos de Lei em tramitação no Congresso Nacional: ementa, autor real e a opinião da população em cada PL.">
-<link rel="canonical" href="https://mudabrasil-redesign-production.up.railway.app/pages/congresso.html">
+<link rel="canonical" href="https://VotaBrasil-redesign-production.up.railway.app/pages/congresso.html">
 <meta property="og:title" content="PLs no Congresso · VotaBrasil">
 <meta property="og:description" content="Opine nos Projetos de Lei em tramitação no Congresso Nacional: ementa, autor real e a opinião da população em cada PL.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://mudabrasil-redesign-production.up.railway.app/pages/congresso.html">
-<meta property="og:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
+<meta property="og:url" content="https://VotaBrasil-redesign-production.up.railway.app/pages/congresso.html">
+<meta property="og:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
 <meta property="og:site_name" content="VotaBrasil">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
-<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<meta name="twitter:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
+
+<link rel="icon" type="image/x-icon" href="/images/logo/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/logo/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/logo/favicon-180x180.png">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="../config.local.js?v=2"></script>
@@ -396,7 +400,41 @@ $('#popup-ok').onclick=()=>{LS.set('mb_popup_congresso',1);$('#popup').style.dis
  await carregaPovo();
  buildFila();
  const dep=new URLSearchParams(location.search).get('dep');if(dep)$('#busca').value=dep;
- renderTudo()})();
-</script>
+	 renderTudo()})();
+	</script>
+
+  <footer style="background:rgba(6,26,58,0.85);border-top:1px solid #1d3a66;padding:48px 24px 24px;margin-top:60px;font-family:Manrope,system-ui,sans-serif;color:#eaf1fb">
+    <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px;align-items:start">
+      <div>
+        <div style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">
+          <img src="../icon.svg" alt="VotaBrasil" width="120" height="120" style="border-radius:0;display:block">
+        </div>
+        <p style="color:#94a3b8;font-size:14px;margin:12px 0;line-height:1.5">Plataforma cívica de opinião e participação para um Brasil com mais transparência, voz e poder de voto real.</p>
+        <p style="color:#FFD700;font-weight:800;font-size:15px">"Seu voto coloca, seu voto tira."</p>
+      </div>
+      <div>
+        <h5 style="color:#AECF00;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;font-family:Montserrat,sans-serif">Navegar</h5>
+        <a href="parlamentares.html" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Radar Político</a>
+        <a href="congresso.html" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">PLs no Congresso</a>
+        <a href="votacoes.html" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Votações</a>
+      </div>
+      <div>
+        <h5 style="color:#AECF00;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;font-family:Montserrat,sans-serif">Participar</h5>
+        <a href="../index.html#conferir-voto" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Conferir Voto</a>
+        <a href="../index.html#revogar-voto" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Revogar Voto</a>
+        <a href="../index.html#ajuda" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Perguntas Frequentes</a>
+      </div>
+      <div>
+        <h5 style="color:#AECF00;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;font-family:Montserrat,sans-serif">Institucional</h5>
+        <a href="../index.html#quem-somos" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Sobre Nós</a>
+        <a href="../termos.html" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Termos de Uso</a>
+        <a href="../privacidade.html" style="display:block;color:#94a3b8;text-decoration:none;font-size:13px;padding:5px 0">Política de Privacidade</a>
+      </div>
+    </div>
+    <div style="max-width:1400px;margin:30px auto 0;border-top:1px solid #1d3a66;padding-top:20px;display:flex;justify-content:space-between;color:#94a3b8;font-size:12px;flex-wrap:wrap;gap:10px">
+      <span>© 2026 VotaBrasil. Protótipo demonstrativo.</span>
+      <span>votabrasil.app</span>
+    </div>
+  </footer>
 </body>
 </html>

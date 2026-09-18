@@ -156,8 +156,7 @@
 <header class="mb-header">
   <div class="mb-nav-inner">
     <a href="${prefix}index.html" class="mb-logo" aria-label="VotaBrasil">
-      <img src="${prefix}icon.svg" alt="" width="34" height="34" style="border-radius:8px">
-      <span>VotaBrasil</span>
+      <img src="${prefix}icon.svg" alt="" width="76" height="76" style="border-radius:0;display:block">
     </a>
     <nav aria-label="Navegação principal">
       <ul class="mb-nav-links" id="mb-nav-links">

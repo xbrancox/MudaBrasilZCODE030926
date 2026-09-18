@@ -4,17 +4,21 @@
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Eleições 2026 · Candidatos · VotaBrasil</title>
 <meta name="description" content="Candidatos reais das Eleições Gerais 2026 com número de urna, partido, coligação e situação de julgamento — dados oficiais do TSE.">
-<link rel="canonical" href="https://mudabrasil-redesign-production.up.railway.app/pages/eleicoes-2026.html">
+<link rel="canonical" href="https://VotaBrasil-redesign-production.up.railway.app/pages/eleicoes-2026.html">
 <meta property="og:title" content="Eleições 2026 · Candidatos · VotaBrasil">
 <meta property="og:description" content="Candidatos reais das Eleições Gerais 2026 com número de urna, partido, coligação e situação de julgamento — dados oficiais do TSE.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://mudabrasil-redesign-production.up.railway.app/pages/eleicoes-2026.html">
-<meta property="og:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
+<meta property="og:url" content="https://VotaBrasil-redesign-production.up.railway.app/pages/eleicoes-2026.html">
+<meta property="og:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
 <meta property="og:site_name" content="VotaBrasil">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
-<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<meta name="twitter:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
+
+<link rel="icon" type="image/x-icon" href="/images/logo/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/logo/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/logo/favicon-180x180.png">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="../config.local.js?v=2"></script>
@@ -106,7 +110,7 @@ header.topo nav a.on{background:#FFD700;color:#061a3a;font-weight:800}
 <div class="overlay" id="mDet"><div class="modal"><div id="detBody"></div><button class="btn" style="width:100%;margin-top:12px" onclick="fechar()">Fechar</button></div></div>
 <script>
 /* FIX: API_BASE pode ser '' (mesma origem) — não usar ||, que trocaria '' pela URL de produção */
-const API=(window.VotaBrasil&&typeof window.VotaBrasil.API_BASE==='string')?window.VotaBrasil.API_BASE:'https://mudabrasil-redesign-production.up.railway.app';
+const API=(window.VotaBrasil&&typeof window.VotaBrasil.API_BASE==='string')?window.VotaBrasil.API_BASE:'https://VotaBrasil-redesign-production.up.railway.app';
 const UFS=['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 const $=s=>document.querySelector(s);
 $('#uf').innerHTML=UFS.map(u=>`<option value="${u}" ${u==='SP'?'selected':''}>${u}</option>`).join('');

@@ -676,7 +676,7 @@ function getResponsesByPolitician(politicianId, { limit = 50, offset = 0 } = {})
 }
 
 function hashVoter(method, identifier) {
-  return require('crypto').createHash('sha256').update(method + ':' + identifier + ':MUDABRASIL_VOTER_SALT_2026').digest('hex');
+  return require('crypto').createHash('sha256').update(method + ':' + identifier + ':VotaBrasil_VOTER_SALT_2026').digest('hex');
 }
 
 function upsertVoter(v) {

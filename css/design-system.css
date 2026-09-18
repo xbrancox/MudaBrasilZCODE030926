@@ -188,7 +188,7 @@ a:hover {
   font-size: var(--text-xl);
   font-weight: 800;
   font-family: var(--font-title);
-  background: linear-gradient(135deg, var(--blue-light) 0%, var(--lime) 100%);
+  background: transparent 0%, var(--lime) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -302,7 +302,7 @@ a:hover {
 }
 
 .hero h1 {
-  background: linear-gradient(135deg, #FFFFFF 0%, var(--blue-light) 50%, var(--lime) 100%);
+  background: transparent 50%, var(--lime) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -339,7 +339,7 @@ a:hover {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: transparent, transparent);
   transform: translateX(-100%);
   transition: transform 0.6s;
 }
@@ -383,7 +383,7 @@ a:hover {
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #E74C3C, #c0392b);
+  background: transparent;
   color: var(--white);
 }
 
@@ -523,7 +523,7 @@ a:hover {
 .metric-number {
   font-size: var(--text-4xl);
   font-weight: 800;
-  background: linear-gradient(135deg, #7fb0f5, #FFD700);
+  background: transparent;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1102,14 +1102,14 @@ footer {
 }
 
 .source-badge-pill.real {
-  background: linear-gradient(135deg, rgba(46, 204, 113, 0.22), rgba(39, 174, 96, 0.12));
+  background: transparent, rgba(39, 174, 96, 0.12));
   border-color: rgba(46, 204, 113, 0.5);
   color: #d6ffe8;
   box-shadow: 0 0 18px rgba(46, 204, 113, 0.18);
 }
 
 .source-badge-pill.demo {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.16), rgba(255, 165, 0, 0.1));
+  background: transparent, rgba(255, 165, 0, 0.1));
   border-color: rgba(255, 215, 0, 0.4);
   color: #fff3c4;
 }
@@ -1141,7 +1141,7 @@ footer {
   margin: 0 auto var(--space-lg);
   padding: var(--space-md) var(--space-lg);
   border-radius: var(--border-radius-md);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.12), rgba(255, 165, 0, 0.08));
+  background: transparent, rgba(255, 165, 0, 0.08));
   border: 1px solid rgba(255, 215, 0, 0.35);
   color: #fff3c4;
   font-size: var(--text-sm);
@@ -1384,7 +1384,7 @@ footer {
   font-weight: 800;
   letter-spacing: 3px;
   color: var(--white);
-  background: linear-gradient(135deg, rgba(17, 95, 203, 0.35), rgba(255, 215, 0, 0.15));
+  background: transparent, rgba(255, 215, 0, 0.15));
   border: 2px solid var(--lime);
   border-radius: var(--border-radius-lg);
   padding: var(--space-lg);

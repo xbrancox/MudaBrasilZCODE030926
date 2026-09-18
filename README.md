@@ -418,7 +418,7 @@ data: {"tipo":"voto","ts":"2026-08-19T12:00:00.000Z","totalVotosAtivos":124,"tot
 >   `X-Content-Type-Options: nosniff` + `Referrer-Policy: no-referrer`.
 > - **Testes validados**: 25/25 (engine) + 19/19 (thermometer) + 13/13 (live) + render
 >   = **70 checks passando** (Node puro + Playwright E2E + SSE real + persistência pós-restart).
-> - **Repositório**: https://github.com/xbrancox/mudabrasil
+> - **Repositório**: https://github.com/xbrancox/VotaBrasil
 
 ---
 

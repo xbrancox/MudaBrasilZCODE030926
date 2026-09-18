@@ -73,21 +73,20 @@ h1, h2, h3, h4 { font-family: var(--mb-font-title); font-weight: 700; color: var
   color: var(--mb-text);
 }
 .mb-logo-mark {
-  display: grid;
-  place-items: center;
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--mb-blue), var(--mb-mint));
-  color: var(--mb-bg);
-  font-family: var(--mb-font-title);
-  font-weight: 800;
-  font-size: 18px;
+  width: 76px;
+  height: 76px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.mb-logo-text {
-  font-family: var(--mb-font-title);
-  font-weight: 800;
-  font-size: 18px;
-  letter-spacing: -0.5px;
+.mb-logo-mark img {
+  width: 76px;
+  height: 76px;
+  border-radius: 0;
+  display: block;
 }
 .mb-nav {
   display: flex;
@@ -371,7 +370,7 @@ select.mb-input { appearance: none; background-image: url("data:image/svg+xml;ut
 }
 .mb-integrity-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--mb-mint), var(--mb-blue));
+  background: transparent, var(--mb-blue));
   border-radius: 4px;
   transition: width .5s ease;
 }
@@ -604,7 +603,7 @@ select.mb-input { appearance: none; background-image: url("data:image/svg+xml;ut
 .mb-rev-num.alert { background: rgba(231, 76, 60, 0.15); }
 .mb-rev-num.alert .mb-rev-num-value { color: var(--mb-red); }
 .mb-rev-progress { background: var(--mb-bg-input); height: 14px; border-radius: 7px; overflow: hidden; position: relative; }
-.mb-rev-progress-fill { height: 100%; background: linear-gradient(90deg, var(--mb-orange), var(--mb-red)); transition: width .5s; }
+.mb-rev-progress-fill { height: 100%; background: transparent, var(--mb-red)); transition: width .5s; }
 
 /* ===================== CONFERIR ===================== */
 .mb-conferir-card { background: var(--mb-bg-card); border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg); padding: 28px; margin-bottom: 18px; }

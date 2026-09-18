@@ -1,11 +1,11 @@
 /* ============================================================
    VotaBrasil — Configuração Global
    -----------------------------------------------------------
-   Backend: https://mudabrasil-redesign-production.up.railway.app (novo projeto Railway)
+   Backend: https://VotaBrasil-redesign-production.up.railway.app (novo projeto Railway)
    Frontend: https://xbrancox.github.io/votabrasil/
    ============================================================ */
 
-let API_BASE = 'https://mudabrasil-redesign-production.up.railway.app';
+let API_BASE = 'https://VotaBrasil-redesign-production.up.railway.app';
 
 /* Página servida pelo próprio backend (dev localhost ou Railway) = mesma origem.
    Hosts estáticos (GitHub Pages) e file:// continuam apontando pro Railway. */

@@ -392,7 +392,7 @@ async function handleApi(req, res, url) {
   }
 
   /* ===== Votos individuais de uma votação (com cache 1h por votação) ===== */
-  const mVotos = p.match(/^\/api\/camara\/votacoes\/(\d+)\/votos$/);
+  const mVotos = p.match(/^\/api\/camara\/votacoes\/([^\/]+)\/votos$/);
   if (mVotos && req.method === 'GET') {
     const votacaoId = mVotos[1];
     const cacheKey = 'votos-' + votacaoId;

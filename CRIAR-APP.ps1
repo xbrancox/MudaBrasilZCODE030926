@@ -219,7 +219,7 @@ Start-Sleep -Seconds 50
 $base='https://xbrancox.github.io/votabrasil/'
 $urls=@('app/','app/index.html','app/app.js','app/app.css','app/manifest.webmanifest','app/sw.js','app/icon.svg','index.html','pages/congresso.html','pages/parlamentares.html','pages/votacoes.html','pages/eleicoes-2026.html','js/header-unificado.js','config.js')
 foreach($u in $urls){ try{ $r=Invoke-WebRequest ($base+$u) -UseBasicParsing -TimeoutSec 20; Write-Host ($r.StatusCode+'  OK   '+$u) -ForegroundColor Green }catch{ Write-Host ('FAIL      '+$u) -ForegroundColor Red } }
-foreach($e in @('api/health','api/pls','api/votos-pl','api/camara/votacoes','api/termometro')){ try{ $r=Invoke-WebRequest ('https://mudabrasil-redesign-production.up.railway.app/'+$e) -UseBasicParsing -TimeoutSec 20; Write-Host ($r.StatusCode+'  OK   '+$e) -ForegroundColor Green }catch{ Write-Host ('FAIL      '+$e) -ForegroundColor Red } }
+foreach($e in @('api/health','api/pls','api/votos-pl','api/camara/votacoes','api/termometro')){ try{ $r=Invoke-WebRequest ('https://VotaBrasil-redesign-production.up.railway.app/'+$e) -UseBasicParsing -TimeoutSec 20; Write-Host ($r.StatusCode+'  OK   '+$e) -ForegroundColor Green }catch{ Write-Host ('FAIL      '+$e) -ForegroundColor Red } }
 $h=(Invoke-WebRequest ($base+'app/app.js') -UseBasicParsing).Content
 foreach($s in @('URNA EXPRESSA','PLACAR DO POVO','TOTAIS CRUZADOS','GAP','DNA','serviceWorker')){ if($h -match [regex]::Escape($s)){Write-Host ('CHECK OK  '+$s) -ForegroundColor Green}else{Write-Host ('CHECK FAIL '+$s) -ForegroundColor Red} }
 Write-Host "`n=== FIM. Cole o resultado aqui se houver algum FAIL ===" -ForegroundColor Cyan

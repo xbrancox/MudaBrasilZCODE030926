@@ -58,7 +58,7 @@ $ok=$false
 for($t=1;$t -le 3;$t++){
   Start-Sleep 50
   try{
-    $r=Invoke-WebRequest 'https://raw.githubusercontent.com/xbrancox/mudabrasil/master/app/app.js' -UseBasicParsing -TimeoutSec 20
+    $r=Invoke-WebRequest 'https://raw.githubusercontent.com/xbrancox/VotaBrasil/master/app/app.js' -UseBasicParsing -TimeoutSec 20
     $c=$r.Content
     $checks=@('VOTO SECRETO','GLOSS','renderDiaD','modalCedula','telaLogin','participacaoHTML','vibrate','sistema no ar','data-fix','comparar','flushFila','VOTA=','function render()')
     $todosOK=$true
