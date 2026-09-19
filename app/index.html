@@ -152,8 +152,6 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
 .bk{display:flex;flex-direction:column;gap:9px;margin-top:18px}
 .lg{display:block;background:none;border:none;color:var(--gold);font-size:.8rem;font-weight:700;cursor:pointer;margin:10px auto 0;text-decoration:underline}
 .lg-c{text-align:center;margin:12px 0 3px}
-.pil{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);z-index:90;background:var(--ggrad);color:var(--navy);border:none;border-radius:24px;padding:10px 20px;font-size:.8rem;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(255,215,0,.35);display:flex;align-items:center;gap:6px}
-.pil svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5}
 .toast{position:fixed;bottom:132px;left:50%;transform:translateX(-50%);z-index:95;background:var(--card);border:1px solid rgba(255,215,0,.4);border-radius:12px;padding:11px 14px;display:none;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(0,0,0,.5);max-width:92%}
 .toast span{font-size:.8rem;font-weight:600}
 .toast button{background:var(--ggrad);color:var(--navy);border:none;border-radius:8px;padding:7px 11px;font-size:.74rem;font-weight:800;cursor:pointer;white-space:nowrap}
@@ -245,9 +243,67 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
   <button class="lg lg-c" onclick="go('s-conf')">Já votou? Confira seu voto agora →</button>
 </section>
 
-<div id="f1" class="f">
+<!-- Introductory Step (f0): UF Domicile & Explanation of Voting Process -->
+<div id="f0" class="f">
   <button class="bb" onclick="go('s-home')"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Voltar</button>
   <div class="pb"><div class="pd a"></div><div class="pd"></div><div class="pd"></div><div class="pd"></div><div class="pd"></div></div>
+  <h2 class="rv">Seu Domicílio & Explicação</h2>
+  <p class="cs">Escolha seu estado e entenda como funciona a simulação e a votação oficial.</p>
+
+  <!-- UF Domicile Selector Card -->
+  <div class="cargo-card" style="margin-bottom:14px;">
+    <div class="ch-in"><span class="ch-t">Domicílio Eleitoral (UF)</span></div>
+    <p class="ht" style="margin-top:0; margin-bottom:10px;">O estado onde você vota define seus candidatos a Governador, Senador e Deputados.</p>
+    <div class="fr" style="margin-bottom:0;">
+      <div class="fg">
+        <select id="intro-uf" class="fs" onchange="atualizarUfGlobal(this.value)">
+          <option value="SP">São Paulo (SP)</option>
+          <option value="RJ">Rio de Janeiro (RJ)</option>
+          <option value="MG">Minas Gerais (MG)</option>
+          <option value="DF">Distrito Federal (DF)</option>
+          <option value="RS">Rio Grande do Sul (RS)</option>
+          <option value="PR">Paraná (PR)</option>
+          <option value="BA">Bahia (BA)</option>
+          <option value="SC">Santa Catarina (SC)</option>
+          <option value="GO">Goiás (GO)</option>
+          <option value="PE">Pernambuco (PE)</option>
+          <option value="CE">Ceará (CE)</option>
+          <option value="PA">Pará (PA)</option>
+          <option value="ES">Espírito Santo (ES)</option>
+          <option value="AM">Amazonas (AM)</option>
+          <option value="MT">Mato Grosso (MT)</option>
+          <option value="MS">Mato Grosso do Sul (MS)</option>
+          <option value="RN">Rio Grande do Norte (RN)</option>
+          <option value="PB">Paraíba (PB)</option>
+          <option value="AL">Alagoas (AL)</option>
+          <option value="PI">Piauí (PI)</option>
+          <option value="SE">Sergipe (SE)</option>
+          <option value="RO">Rondônia (RO)</option>
+          <option value="TO">Tocantins (TO)</option>
+          <option value="AC">Acre (AC)</option>
+          <option value="AP">Amapá (AP)</option>
+          <option value="RR">Roraima (RR)</option>
+          <option value="MA">Maranhão (MA)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Explanation Cards -->
+  <div class="hj" style="margin-top:0; margin-bottom:16px;">
+    <h4>🗳️ Entenda o Processo de Votação</h4>
+    <div class="hj-c"><strong>🧪 Simulação Atual (Hoje):</strong> Esta é uma simulação de pesquisa de opinião pública e viabilidade tecnológica. Você escolhe seus candidatos em uma urna intuitiva pelo celular, recebe um comprovante com código criptográfico de 20 dígitos para auditoria, e seus votos alimentam as estatísticas públicas. Você pode zerar e refazer sua simulação a qualquer momento. Não possui valor jurídico oficial.</div>
+    <div class="hj-c"><strong>⚖️ Processo Real Futuro (Amanhã):</strong> Eleição oficial e auditável de representantes políticos com cédula digital criptografada, autenticação segura por e-mail ou telefone, comprovante irrevogável e o pilar central do projeto: o **mandato revogável** (Regra 70%: se 70% dos eleitores que elegeram um parlamentar revogarem o apoio durante o mandato, o cargo é cassado).</div>
+  </div>
+
+  <div class="ctafix">
+    <button class="b bp" onclick="continuarParaCedula()">Continuar para montar cédula →</button>
+  </div>
+</div>
+
+<div id="f1" class="f">
+  <button class="bb" onclick="flowGo('f0')"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Voltar</button>
+  <div class="pb"><div class="pd c"></div><div class="pd a"></div><div class="pd"></div><div class="pd"></div><div class="pd"></div></div>
   <h2 class="rv">Monte sua cédula</h2>
   <p class="cs">Escolha um candidato em cada cargo. Nada é enviado até você revisar e confirmar.</p>
   <div id="cedula-list"></div>
@@ -258,7 +314,7 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
 
 <div id="f2" class="f">
   <button class="bb" onclick="flowGo('f1')"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Voltar</button>
-  <div class="pb"><div class="pd c"></div><div class="pd a"></div><div class="pd"></div><div class="pd"></div><div class="pd"></div></div>
+  <div class="pb"><div class="pd c"></div><div class="pd c"></div><div class="pd a"></div><div class="pd"></div><div class="pd"></div></div>
   <h2 class="rv">Revise sua cédula</h2>
   <div id="review-list"></div>
   <p class="ht">⚠️ Demonstração (hoje): estes votos alimentam a pesquisa de opinião do VotaBrasil e podem ser zerados e refeitos por você. Não têm valor jurídico. Na votação real (amanhã), com login por e-mail/telefone, o voto não pode ser apagado e passa a valer para a revogação do mandato.</p>
@@ -267,7 +323,7 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
 
 <div id="f3" class="f">
   <button class="bb" onclick="flowGo('f2')"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Voltar</button>
-  <div class="pb"><div class="pd c"></div><div class="pd c"></div><div class="pd a"></div><div class="pd"></div><div class="pd"></div></div>
+  <div class="pb"><div class="pd c"></div><div class="pd c"></div><div class="pd c"></div><div class="pd a"></div><div class="pd"></div></div>
   <div class="cw">
     <div class="gn">⚖</div>
     <div class="cc">
@@ -341,8 +397,8 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
   <div class="pll">
     <div class="pl"><div class="pln">PL 1234/2024</div><h3>Reforma Tributária Simplificada</h3><p>Simplificação tributária e unificação de impostos.</p><div class="pbs"><button class="ap" onclick="opinar(this,'apoiar')">👍 Apoiar</button><button class="ct2" onclick="opinar(this,'contra')">👎 Contra</button></div></div>
     <div class="pl"><div class="pln">PL 5678/2024</div><h3>Marco Legal das Startups</h3><p>Marco legal das startups no Brasil.</p><div class="pbs"><button class="ap" onclick="opinar(this,'apoiar')">👍 Apoiar</button><button class="ct2" onclick="opinar(this,'contra')">👎 Contra</button></div></div>
-    <div class="pl"><div class="pln">PL 9012/2024</h3><h3>Proteção de Dados Pessoais</h3><p>Altera LGPD para fortalecer direitos.</p><div class="pbs"><button class="ap" onclick="opinar(this,'apoiar')">👍 Apoiar</button><button class="ct2" onclick="opinar(this,'contra')">👎 Contra</button></div></div>
-    <div class="pl"><div class="pln">PL 2345/2024</h3><h3>Transparência em Licitações</h3><p>Publicação em tempo real em portal único.</p><div class="pbs"><button class="ap" onclick="opinar(this,'apoiar')">👍 Apoiar</button><button class="ct2" onclick="opinar(this,'contra')">👎 Contra</button></div></div>
+    <div class="pl"><div class="pln">PL 9012/2024</div><h3>Proteção de Dados Pessoais</h3><p>Altera LGPD para fortalecer direitos.</p><div class="pbs"><button class="ap" onclick="opinar(this,'apoiar')">👍 Apoiar</button><button class="ct2" onclick="opinar(this,'contra')">👎 Contra</button></div></div>
+    <div class="pl"><div class="pln">PL 2345/2024</div><h3>Transparência em Licitações</h3><p>Publicação em tempo real em portal único.</p><div class="pbs"><button class="ap" onclick="opinar(this,'apoiar')">👍 Apoiar</button><button class="ct2" onclick="opinar(this,'contra')">👎 Contra</button></div></div>
   </div>
   <button class="lg lg-c" onclick="go('s-conf')">🔍 Conferir meu voto →</button>
 </section>
@@ -426,8 +482,6 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
   <span class="cp">© 2026 VotaBrasil · Protótipo · votabrasil.app</span>
 </footer>
 
-<button id="pil" class="pil" onclick="go('s-conf')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Conferir meu voto</button>
-
 <div id="toast" class="toast"><span id="tm"></span><button id="tb"></button></div>
 
 <nav class="nv">
@@ -444,21 +498,30 @@ if(API)document.getElementById('bdg').style.display='flex';
 let tt=null;
 function showToast(m,bl,fn){const t=document.getElementById('toast'),b=document.getElementById('tb');document.getElementById('tm').textContent=m;if(bl){b.style.display='block';b.textContent=bl;b.onclick=()=>{hideToast();fn&&fn()}}else{b.style.display='none'}t.style.display='flex';clearTimeout(tt);tt=setTimeout(hideToast,5500)}
 function hideToast(){document.getElementById('toast').style.display='none'}
-function togglePil(id){document.getElementById('pil').style.display=(id==='s-conf')?'none':'flex'}
 function go(id){
   document.querySelectorAll('.s,.f').forEach(x=>x.classList.remove('on'));
   document.getElementById(id).classList.add('on');
   document.querySelectorAll('.nv button').forEach(x=>x.classList.remove('on'));
   const nb=document.querySelector(`.nv button[data-s="${id}"]`);
   if(nb)nb.classList.add('on');
-  togglePil(id);
   if(id==='s-rad')carregarPols();
   if(id==='s-fundo')carregarFundo();
   if(id==='s-conf')atualizarBannerConferir();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function startVote(){renderCedula();document.querySelectorAll('.s,.f').forEach(x=>x.classList.remove('on'));document.getElementById('f1').classList.add('on');document.querySelectorAll('.nv button').forEach(x=>x.classList.remove('on'));const vb=document.querySelector('.nv button[data-s="votar"]');if(vb)vb.classList.add('on');togglePil('f');window.scrollTo({top:0,behavior:'smooth'})}
-function flowGo(id){document.querySelectorAll('.f').forEach(x=>x.classList.remove('on'));document.getElementById(id).classList.add('on');togglePil('f');window.scrollTo({top:0,behavior:'smooth'})}
+function startVote(){
+  const saved=getUF('Governador')||'SP';
+  const sel=document.getElementById('intro-uf');
+  if(sel)sel.value=saved;
+  atualizarUfGlobal(saved);
+  document.querySelectorAll('.s,.f').forEach(x=>x.classList.remove('on'));
+  document.getElementById('f0').classList.add('on');
+  document.querySelectorAll('.nv button').forEach(x=>x.classList.remove('on'));
+  const vb=document.querySelector('.nv button[data-s="votar"]');
+  if(vb)vb.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function flowGo(id){document.querySelectorAll('.f').forEach(x=>x.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo({top:0,behavior:'smooth'})}
 
 /* ===== v23 — CÉDULA REAL (TSE), rascunho local, código único 20 dígitos ===== */
 const LS={rascunho:'mb_rascunho',uf:'mb_uf',session:'mb_session',comprov:'mb_comprovante'};
@@ -487,6 +550,25 @@ async function garantirSessao(){
   const r=await fetchJson('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'simulacao+'+Date.now()+'-'+Math.floor(Math.random()*1e6)+'@votabrasil.demo',nome:'Eleitor(a) Demonstração'})});
   if(r&&r.ok&&r.sessionToken){localStorage.setItem(LS.session,r.sessionToken);return r.sessionToken}
   throw new Error('Não foi possível abrir sua sessão de demonstração.');
+}
+
+/* --- UF Domicile & Intro flow --- */
+function atualizarUfGlobal(uf){
+  if(!uf)return;
+  CARGOS.forEach(([lab])=>{
+    if(lab!=='Presidente'){
+      const k=lab===DEP_LAB?DEP_LAB:lab;
+      setUF(k,uf);
+    }
+  });
+}
+function continuarParaCedula(){
+  const sel=document.getElementById('intro-uf');
+  if(sel&&sel.value){
+    atualizarUfGlobal(sel.value);
+  }
+  renderCedula();
+  flowGo('f1');
 }
 
 /* --- tela f1: cédula com candidatos reais --- */
@@ -627,7 +709,7 @@ async function votarDeNovo(){
   }catch(e){showToast('⚠️ '+(e.message||'Erro ao zerar'))}
 }
 
-/* --- conferir / Recorded Vote / Guidance (Requirement 1 & 3) --- */
+/* --- conferir / Recorded Vote / Guidance --- */
 function atualizarBannerConferir(){
   const banner=document.getElementById('recorded-vote-banner');
   const disp=document.getElementById('recorded-code-display');
@@ -688,7 +770,7 @@ function abrirConferirNoSite(){window.open(linkConferirSite(),'_blank','noopener
 function copiarLinkSite(){navigator.clipboard.writeText(linkConferirSite()).then(()=>showToast('🔗 Link do site copiado!'))}
 function copyConfLink(){navigator.clipboard.writeText(linkConferirSite()).then(()=>showToast('🔗 Link de conferência copiado!'))}
 
-/* ===== v27 — RADAR POLÍTICO REAL (Câmara+Senado via /api/candidatos) + reclamação/apoio/respostas/verificação ===== */
+/* ===== RADAR POLÍTICO REAL ===== */
 let POLS=[],POL_RANK={},FUNDO_MAP=null,POL_SHOWN=50,POL_OPEN=null;
 const inits=n=>String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 async function carregarPols(){
@@ -764,7 +846,7 @@ async function polVerificar(id){
   }catch(e){showToast('⚠️ '+(e.message||'Falha na verificação.'))}
 }
 
-/* ===== v27 — TELA FUNDO ELEITORAL (dados públicos TSE) ===== */
+/* ===== TELA FUNDO ELEITORAL ===== */
 let FUNDO=null,FUNDO_TAB='partidos';
 async function carregarFundo(){
   try{
