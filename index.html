@@ -4,16 +4,16 @@
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>VotaBrasil · Cobre, Revogue, Vote</title>
 <meta name="description" content="Plataforma cívica de revogação do voto: confie em deputados e senadores, revogue quando descumprirem, opine nos PLs e acompanhe as Eleições 2026 com dados reais.">
-<link rel="canonical" href="https://mudabrasil-redesign-production.up.railway.app/">
+<link rel="canonical" href="https://votabrasil.app/">
 <meta property="og:title" content="VotaBrasil · Cobre, Revogue, Vote">
 <meta property="og:description" content="Plataforma cívica de revogação do voto: confie em deputados e senadores, revogue quando descumprirem, opine nos PLs e acompanhe as Eleições 2026 com dados reais.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://mudabrasil-redesign-production.up.railway.app/">
-<meta property="og:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
+<meta property="og:url" content="https://votabrasil.app/">
+<meta property="og:image" content="https://votabrasil.app/og-image.png">
 <meta property="og:site_name" content="VotaBrasil">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
+<meta name="twitter:image" content="https://votabrasil.app/og-image.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -396,7 +396,7 @@ const CARGOS_F=['Presidente','Governador','Senador','Deputado Federal','Deputado
 async function carregaPol(){POL=[];
 try{const r=await fetch(API_BASE+'/api/candidatos');const j=await r.json();const arr=Array.isArray(j)?j:(j.dados||j.candidatos||[]);
 if(arr.length){arr.forEach(d=>{const numId=parseInt(String(d.id||d.num||'').replace(/\D/g,''),10)||0;POL.push({nome:d.nome||d.name||d.nomeCivil||'',partido:d.partido||d.party||d.siglaPartido||'',uf:d.uf||d.state||d.siglaUf||'',cargo:d.cargo||d.position||'Deputado Federal',foto:d.foto||d.urlFoto||d.photo||'',num:numId||d.id||0,real:1,rec:0,selo:!!(d.selo||d.verificado||d.verified)});});
-BACKEND_OK=true;$('#apiStatus').style.display='inline-block';}}catch(e){}
+BACKEND_OK=true;}}catch(e){}
 if(!POL.length){
 try{const r=await fetch('https://dadosabertos.camara.leg.br/api/v2/deputados?itens=513&ordem=ASC&ordenarPor=nome');const j=await r.json();(j.dados||[]).forEach(d=>POL.push({nome:d.nome,partido:d.siglaPartido||'',uf:d.siglaUf||'',cargo:'Deputado Federal',foto:d.urlFoto||'',num:d.id,real:1,rec:0,selo:false}));}catch(e){}
 try{const r=await fetch('https://legis.senado.leg.br/dadosabertos/senador/lista/legislatura/57?formato=json');const j=await r.json();const L=(j.lista&&j.lista.senador)||[];L.forEach(s=>{const p=s.IdentificacaoParlamentar||{};POL.push({nome:p.NomeParlamentar||'',partido:p.SiglaPartido||'',uf:p.Uf||'',cargo:'Senador',foto:p.UrlFotoParlamentar||'',num:p.CodigoParlamentar||'',real:1,rec:0,selo:false});});}catch(e){}}
@@ -798,6 +798,7 @@ const FAQ=[['O que é simulação?','A votação/revogação não tem valor jur�
 $('#faqList').innerHTML=FAQ.map(f=>`<div class="card"><b>${f[0]}</b><p class="muted" style="margin:6px 0 0">${f[1]}</p></div>`).join('');
 let NUF_FILTRO='GERAL';
 let _newsRetry=0;
+window._NEWS=window._NEWS||[];
 async function news(){
  /* 1) Snapshot embutido: renderiza na hora — o espaço nunca fica em branco */
  try{

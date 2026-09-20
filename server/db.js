@@ -1095,6 +1095,23 @@ function dumpAll() {
   return out;
 }
 
+/* ===== Acesso direto ao SQLite (para operações avançadas no server/index.js) ===== */
+function exec(sql) {
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    return db.exec(sql);
+  }
+  throw new Error('exec() só disponível no backend SQLite');
+}
+
+function prepare(sql) {
+  if (BACKEND === 'sqlite') {
+    openSqlite();
+    return db.prepare(sql);
+  }
+  throw new Error('prepare() só disponível no backend SQLite');
+}
+
 module.exports = {
   init, close, backend, file, clear, importAll,
   getBallot, upsertBallot, readAllBallots, countBallots, clearBallots, importAllBallots,
@@ -1108,5 +1125,6 @@ module.exports = {
   generateVoteCode, getVoteCodesForVoter, verifyVoteCode, markCodeUsed,
   getCargoVotesByCodigo, getCargoVotesByVoter, replaceVoterCargoVotes, deleteCargoVotesByCodigo,
   getRevokedStats, dumpAll,
+  exec, prepare,
   VOTOS_DB, VOTOS_FILE
 };

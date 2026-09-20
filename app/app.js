@@ -13,7 +13,7 @@ console.log('%c🟡 VotaBrasil v22', 'font-size:16px;font-weight:bold;color:#FFD
 console.log('Modo: ' + MB.MODO + ' | Backend: ' + (API_BASE || '(nenhum)'));
 
 /* ===== STATE ===== */
-const CARGOS_ORDEM = ['Presidente', 'Senador', 'Deputado Federal', 'Deputado Estadual', 'Governador'];
+const CARGOS_ORDEM = ['Presidente', 'Senador', 'Deputado Federal', 'Deputado Estadual', 'Deputado Distrital', 'Governador'];
 
 const CANDIDATOS = {
   'Presidente': [
@@ -35,6 +35,11 @@ const CANDIDATOS = {
     { nome: 'Joana Pinto', partido: 'REP', numero: 1010 },
     { nome: 'Kléber Dias', partido: 'PDT', numero: 1212 },
     { nome: 'Lia Campos', partido: 'PV', numero: 4343 }
+  ],
+  'Deputado Distrital': [
+    { nome: 'Marcelo Cruz', partido: 'PL', numero: 2222 },
+    { nome: 'Patrícia Lima', partido: 'PT', numero: 1313 },
+    { nome: 'Roberto Silva', partido: 'MDB', numero: 1515 }
   ],
   'Governador': [
     { nome: 'Marcos Teles', partido: 'PP', numero: 11 },
@@ -190,6 +195,9 @@ function finalizarVoto() {
   };
   votos.unshift(novo);
   saveVotos(votos);
+  // FIX: também salvar em mb_eleicao_codigo para compatibilidade com o site
+  localStorage.setItem('mb_eleicao_codigo', flowState.codigo);
+  localStorage.setItem('mb_eleicao_votos', JSON.stringify(flowState.cargos));
   atualizarStats();
   flowIr('flow-t4');
 }

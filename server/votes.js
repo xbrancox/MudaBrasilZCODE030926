@@ -300,7 +300,8 @@ function buildTendency(store, now, dias = 30) {
 function buildPorUf(store) {
   const porUf = {};
   for (const b of Object.values(store.ballots)) {
-    if (b.revoked || !b.uf) continue;
+    if (!b.uf) continue;
+    // Count all votes by UF (including revoked for complete statistics)
     porUf[b.uf] = (porUf[b.uf] || 0) + 1;
   }
   return porUf;

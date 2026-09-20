@@ -47,7 +47,7 @@ teste('auth.js expõe sessões', () => {
 
 teste('verificacao lista domínios permitidos', () => {
   const ver = require('../server/verificacao');
-  const dom = (typeof ver.getDominiosPermitidos === 'function') ? ver.getDominiosPermitidos() : null;
+  const dom = (typeof ver.getAuthorizedDomains === 'function') ? ver.getAuthorizedDomains() : null;
   if (dom) assert(Array.isArray(dom) && dom.length > 0);
 });
 

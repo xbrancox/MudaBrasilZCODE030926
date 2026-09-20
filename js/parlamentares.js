@@ -841,12 +841,13 @@
         : (rankings.mostSupports || []).slice(0, 5).filter(p => p.supports > 0).map(p => radarRow(p, '👍 ' + p.supports, 'mb-radar-badge-green')).join('');
       return;
     }
-    // Fallback: usa a própria lista de políticos
-    const all = state.allPoliticians;
-    const more = all.slice().sort(() => Math.random() - 0.5).slice(0, 5);
-    const less = all.slice().sort(() => Math.random() - 0.5).slice(0, 5);
-    moreEl.innerHTML = more.map(p => radarRow(p, '—', 'mb-radar-badge-red')).join('');
-    lessEl.innerHTML = less.map(p => radarRow(p, '✅', 'mb-radar-badge-green')).join('');
+    // Fallback: usa a própria lista de políticos de forma determinística
+    const all = state.allPoliticians || [];
+    const sorted = all.slice().sort((a, b) => (b.integrity || 0) - (a.integrity || 0));
+    const more = sorted.slice(-5);
+    const less = sorted.slice(0, 5);
+    moreEl.innerHTML = more.length ? more.map(p => radarRow(p, '—', 'mb-radar-badge-red')).join('') : '<p class="mb-muted-sm">Carregando políticos...</p>';
+    lessEl.innerHTML = less.length ? less.map(p => radarRow(p, '✅', 'mb-radar-badge-green')).join('') : '<p class="mb-muted-sm">Carregando políticos...</p>';
   }
 
   function timeAgo(ts) {
