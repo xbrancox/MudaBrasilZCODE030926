@@ -1,4 +1,4 @@
-/* MudaBrasil — tokens.css v5 · pele navy/gold (layout do fundador) */
+/* VotaBrasil — tokens.css v5 · pele navy/gold (layout do fundador) */
 :root{--accent:#FFD700;--accent-ink:#241a00;--gold:#FFD700;--coral:#E74C3C;--amber:#FFA500;--temp-cheio:#2ECC71;--temp-meio:#FFA500;--temp-frio:#5A6B7E;--azul:#012169;--verde:#2ECC71;--amarelo:#FFD700;--blue:#4a90f0;--roxo:#7b3ff2;--maxw:1240px;--tap:48px;--r:16px;--blur:12px;--font-t:'Montserrat',system-ui,sans-serif;--font-b:'Manrope',system-ui,sans-serif;--ease:cubic-bezier(.22,1,.36,1)}
 body{--bg:#061a3a;--card:rgba(10,46,93,.55);--surface2:#0A2E5D;--line:rgba(127,176,245,.18);--ink:#F8FAFC;--muted:#94A3B8;--shadow:0 10px 34px rgba(0,0,0,.4)}
 body[data-theme=light]{--bg:#F4F6FB;--card:rgba(255,255,255,.9);--surface2:#EDF1F8;--line:#D6DEE9;--ink:#0E1726;--muted:#5A6B7E;--shadow:0 10px 30px rgba(18,38,63,.10)}

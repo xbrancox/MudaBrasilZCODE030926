@@ -50,7 +50,7 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host "📌 Fazendo merge com o remoto..." -ForegroundColor Yellow
 
 # Abortar qualquer rebase em andamento
-$rebaseInProgress = Test-Path ".git\rebase-merge" -or Test-Path ".git\rebase-apply"
+$rebaseInProgress = (Test-Path ".git\rebase-merge") -or (Test-Path ".git\rebase-apply")
 if ($rebaseInProgress) {
     Write-Host "   ⚠ Rebase em andamento, abortando..." -ForegroundColor Yellow
     git rebase --abort

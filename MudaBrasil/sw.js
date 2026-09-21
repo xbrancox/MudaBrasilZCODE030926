@@ -1,4 +1,4 @@
-/* MudaBrasil — sw.js v3 · PWA offline
+/* VotaBrasil — sw.js v3 · PWA offline
    Estratégia: shell cache-first (app funciona offline, inclusive a cédula — localStorage não
    depende de rede) · APIs (notícias/PLs) network-first com fallback pro cache. */
 const VERSAO = 'mb-v3.0.0';

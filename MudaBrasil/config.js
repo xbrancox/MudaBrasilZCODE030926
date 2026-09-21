@@ -1,12 +1,12 @@
-/* MudaBrasil — config.js v3.1 · ÚNICO arquivo pra editar na hora de lançar */
+/* VotaBrasil — config.js v3.1 · ÚNICO arquivo pra editar na hora de lançar */
 const MB_CONFIG = {
   versao: 'v3.1',
   modo: 'beta',
-  nome: 'MudaBrasil',
+  nome: 'VotaBrasil',
   razaoSocial: '[RAZAO SOCIAL]',
   cnpj: '[CNPJ]',
   endereco: '[ENDERECO]',
-  dominio: 'mudabrasil.netlify.app',
+  dominio: 'VotaBrasil.netlify.app',
   emails: { contato:'[contato@dominio]', dpo:'[dpo@dominio]', denuncia:'[denuncia@dominio]', anuncie:'[anuncie@dominio]' },
   pix: '[CHAVE PIX]',
   redes: { instagram:'', x:'', youtube:'', tiktok:'' },

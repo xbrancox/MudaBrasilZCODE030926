@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>MudaBrasil · App</title>
+<title>VotaBrasil · App</title>
 <link rel="manifest" href="../manifest.webmanifest"/><link rel="icon" href="../icon.svg" type="image/svg+xml"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -67,7 +67,7 @@ input,select{background:var(--card2);color:var(--ink);border:1px solid var(--lin
 <div class="contagem" id="contagem"><div class="n" id="cn">10</div><div id="cnomes" style="color:#94A3B8;max-width:320px"></div><div class="micro" style="color:#94A3B8">Registrando sua cédula…</div><div class="pular">Toque para concluir</div></div>
 <div class="overlay" id="mDoss"><div class="modal"><div id="dossBody"></div><button class="btn block" style="margin-top:12px" onclick="fechar('mDoss')">Fechar</button></div></div>
 <div class="screen" id="scrInstr">
-<div class="top"><div class="logo">MudaBrasil</div></div>
+<div class="top"><div class="logo">VotaBrasil</div></div>
 <h2 style="margin-bottom:12px">Como funciona o seu voto</h2>
 <div class="card passo"><div class="num">CAP·01</div><h3>Vote</h3><p class="micro" style="font-size:13px">Escolha por cargo (ou branco/nulo). No fim, <b>1 código</b> pra cédula inteira (R4).</p></div>
 <div class="card passo"><div class="num">CAP·02</div><h3>Guarde o código</h3><p class="micro" style="font-size:13px">É seu comprovante. Com ele + login, você confere e revoga no <b>site</b> (R1).</p></div>
@@ -76,7 +76,7 @@ input,select{background:var(--card2);color:var(--ink);border:1px solid var(--lin
 <button class="btn gold block" onclick="ir('scrLocal')">Continuar</button>
 </div>
 <div class="screen" id="scrLocal">
-<div class="top"><div class="logo">MudaBrasil</div></div>
+<div class="top"><div class="logo">VotaBrasil</div></div>
 <h2 style="margin-bottom:12px">Onde você vota?</h2>
 <div class="card">
 <div class="field"><label>Estado (UF)</label><select id="uf"></select></div>
@@ -86,7 +86,7 @@ input,select{background:var(--card2);color:var(--ink);border:1px solid var(--lin
 </div>
 </div>
 <div class="screen" id="scrLogin">
-<div class="top"><div class="logo">MudaBrasil</div></div>
+<div class="top"><div class="logo">VotaBrasil</div></div>
 <h2 style="margin-bottom:8px">Entrar</h2>
 <p class="micro" style="font-size:13px">Segurança como o Pix: identidade verificada + biometria (simulado agora).</p>
 <button class="btn block" style="margin-bottom:10px" onclick="login()"><i class="fab fa-google"></i> Entrar com Google</button>
@@ -94,7 +94,7 @@ input,select{background:var(--card2);color:var(--ink);border:1px solid var(--lin
 <button class="btn gold block" onclick="login()">Enviar código SMS</button>
 </div>
 <div class="screen" id="scrHome">
-<div class="top"><div class="logo">MudaBrasil</div><span class="badge" id="locBadge"></span></div>
+<div class="top"><div class="logo">VotaBrasil</div><span class="badge" id="locBadge"></span></div>
 <div class="card" style="border-left:4px solid var(--gold)"><b>Seu voto coloca, seu voto tira.</b><p class="micro" style="margin:6px 0 0;font-size:13px">Vote agora e, <b>após a posse</b>, revogue se o eleito não corresponder.</p></div>
 <button class="btn gold block" style="min-height:54px;font-size:16px" onclick="comecarVoto()"><i class="fa-solid fa-check-to-slot"></i> Votar</button>
 <div style="height:10px"></div>
@@ -107,7 +107,7 @@ input,select{background:var(--card2);color:var(--ink);border:1px solid var(--lin
 <div id="votoArea"></div>
 </div>
 <div class="screen" id="scrPol">
-<div class="top"><div class="logo">MudaBrasil</div></div>
+<div class="top"><div class="logo">VotaBrasil</div></div>
 <h3 style="margin:0 0 6px">Políticos — todos os cargos</h3>
 <p class="micro">Busca por nome, número, partido e região. <span style="color:var(--blue)">■</span> Real · <span style="color:var(--gold)">■</span> Demo. Medir, não linchar.</p>
 <div class="field" style="margin-top:10px"><select id="fCargo" onchange="renderPol()"></select></div>

@@ -1,4 +1,4 @@
-/* MudaBrasil — core.js v4.1 · SALVE COMO UTF-8 (NUNCA "Unicode") */
+/* VotaBrasil — core.js v4.1 · SALVE COMO UTF-8 (NUNCA "Unicode") */
 'use strict';
 const $=(s,c=document)=>c.querySelector(s), $$=(s,c=document)=>[...c.querySelectorAll(s)];
 const LS={get:(k,d=null)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del:k=>localStorage.removeItem(k)};
@@ -28,7 +28,7 @@ function validCode(code){const c=String(code||'').replace(/\D/g,'');if(c.length!
 function pesoVoto(ts){const cfg=(window.MB_CONFIG&&MB_CONFIG.decadencia)||{cheioDias:90,pisoDias:180,piso:.5};const dias=(Date.now()-ts)/diaMs;if(dias<=cfg.cheioDias)return 1;if(dias>=cfg.pisoDias)return cfg.piso;return 1-(1-cfg.piso)*(dias-cfg.cheioDias)/(cfg.pisoDias-cfg.cheioDias)}
 function tempDoVoto(peso){if(peso>=0.9)return getComputedStyle(document.documentElement).getPropertyValue('--temp-cheio');if(peso>=0.7)return getComputedStyle(document.documentElement).getPropertyValue('--temp-meio');return getComputedStyle(document.documentElement).getPropertyValue('--temp-frio')}
 function renderTempo(peso){const pct=Math.round(peso*100);return `<span class="tempo" title="Peso do voto: ${pct}% — o voto nunca morre, só esfria"><i class="fa-solid fa-temperature-half"></i><span class="bar"><i style="width:${pct}%;background:${tempDoVoto(peso)}"></i></span>${pct}%</span>`}
-function exigirMsg(politico,eleitor){return `Exijo que você apresente/apoie um PL que regulamente o voto contínuo e revogável, com identidade verificada (Gov.br), anonimato à prova de coerção e auditoria pública — a mesma segurança do Pix. — ${eleitor||'Eleitor(a)'}${politico?`, dirigido a ${politico}`:''} · via MudaBrasil`}
+function exigirMsg(politico,eleitor){return `Exijo que você apresente/apoie um PL que regulamente o voto contínuo e revogável, com identidade verificada (Gov.br), anonimato à prova de coerção e auditoria pública — a mesma segurança do Pix. — ${eleitor||'Eleitor(a)'}${politico?`, dirigido a ${politico}`:''} · via VotaBrasil`}
 function bindGlossario(root=document){let g=(window.MB_CONFIG&&MB_CONFIG.glossario)||{};if(Array.isArray(g)){const m={};g.forEach(x=>{if(x&&x.termo)m[x.termo]=x.aula||x.def||x.termo});g=m}
 const termos=Object.keys(g);if(!termos.length)return;
 $$('[data-gloss]',root).forEach(el=>{let html=el.innerHTML;termos.forEach(t=>{const rx=new RegExp(`\\b(${t})\\b`,'i');if(rx.test(html))html=html.replace(rx,`<span class="tip" tabindex="0" data-tip="${esc(g[t])}">$1</span>`)});el.innerHTML=html})}

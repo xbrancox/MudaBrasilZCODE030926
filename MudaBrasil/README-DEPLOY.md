@@ -1,9 +1,9 @@
-# MudaBrasil v3 — Guia de deploy e changelog
+# VotaBrasil v3 — Guia de deploy e changelog
 
 ## Como publicar (Netlify Drop — 5 minutos)
 1. Acesse **app.netlify.com/drop**
 2. Arraste a **pasta inteira** (este diretório com todos os arquivos)
-3. Pronto: `mudabrasil-XXXX.netlify.app` (depois aponte o domínio próprio `mudabrasil.com.br` em Domain settings)
+3. Pronto: `VotaBrasil-XXXX.netlify.app` (depois aponte o domínio próprio `VotaBrasil.com.br` em Domain settings)
 
 **Checklist antes do 1º real de anunciante:** ver [[01 Leis]] — checklist legal completo (ME, contador, INPI, DPO, advogado).
 

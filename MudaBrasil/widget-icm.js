@@ -1,6 +1,6 @@
-/* MudaBrasil — widget-icm.js · Widget embeddável do ICM para portais e imprensa (B2)
+/* VotaBrasil — widget-icm.js · Widget embeddável do ICM para portais e imprensa (B2)
    Uso:  <div data-mb-icm="maria"></div>
-         <script src="https://mudabrasil.com.br/widget-icm.js"></script>
+         <script src="https://VotaBrasil.com.br/widget-icm.js"></script>
    Sem dependências. Renderiza card com saldo ICM + crédito + link. */
 (function () {
   'use strict';
@@ -17,7 +17,7 @@
       '<span style="display:block;font-weight:800;font-size:14px">' + p.nome + '</span>' +
       '<span style="display:block;font-size:11.5px;color:#93A4B8">' + p.cargo + ' · ICM ' + p.icm + '/100 · ±' +
       (1 / Math.sqrt(p.n || 1)).toFixed(1) + '</span>' +
-      '<span style="display:block;font-size:10.5px;color:#00E5C9;margin-top:3px">fonte: MudaBrasil · mudabrasil.com.br</span>' +
+      '<span style="display:block;font-size:10.5px;color:#00E5C9;margin-top:3px">fonte: VotaBrasil · VotaBrasil.com.br</span>' +
       '</span></a>';
   }
   function montar() {
@@ -29,12 +29,12 @@
         Array.prototype.forEach.call(alvos, function (el) {
           var p = (j.politicos || []).filter(function (x) { return x.id === el.getAttribute('data-mb-icm'); })[0];
           if (p) { el.innerHTML = card(p); var l = el.querySelector('a'); if (l) l.href = BASE + 'index.html#radar'; }
-          else el.innerHTML = '<a href="' + BASE + '" style="font:600 12px Manrope,sans-serif;color:#93A4B8">ICM não encontrado · mudabrasil.com.br</a>';
+          else el.innerHTML = '<a href="' + BASE + '" style="font:600 12px Manrope,sans-serif;color:#93A4B8">ICM não encontrado · VotaBrasil.com.br</a>';
         });
       })
       .catch(function () {
         Array.prototype.forEach.call(alvos, function (el) {
-          el.innerHTML = '<span style="font:600 12px Manrope,sans-serif;color:#93A4B8">MudaBrasil ICM indisponível agora</span>';
+          el.innerHTML = '<span style="font:600 12px Manrope,sans-serif;color:#93A4B8">VotaBrasil ICM indisponível agora</span>';
         });
       });
   }

@@ -1,11 +1,11 @@
 {
-  "produto": "ICM — Índice de Confiança MudaBrasil",
+  "produto": "ICM — Índice de Confiança VotaBrasil",
   "versao": "v1.0",
   "vigenteDesde": "14/08/2026",
   "atualizadoEm": "2026-08-16",
   "formula": "ICM = 0.40*resposta + 0.35*cumprimento + 0.25*(1 - votosRevogaveis)",
   "margem": "±1/sqrt(N), confiança 95%",
-  "licenca": "Uso livre com crédito MudaBrasil e link para mudabrasil.com.br",
+  "licenca": "Uso livre com crédito VotaBrasil e link para VotaBrasil.com.br",
   "politicos": [
     {
       "id": "maria",

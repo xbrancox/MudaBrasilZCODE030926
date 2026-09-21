@@ -1,6 +1,6 @@
 {
-  "name": "MudaBrasil — Seu voto coloca, seu voto tira.",
-  "short_name": "MudaBrasil",
+  "name": "VotaBrasil — Seu voto coloca, seu voto tira.",
+  "short_name": "VotaBrasil",
   "description": "Plataforma cívica de voto contínuo e revogável.",
   "start_url": "./app/index.html",
   "display": "standalone",
