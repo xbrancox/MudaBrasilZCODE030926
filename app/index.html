@@ -525,16 +525,16 @@ const setRascunho=r=>localStorage.setItem(LS.rascunho,JSON.stringify(r));
 const getUF=cargo=>localStorage.getItem(LS.uf+':'+cargo)||'';
 const setUF=(cargo,uf)=>localStorage.setItem(LS.uf+':'+cargo,uf);
 const fotoUrl=item=>{
-  if(!item)return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60';
+  if(!item)return 'https://ui-avatars.com/api/?name=Candidato&background=0F172A&color=FFD700&bold=true&size=128';
+  let nome='Candidato';
   if(typeof item==='object'){
     if(item.foto)return item.foto;
     if(item.urlFoto)return item.urlFoto;
-    if(item.sq&&item.uf)return 'https://divulgacandcontas.tse.jus.br/divulga/rest/v1/candidatura/foto/'+item.uf+'/'+item.sq;
-    if(item.sq)return 'https://cdn.jsdelivr.net/gh/embededigital/cnd-eleicoes-2026@main/fotos/'+item.sq+'.jpg';
-  } else if(item) {
-    return 'https://cdn.jsdelivr.net/gh/embededigital/cnd-eleicoes-2026@main/fotos/'+item+'.jpg';
+    nome=item.nomeUrna||item.nome||'Candidato';
+  } else if(typeof item==='string' && item.length>0){
+    nome=item;
   }
-  return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60';
+  return 'https://ui-avatars.com/api/?name='+encodeURIComponent(nome)+'&background=0F172A&color=FFD700&bold=true&size=128';
 };
 const fmtCod=c=>String(c).replace(/(\d{4})(?=\d)/g,'$1 ').trim();
 async function fetchJson(u,o){const r=await fetch(API+u,o);let j={};try{j=await r.json()}catch(_){}if(!r.ok)throw Object.assign(new Error((j&&(j.error||j.message))||('HTTP '+r.status)),{status:r.status});return j}
@@ -644,7 +644,7 @@ function renderCandList(){
   document.getElementById('cand-list').innerHTML=sheetLista.map(c=>{
     const isSel=sel&&String(sel.sq)===String(c.sq);
     const f=fotoUrl(c);
-    return '<button class="co'+(isSel?' sel':'')+'" onclick="escolher('+c.sq+')"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'<span>'+esc((c.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(c.nomeUrna)+'</h4><p>'+esc(c.partido)+(c.coligacao?' · '+esc(c.coligacao):'')+'</p></div><span class="nm">'+esc(c.numero)+'</span></button>';
+    return '<button class="co'+(isSel?' sel':'')+'" onclick="escolher(\''+esc(c.sq)+'\')"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'<span>'+esc((c.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(c.nomeUrna)+'</h4><p>'+esc(c.partido)+(c.coligacao?' · '+esc(c.coligacao):'')+'</p></div><span class="nm">'+esc(c.numero)+'</span></button>';
   }).join('')||'<p class="sh-info">Nenhum candidato encontrado com esse filtro.</p>';
 }
 function escolher(sq){

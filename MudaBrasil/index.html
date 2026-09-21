@@ -410,5 +410,7 @@ async function news(){try{const r=await fetch('https://api.rss2json.com/v1/api.j
 $('#homeNews').innerHTML=it.map(n=>`<div class="ncard"><div class="th"><span class="cat">${(n.category||'Política').toString().slice(0,14)}</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>${n.title}</h4><p>${(n.description||'').replace(/<[^>]+>/g,'').slice(0,140)}</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a href="${n.link}" target="_blank">Ler →</a></div></div></div>`).join('')}catch(e){$('#homeNews').innerHTML='<div class="ncard"><div class="th"><span class="cat">Política</span><i class="fa-solid fa-layer-group"></i></div><div class="bd"><h4>Brasil promete restaurar 163 mil km² de terras degradadas até 2030</h4><p>O Brasil apresentou as primeiras metas de Neutralidade da Degradação da Terra em evento internacional.</p><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)"><span class="seal">Fonte verificada</span><span>Agência Brasil</span><a>Ler →</a></div></div></div>'}}
 initDonuts();carregaPol();carregaPLS();news();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="pdf-cassacao.js" defer></script>
 </body>
 </html>
