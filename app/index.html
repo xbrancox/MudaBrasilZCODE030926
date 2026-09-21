@@ -525,30 +525,12 @@ const setRascunho=r=>localStorage.setItem(LS.rascunho,JSON.stringify(r));
 const getUF=cargo=>localStorage.getItem(LS.uf+':'+cargo)||'';
 const setUF=(cargo,uf)=>localStorage.setItem(LS.uf+':'+cargo,uf);
 const fotoUrl=item=>{
-  const portraits = [
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'
-  ];
-  if(!item)return portraits[0];
-  let seed = 0;
+  if(!item)return '';
   if(typeof item==='object'){
     if(item.foto)return item.foto;
     if(item.urlFoto)return item.urlFoto;
-    const str = String(item.sq || item.numero || item.nomeUrna || '0');
-    for(let i=0; i<str.length; i++) seed += str.charCodeAt(i);
-  } else if(typeof item==='string' && item.length>0){
-    const str = String(item);
-    for(let i=0; i<str.length; i++) seed += str.charCodeAt(i);
   }
-  return portraits[seed % portraits.length];
+  return '';
 };
 const fmtCod=c=>String(c).replace(/(\d{4})(?=\d)/g,'$1 ').trim();
 async function fetchJson(u,o){const r=await fetch(API+u,o);let j={};try{j=await r.json()}catch(_){}if(!r.ok)throw Object.assign(new Error((j&&(j.error||j.message))||('HTTP '+r.status)),{status:r.status});return j}
@@ -616,40 +598,29 @@ function abrirSheet(cargo){
 function fecharSheet(){document.getElementById('cand-sheet').classList.remove('on')}
 async function carregarCandidatos(){
   const num=sheetCargo===labDep()?numDep():(CARGOS.find(c=>c[0]===sheetCargo)||[,0])[1];
-  const uf=sheetCargo===labDep()?ufDep():getUF(sheetCargo);
+  const uf=sheetCargo==='Presidente'?'BR':(sheetCargo===labDep()?ufDep():(getUF(sheetCargo)||'SP'));
   const busca=document.getElementById('cand-busca').value.trim();
   const st=document.getElementById('cand-status');
-  st.textContent='Buscando candidatos…';
+  st.textContent='Buscando candidatos reais do TSE…';
   document.getElementById('cand-list').innerHTML='';
   try{
-    let u='/api/candidatos-tse?cargo='+num+'&porPagina=100';
-    if(uf)u+='&uf='+encodeURIComponent(uf);
+    let u='/api/candidatos-tse?cargo='+num+'&porPagina=500';
+    if(uf && uf!=='BR')u+='&uf='+encodeURIComponent(uf);
     if(busca)u+='&busca='+encodeURIComponent(busca);
-    const j=await fetchJson(u);
+    let j=await fetchJson(u);
     sheetLista=(j.candidatos||[]).filter(c=>c.sq);
-    if(!sheetLista.length) throw new Error('Servidor retornou lista vazia');
-    st.textContent=sheetLista.length+' candidatos'+(uf?' em '+uf:'')+'. Toque para escolher.';
+    if(!sheetLista.length && uf && uf!=='BR'){
+      const u2='/api/candidatos-tse?cargo='+num+'&porPagina=500'+(busca?'&busca='+encodeURIComponent(busca):'');
+      j=await fetchJson(u2);
+      sheetLista=(j.candidatos||[]).filter(c=>c.sq);
+    }
+    if(!sheetLista.length) throw new Error('Nenhum candidato retornado pelo servidor');
+    st.textContent=sheetLista.length+' candidatos oficiais'+(uf&&uf!=='BR'?' em '+uf:'')+'. Toque para escolher.';
     renderCandList();
   }catch(e){
-    console.warn('[VotaBrasil] Usando amostra local de candidatos:', e);
-    const sampleNames=[
-      {nome:'Ana Souza',partido:'PARTIDO A',num:'15'},
-      {nome:'Carlos Silva',partido:'PARTIDO B',num:'22'},
-      {nome:'Mariana Oliveira',partido:'PARTIDO C',num:'13'},
-      {nome:'Roberto Santos',partido:'PARTIDO D',num:'45'},
-      {nome:'Fernanda Lima',partido:'PARTIDO E',num:'30'}
-    ];
-    sheetLista=sampleNames.map((s,idx)=>({
-      sq:'demo_'+num+'_'+idx,
-      nomeUrna:s.nome,
-      partido:s.partido,
-      numero:s.num+(idx+1),
-      uf:uf||'BR',
-      coligacao:'Coligação Renovação',
-      foto:''
-    })).filter(c=>!busca||c.nomeUrna.toLowerCase().includes(busca.toLowerCase())||c.numero.includes(busca));
-    st.textContent=sheetLista.length+' candidatos disponíveis. Toque para escolher.';
-    renderCandList();
+    console.warn('[VotaBrasil] Erro ao carregar candidatos:', e);
+    st.textContent='⚠️ Erro ao carregar candidatos: '+e.message;
+    document.getElementById('cand-list').innerHTML='<p class="sh-info" style="color:var(--gold);padding:20px;text-align:center">Não foi possível carregar a lista de candidatos reais do TSE. Verifique se o servidor está rodando.</p>';
   }
 }
 function renderCandSheet(){clearTimeout(sheetTimer);sheetTimer=setTimeout(carregarCandidatos,350)}

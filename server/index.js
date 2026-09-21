@@ -460,7 +460,7 @@ async function handleApi(req, res, url) {
       }
       /* Paginação (aceita pagina/porPagina e os aliases page/pageSize do front) */
       const pagina = Math.max(1, parseInt(q.pagina || q.page || '1', 10));
-      const porPagina = Math.min(100, Math.max(10, parseInt(q.porPagina || q.pageSize || '50', 10)));
+      const porPagina = Math.min(2000, Math.max(10, parseInt(q.porPagina || q.pageSize || '100', 10)));
       const total = lista.length;
       const totalPaginas = Math.ceil(total / porPagina);
       const inicio = (pagina - 1) * porPagina;
