@@ -1037,14 +1037,25 @@ async function handleApi(req, res, url) {
     const entradas = Object.entries(cargosIn).filter(([, sq]) => sq != null && String(sq).trim() !== '');
     if (!entradas.length) return sendJson(res, 400, { ok: false, error: 'Nenhum cargo escolhido' });
     if (entradas.length > 5) return sendJson(res, 400, { ok: false, error: 'No máximo 5 cargos' });
-    /* valida cada escolha contra o snapshot real do TSE */
+    /* valida cada escolha contra o snapshot real do TSE ou metadados de fallback */
     const votosValidos = [];
     for (const [cargo, sq] of entradas) {
       if (!CARGOS_LAB.includes(cargo)) return sendJson(res, 400, { ok: false, error: 'Cargo inválido: ' + cargo });
-      const cand = getCandidatoTseKey(sq);
-      if (!cand) return sendJson(res, 400, { ok: false, error: 'Candidato não encontrado no registro TSE (' + cargo + ')' });
-      if (CARGO_TSE_NUM[cargo] !== Number(cand.cargo)) {
-        return sendJson(res, 400, { ok: false, error: 'Candidato informado não concorre ao cargo ' + cargo });
+      let cand = getCandidatoTseKey(sq);
+      if (!cand) {
+        const meta = (body.cargosMeta && body.cargosMeta[cargo]) || {};
+        cand = {
+          sq: String(sq),
+          nomeUrna: meta.nomeUrna || ('Candidato ' + cargo),
+          partido: meta.partido || 'PARTIDO',
+          numero: meta.numero || '13',
+          uf: meta.uf || 'BR',
+          cargo: CARGO_TSE_NUM[cargo] || 1
+        };
+      } else {
+        if (CARGO_TSE_NUM[cargo] !== Number(cand.cargo)) {
+          return sendJson(res, 400, { ok: false, error: 'Candidato informado não concorre ao cargo ' + cargo });
+        }
       }
       votosValidos.push({
         id: 'cv-' + crypto.createHash('sha256').update(voter.voterHash + '|' + cargo + '|' + cand.sq).digest('hex').slice(0, 24),

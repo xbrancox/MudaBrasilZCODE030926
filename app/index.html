@@ -702,14 +702,26 @@ function abrirExplicacao(){
 /* --- finalizar: POST cargo-lote com UM código unificado (com fallback offline automático) --- */
 async function finalizarVoto(btn){
   const r=getRascunho();
-  const cargos={};for(const [lab] of CARGOS){const k=lab===DEP_LAB?labDep():lab;if(r[k])cargos[k]=r[k].sq||r[k].numero}
+  const cargos={}; const cargosMeta={};
+  for(const [lab] of CARGOS){
+    const k=lab===DEP_LAB?labDep():lab;
+    if(r[k]){
+      cargos[k]=r[k].sq||r[k].numero;
+      cargosMeta[k]={
+        nomeUrna:r[k].nomeUrna,
+        partido:r[k].partido,
+        numero:r[k].numero,
+        uf:r[k].uf||'BR'
+      };
+    }
+  }
   if(!Object.keys(cargos).length){showToast('⚠️ Escolha ao menos um candidato.');flowGo('f1');return}
   if(btn){btn.disabled=true;btn.textContent='Registrando seu voto…';}
   let codigoFinal='';
   let gravadosCount=Object.keys(cargos).length;
   try{
     const tok=await garantirSessao();
-    const j=await fetchJson('/api/voto/cargo-lote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionToken:tok,cargos})});
+    const j=await fetchJson('/api/voto/cargo-lote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionToken:tok,cargos,cargosMeta})});
     codigoFinal=j.codigo;
     gravadosCount=j.gravados||gravadosCount;
   }catch(e){
