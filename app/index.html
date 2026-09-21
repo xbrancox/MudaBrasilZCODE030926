@@ -194,7 +194,7 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
 .sh-hd h3{font-size:.98rem;font-weight:800;color:var(--gold)}
 .sh-x{background:rgba(255,255,255,.06);border:none;color:var(--g);width:30px;height:30px;border-radius:50%;font-size:.9rem;cursor:pointer}
 .sh-info{font-size:.7rem;color:var(--g);margin-bottom:10px;line-height:1.4}
-.sh-list{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+.sh-list{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:200px;max-height:65vh;padding-right:4px}
 .co{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:10px 11px;margin-bottom:8px;cursor:pointer;color:#fff;text-align:left;width:100%}
 .co.sel{border-color:var(--gold);background:rgba(255,215,0,.07)}
 .nm{font-size:.72rem;font-weight:800;color:var(--gold);min-width:44px;text-align:center;background:rgba(255,215,0,.1);border-radius:7px;padding:5px 0}
@@ -525,16 +525,30 @@ const setRascunho=r=>localStorage.setItem(LS.rascunho,JSON.stringify(r));
 const getUF=cargo=>localStorage.getItem(LS.uf+':'+cargo)||'';
 const setUF=(cargo,uf)=>localStorage.setItem(LS.uf+':'+cargo,uf);
 const fotoUrl=item=>{
-  if(!item)return 'https://ui-avatars.com/api/?name=Candidato&background=0F172A&color=FFD700&bold=true&size=128';
-  let nome='Candidato';
+  const portraits = [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'
+  ];
+  if(!item)return portraits[0];
+  let seed = 0;
   if(typeof item==='object'){
     if(item.foto)return item.foto;
     if(item.urlFoto)return item.urlFoto;
-    nome=item.nomeUrna||item.nome||'Candidato';
+    const str = String(item.sq || item.numero || item.nomeUrna || '0');
+    for(let i=0; i<str.length; i++) seed += str.charCodeAt(i);
   } else if(typeof item==='string' && item.length>0){
-    nome=item;
+    const str = String(item);
+    for(let i=0; i<str.length; i++) seed += str.charCodeAt(i);
   }
-  return 'https://ui-avatars.com/api/?name='+encodeURIComponent(nome)+'&background=0F172A&color=FFD700&bold=true&size=128';
+  return portraits[seed % portraits.length];
 };
 const fmtCod=c=>String(c).replace(/(\d{4})(?=\d)/g,'$1 ').trim();
 async function fetchJson(u,o){const r=await fetch(API+u,o);let j={};try{j=await r.json()}catch(_){}if(!r.ok)throw Object.assign(new Error((j&&(j.error||j.message))||('HTTP '+r.status)),{status:r.status});return j}
