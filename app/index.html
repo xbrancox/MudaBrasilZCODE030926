@@ -173,8 +173,9 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
     .cb-ok{color:var(--ok);font-size:.7rem;font-weight:800}
     .escolhido{display:flex;align-items:center;gap:10px;width:100%;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:10px;padding:9px 10px;cursor:pointer;color:#fff;text-align:left}
 .escolhido.vazio{background:transparent;border-style:dashed;border-color:rgba(148,163,184,.35);color:var(--g);justify-content:center;font-size:.8rem;font-weight:600;padding:13px}
-.av{width:36px;height:36px;min-width:36px;border-radius:50%;overflow:hidden;background:var(--ggrad);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem}
-.av img{width:100%;height:100%;object-fit:cover}
+.av{position:relative;width:36px;height:36px;min-width:36px;border-radius:50%;overflow:hidden;background:var(--ggrad);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+.av span{z-index:1}
 .ei{flex:1;min-width:0}
 .ei h4{font-size:.84rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ei p{font-size:.68rem;color:var(--g)}
@@ -366,7 +367,7 @@ header{position:sticky;top:0;background:rgba(10,22,40,0.96);backdrop-filter:blur
     <div class="sh-hd"><h3 id="cand-cargo">Cargo</h3><button class="sh-x" onclick="fecharSheet()">✕</button></div>
     <div class="sb"><svg width="17" height="17" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input type="text" placeholder="Buscar nome, partido ou número..." id="cand-busca" oninput="renderCandSheet()"></div>
     <p class="sh-info" id="cand-status">Carregando candidatos reais do TSE…</p>
-    <div id="cand-list"></div>
+    <div id="cand-list" class="sh-list"></div>
   </div>
 </div>
 
@@ -577,7 +578,7 @@ function renderCedula(){
     const dots=CARGOS.map(([l2])=>'<div class="dotd'+(r[l2===DEP_LAB?labDep():l2]?' a':'')+'"></div>').join('');
     const f=fotoUrl(e);
     const corpo=e
-      ?'<button class="escolhido" onclick="abrirSheet(\''+lab+'\')" aria-label="Trocar '+esc(lab)+'"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60\'">':'')+'<span>'+esc((e.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(e.nomeUrna)+'</h4><p>'+esc(e.partido)+' · '+esc(e.uf)+' · nº '+esc(e.numero)+'</p></div><span class="cb-ok">✓</span></button>'
+      ?'<button class="escolhido" onclick="abrirSheet(\''+lab+'\')" aria-label="Trocar '+esc(lab)+'"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'<span>'+esc((e.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(e.nomeUrna)+'</h4><p>'+esc(e.partido)+' · '+esc(e.uf)+' · nº '+esc(e.numero)+'</p></div><span class="cb-ok">✓</span></button>'
       :'<button class="escolhido vazio" onclick="abrirSheet(\''+lab+'\')">Escolher candidato →</button>';
     return '<div class="cargo-card"><div class="ch-in"><span class="ch-t">'+esc(lab)+'</span><div class="dots">'+dots+'</div></div>'+corpo+'</div>';
   }).join('');
@@ -643,7 +644,7 @@ function renderCandList(){
   document.getElementById('cand-list').innerHTML=sheetLista.map(c=>{
     const isSel=sel&&String(sel.sq)===String(c.sq);
     const f=fotoUrl(c);
-    return '<button class="co'+(isSel?' sel':'')+'" onclick="escolher('+c.sq+')"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60\'">':'')+'<span>'+esc((c.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(c.nomeUrna)+'</h4><p>'+esc(c.partido)+(c.coligacao?' · '+esc(c.coligacao):'')+'</p></div><span class="nm">'+esc(c.numero)+'</span></button>';
+    return '<button class="co'+(isSel?' sel':'')+'" onclick="escolher('+c.sq+')"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'<span>'+esc((c.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(c.nomeUrna)+'</h4><p>'+esc(c.partido)+(c.coligacao?' · '+esc(c.coligacao):'')+'</p></div><span class="nm">'+esc(c.numero)+'</span></button>';
   }).join('')||'<p class="sh-info">Nenhum candidato encontrado com esse filtro.</p>';
 }
 function escolher(sq){
