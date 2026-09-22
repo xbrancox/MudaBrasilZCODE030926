@@ -1,15 +1,21 @@
-const CACHE = 'votabrasil-v33';
+const CACHE = 'votabrasil-v34';
 const ASSETS = [
   './',
   './index.html',
-  './config.local.js',
+  '../config.local.js',
   './manifest.webmanifest',
   './icon.svg',
   './logo.svg'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then(c => {
+      return Promise.allSettled(
+        ASSETS.map(url => c.add(url).catch(err => console.warn('[SW] Falha ao cachear asset opcional:', url, err)))
+      );
+    })
+  );
   self.skipWaiting();
 });
 
