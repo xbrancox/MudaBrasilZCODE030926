@@ -372,12 +372,12 @@ function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';se
 (function(){const qv=new URLSearchParams(location.search);if(qv.has('verificado')){if(qv.get('verificado')==='1')toast('✅ E-mail confirmado! Selo de verificado ativado.');else toast('Falha na confirmação: '+(qv.get('erro')||'token inválido'));history.replaceState({},'',location.pathname)}})();
 /* FIX: âncoras vindas de outras páginas/app (#conferir-voto etc.) — antes caíam no topo da home sem abrir a seção */
 (function(){const h=location.hash.replace('#','');if(!h)return;
-const M={'conferir-voto':'conferir','revogar-voto':'revogar','revogados':'revogados','ajuda':'ajuda','quem-somos':'quem','radar':'radar'};
-if(h==='congresso'){location.replace('pages/congresso.html');return}
+const M={'conferir-voto':'conferir','revogar-voto':'revogar','revogados':'revogados','ajuda':'ajuda','quem-somos':'quem'};
+if(h==='congresso'||h==='radar'){location.replace('pages/parlamentares.html');return}
 if(M[h]){go(M[h]);history.replaceState({},'',location.pathname)}})();
 function fechar(id){document.getElementById(id).classList.remove('open')}
 function toggleMenu(){document.getElementById('mnav').classList.toggle('open')}
-function go(p){$$('.sec').forEach(s=>s.classList.remove('on'));$('#sec-'+p).classList.add('on');$$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===p));window.scrollTo(0,0);if(p=='radar')renderRad()}
+function go(p){if(p==='radar'){window.location.href='pages/parlamentares.html';return}$$('.sec').forEach(s=>s.classList.remove('on'));$('#sec-'+p).classList.add('on');$$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===p));window.scrollTo(0,0)}
 $$('#nav a').forEach(a=>a.onclick=()=>go(a.dataset.p));
 /* Deep-link: #conferir-voto, #radar, #revogados etc. abrem a seção direto
    (usado pelos menus das páginas internas: congresso, votações…) */
