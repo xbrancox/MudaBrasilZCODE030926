@@ -253,29 +253,6 @@ footer{background:#08142e;border-top:1px solid var(--line);padding:44px 0 20px;m
 <div class="cta" style="margin-top:8px;justify-content:center"><input id="eml" placeholder="seu@email.com" style="max-width:260px"/><button class="btn gold" onclick="toast('E-mail cadastrado! (fase final)')">OK</button></div>
 <div class="cta" style="margin-top:8px"><button class="btn gold" onclick="go('radar')">Começar Agora</button><button class="btn" onclick="go('quem')">Conhecer Mais</button></div></div>
 </div></section>
-<section class="sec" id="sec-radar"><div class="wrap">
-<span class="kick">RADAR POLÍTICO</span><h2 style="margin:8px 0 6px">Cobre, acompanhe, elogie</h2>
-<p class="muted">Pesquise e a <b>ficha completa abre direto na página</b> com dados reais · 📌 fixe pra comparar · <b>"Dados públicos completos"</b> abre 15 informações. Só político <b>verificado</b> responde.</p>
-<div class="filtros">
-<input id="cbusca" placeholder="🔎 Buscar por nome, número, estado, partido, área…" oninput="renderRad()"/>
-<select id="fUF" onchange="renderRad()"></select>
-<select id="fPartido" onchange="renderRad()"></select>
-<select id="fCargo" onchange="renderRad()"></select>
-</div>
-<div class="filtros" style="grid-template-columns:1fr 1fr;margin-top:0">
-<select id="fOrdem" onchange="renderRad()"><option value="rec">🔴 Reclamações (maior)</option><option value="apo">🟢 Apoios (maior)</option><option value="props">📚 Proposições (maior)</option></select>
-<span id="cCount" class="muted" style="align-self:center"></span>
-</div>
-<div id="radList"></div>
-<div class="doss" style="margin-top:20px">
-<div class="blk"><b>🔎 Fontes oficiais (dados públicos)</b><div class="muted">Comparecimento, patrimônio, processos e condenações nos órgãos abaixo.</div></div>
-<div class="blk"><b>🗳️ TSE</b> <a href="https://divulgacandcontas.tse.jus.br/divulga/app/" target="_blank">tse.jus.br</a></div>
-<div class="blk"><b>💰 Portal da Transparência</b> <a href="https://www.portaltransparencia.gov.br/" target="_blank">portaltransparencia.gov.br</a></div>
-<div class="blk"><b>🏛️ Câmara / Senado</b> <a href="https://www.camara.leg.br/deputados/" target="_blank">camara.leg.br</a> · <a href="https://www25.senado.leg.br/web/conselhos" target="_blank">senado.leg.br</a></div>
-<div class="blk"><b>⚖️ CNJ</b> <a href="https://www.cnj.jus.br/" target="_blank">cnj.jus.br</a></div>
-</div>
-</div></section>
-
 <section class="sec" id="sec-conferir"><div class="wrap" style="max-width:640px">
 <span class="kick">CONFERIR VOTO</span><h2 style="margin:8px 0 6px">Conferir voto</h2>
 <p class="muted">Local onde você prova que seu voto existe e confirma em quem realmente votou.</p>
@@ -382,10 +359,11 @@ $$('#nav a').forEach(a=>a.onclick=()=>go(a.dataset.p));
 /* Deep-link: #conferir-voto, #radar, #revogados etc. abrem a seção direto
    (usado pelos menus das páginas internas: congresso, votações…) */
 (function(){
-  const mapa={'conferir-voto':'conferir','revogar-voto':'revogar','revogados':'revogados','ajuda':'ajuda','quem-somos':'quem','radar':'radar','congresso':'inicio','voto':'revogar'};
-  const h=(location.hash||'').replace('#','');
+  const mapa={'conferir-voto':'conferir','revogar-voto':'revogar','revogados':'revogados','ajuda':'ajuda','quem-somos':'quem','congresso':'inicio','voto':'revogar'};
+  const h=(location.hash||'').replace('#','').split('?')[0];
+  if(h==='radar'){location.replace('pages/parlamentares.html');return}
   if(mapa[h]!==undefined){setTimeout(()=>go(mapa[h]),50)}
-  window.addEventListener('hashchange',()=>{const hh=(location.hash||'').replace('#','').split('?')[0];if(mapa[hh]!==undefined)go(mapa[hh])});
+  window.addEventListener('hashchange',()=>{const hh=(location.hash||'').replace('#','').split('?')[0];if(hh==='radar'||hh==='congresso'){location.href='pages/parlamentares.html';return}if(mapa[hh]!==undefined)go(mapa[hh])});
 })();
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
 const CORES=['#2ECC71','#FFD700','#4a90f0','#E74C3C','#A855F7'],NOMES=['Maria','Carlos','Ana','João','Outros'];
