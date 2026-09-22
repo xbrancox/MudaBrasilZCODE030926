@@ -1,0 +1,46 @@
+{
+  "plataforma": "VotaBrasil",
+  "versao": "1.1.0",
+  "atualizado": "2026-09-21T15:30:00Z",
+  "estatisticas": {
+    "total_votos_simulados": 0,
+    "total_revogacoes": 0,
+    "total_conferencias": 0,
+    "total_reclamacoes": 0,
+    "total_apoios": 0,
+    "atividade_civica": {
+      "usuarios_ativos_7d": 0,
+      "streak_medio_dias": 0,
+      "nivel_medio": 0
+    }
+  },
+  "endpoints": {
+    "dados_completos": "./api/dados.json",
+    "documentacao": "https://votabrasil.app/api-docs",
+    "github": "https://github.com/xbrancox/mudabrasilv4"
+  },
+  "aviso": "Prototipo demonstrativo. Dados simulados para fins educacionais. Sem valor juridico.",
+  "como_usar": {
+    "descricao": "Este endpoint retorna dados agregados da plataforma VotaBrasil em formato JSON.",
+    "exemplo_fetch": "fetch('./api/dados.json').then(r => r.json()).then(dados => console.log(dados));",
+    "campos_disponiveis": {
+      "plataforma": "Nome da plataforma",
+      "versao": "Versao da API",
+      "atualizado": "Timestamp ISO 8601 da ultima atualizacao",
+      "estatisticas": "Objeto com contadores agregados",
+      "endpoints": "URLs de referencia",
+      "aviso": "Disclaimer legal"
+    }
+  },
+  "casos_de_uso": [
+    "Jornalistas: dados para materias sobre participacao civica",
+    "Pesquisadores: analise de tendencias de engajamento",
+    "Desenvolvedores: integracao com apps de terceiros",
+    "Educadores: material didatico sobre democracia digital"
+  ],
+  "contato": {
+    "email_geral": "contato@votabrasil.app",
+    "email_imprensa": "imprensa@votabrasil.app",
+    "github_issues": "https://github.com/xbrancox/mudabrasilv4/issues"
+  }
+}
