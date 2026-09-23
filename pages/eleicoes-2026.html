@@ -176,28 +176,32 @@ function brl(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractio
 function card(c,i){
  const sit=(c.situacao||'').toUpperCase();
  const cls=sit.includes('INDEF')?'red':(sit.includes('DEFERIDO')?'ok':'amb');
- return `<div class="card" onclick="abrirIdx(${i})">
- <div style="display:flex;gap:10px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="">`:`<div class="av" style="display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold)">${(c.nomeUrna||c.nomeCivil||'?')[0]}</div>`}
- <div style="flex:1"><b style="font-size:14px">${c.nomeUrna||c.nomeCivil||'—'}</b><div class="muted">${c.numero||''} · ${c.partido||''} · ${c.uf||''}${c.idade?' · '+c.idade+' anos':''}${c.escolaridade?' · '+esc(c.escolaridade.toLowerCase()):''}</div>
- <span class="badge ${cls}" style="margin-top:4px;display:inline-block">${c.situacao||'—'}</span>
- ${c.fundoEleitoralRecebido?`<div style="margin-top:5px;font-size:12.5px;font-weight:700;color:var(--green,#19c37d)">💰 Fundo eleitoral: ${brl(c.fundoEleitoralRecebido)}</div>`:''}</div></div></div>`;
+ return `<div class="card" onclick="abrirIdx(${i})" style="cursor:pointer;transition:transform 0.15s ease">
+ <div style="display:flex;gap:12px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="" style="width:50px;height:50px;border-radius:12px;object-fit:cover">`:`<div class="av" style="width:50px;height:50px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold)">${(c.nomeUrna||c.nomeCivil||'?')[0]}</div>`}
+ <div style="flex:1"><b style="font-size:14.5px">${c.nomeUrna||c.nomeCivil||'—'}</b><div class="muted" style="margin-top:2px">${c.numero||''} · <b>${c.partido||''}</b> · ${c.uf||''}${c.idade?' · '+c.idade+' anos':''}${c.ocupacao?' · '+esc(c.ocupacao):''}</div>
+ <div style="display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap">
+ <span class="badge ${cls}" style="display:inline-block">${c.situacao||'—'}</span>
+ <span style="font-size:12px;font-weight:700;color:var(--green,#2ECC71)">💰 Fundo: ${c.fundoEleitoralRecebido?brl(c.fundoEleitoralRecebido):'Não declarado'}</span>
+ </div></div></div></div>`;
 }
 function abrirIdx(i){abrir(LAST[i])}
 function abrir(c){
  const bens=c.bens||[];
- $('#detBody').innerHTML=`<h3 style="margin-bottom:6px">${esc(c.nomeUrna||c.nomeCivil||'')}</h3>
- <div class="muted">${esc(c.nomeCivil||'')} · ${c.numero||''} · ${esc(c.partido||'')} · ${c.uf||''} · ${esc(NOME_CARGO[c.cargo]||c.cargo||'')}${c.idade?' · '+c.idade+' anos':''}</div>
- <div class="stats">
- <div class="stat"><small>Situação</small><b>${esc(c.situacao||'—')}</b></div>
- <div class="stat"><small>Escolaridade</small><b>${c.escolaridade?esc(c.escolaridade):'—'}</b></div>
- <div class="stat"><small>Fundo eleitoral recebido</small><b style="color:var(--green)">${c.fundoEleitoralRecebido?brl(c.fundoEleitoralRecebido):'Nada declarado'}</b></div>
- <div class="stat"><small>Bens declarados</small><b>${bens.length}</b></div>
- <div class="stat"><small>Valor total dos bens</small><b>${c.bensTotal?'R$ '+Number(c.bensTotal).toLocaleString('pt-BR'):'—'}</b></div>
- <div class="stat"><small>Fonte</small><b>TSE</b></div>
+ $('#detBody').innerHTML=`<h3 style="margin-bottom:6px;font-size:18px">${esc(c.nomeUrna||c.nomeCivil||'')}</h3>
+ <div class="muted" style="margin-bottom:12px">${esc(c.nomeCivil||'')} · Número: <b>${c.numero||'—'}</b> · Partido: <b>${esc(c.partido||'')}</b> · UF: <b>${c.uf||''}</b> · Cargo: <b>${esc(NOME_CARGO[c.cargo]||c.cargo||'')}</b>${c.idade?' · Idade: '+c.idade+' anos':''}</div>
+ <div class="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px">
+ <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Situação TSE</small><b style="color:${(c.situacao||'').toUpperCase().includes('DEF')?'var(--green)':'var(--gold)'}">${esc(c.situacao||'—')}</b></div>
+ <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Fundo Eleitoral (FEFC)</small><b style="color:var(--green);font-size:15px">${c.fundoEleitoralRecebido?brl(c.fundoEleitoralRecebido):'Não declarado'}</b></div>
+ <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Ocupação</small><b>${c.ocupacao?esc(c.ocupacao):'Não informada'}</b></div>
+ <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Escolaridade</small><b>${c.escolaridade?esc(c.escolaridade):'—'}</b></div>
+ <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Bens Declarados</small><b>${bens.length} (Total: ${c.bensTotal?'R$ '+Number(c.bensTotal).toLocaleString('pt-BR'):'R$ 0'})</b></div>
+ <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Fonte Oficial</small><b>DivulgaCand / TSE</b></div>
  </div>
- <p class="muted" style="font-size:12px;margin-top:8px;line-height:1.5">💰 Fundo eleitoral: valor de recursos do FEFC na prestação de contas ao TSE${c.fundoEleitoralRecebido?'':' — este candidato ainda não declarou recebimento (cobertura parcial é normal até a eleição).'} Detalhes e ranking completo em <a href="fundo-eleitoral.html" style="color:var(--gold)">Fundo Eleitoral →</a>.</p>
- <h4 style="font-size:13px;color:var(--gold);margin-top:8px">💰 Bens declarados</h4>
- ${bens.length?bens.slice(0,10).map(b=>`<div class="quote">${esc(b.descricao||b.tipo||'Bem')} — <b>R$ ${Number(b.valor||0).toLocaleString('pt-BR')}</b></div>`).join(''):'<p class="muted">Sem bens declarados.</p>'}`;
+ <p class="muted" style="font-size:12.5px;margin-bottom:14px;line-height:1.5">📊 <b>Transparência Eleitoral 2026:</b> O Fundo Especial de Financiamento de Campanha (FEFC) é regulamentado pela Justiça Eleitoral. Dados públicos extraídos diretamente dos portais do TSE e integrados unificadamente no MudaBrasil.</p>
+ <h4 style="font-size:14px;color:var(--gold);margin-bottom:8px">🏛️ Detalhes de Bens Declarados (${bens.length})</h4>
+ <div style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+ ${bens.length?bens.map(b=>`<div style="background:var(--card2);padding:8px 12px;border-radius:8px;font-size:12.5px">${esc(b.descricao||b.tipo||'Bem')} — <b style="color:var(--gold)">R$ ${Number(b.valor||0).toLocaleString('pt-BR')}</b></div>`).join(''):'<p class="muted">Nenhum bem declarado à Justiça Eleitoral.</p>'}
+ </div>`;
  $('#mDet').classList.add('open');
 }
 function fechar(){$('#mDet').classList.remove('open')}
