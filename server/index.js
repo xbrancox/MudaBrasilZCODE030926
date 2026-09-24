@@ -468,7 +468,8 @@ async function handleApi(req, res, url) {
       
       // Tentar adicionar fotos dos incumbentes (deputados + senadores)
       const incumbentes = tse.getIncumbents();
-      const candidatosComFotos = candidatos.map(c => {
+      const candidatosComFotos = candidatos.map(orig => {
+        const c = { ...orig };
         // Tentar encontrar um incumbente correspondente
         const incumbenteCorrespondente = incumbentes.find(i => {
           // Corresponder por cargo, estado e partido/nome
@@ -479,8 +480,8 @@ async function handleApi(req, res, url) {
           
           const estadoCorrespondente = i.state === c.uf;
           const partidoCorrespondente = 
-            i.party === c.partido ||
-            (i.party && c.partido && (i.party.includes(c.partido) || c.partido.includes(i.party)));
+            i.party && c.partido && 
+            i.party.trim().toUpperCase() === c.partido.trim().toUpperCase();
           
           const nomeCorrespondente = 
             i.name && c.nomeUrna && 
