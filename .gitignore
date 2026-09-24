@@ -50,3 +50,8 @@ app/config.js
 
 # Códigos de voto emitidos (nunca versionar)
 server/data/vote_codes.json
+
+# Scripts locais de manutenção (não críticos para o funcionamento)
+scripts/*.bat
+scripts/*.ps1
+scripts/logs/

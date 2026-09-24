@@ -85,11 +85,12 @@ header.topo nav a.on{background:#FFD700;color:#061a3a;font-weight:800}
 <div class="filtros">
 <input id="q" placeholder="🔎 Nome ou número…"/>
 <select id="cargo">
+<option value="1">Presidente</option>
+<option value="3">Governador</option>
+<option value="5">Senador</option>
 <option value="6">Deputado Federal</option>
 <option value="7">Deputado Estadual</option>
-<option value="5">Senador</option>
-<option value="3">Governador</option>
-<option value="1">Presidente</option>
+<option value="8">Deputado Distrital</option>
 </select>
 <select id="uf"></select>
 <select id="sit">
@@ -110,8 +111,8 @@ header.topo nav a.on{background:#FFD700;color:#061a3a;font-weight:800}
 </div>
 <div class="overlay" id="mDet"><div class="modal"><div id="detBody"></div><button class="btn" style="width:100%;margin-top:12px" onclick="fechar()">Fechar</button></div></div>
 <script>
-/* FIX: API_BASE pode ser '' (mesma origem) — não usar ||, que trocaria '' pela URL de produção */
-const API=(window.VotaBrasil&&typeof window.VotaBrasil.API_BASE==='string')?window.VotaBrasil.API_BASE:'https://VotaBrasil-redesign-production.up.railway.app';
+/* API_BASE: mesma origem (vazio) ou configurado pelo host */
+const API=(window.VotaBrasil&&typeof window.VotaBrasil.API_BASE==='string')?window.VotaBrasil.API_BASE:'';
 const UFS=['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 const $=s=>document.querySelector(s);
 $('#uf').innerHTML=UFS.map(u=>`<option value="${u}" ${u==='SP'?'selected':''}>${u}</option>`).join('');
@@ -130,6 +131,8 @@ async function buscarEstatico(){
   if(S==='INDEFERIDO')return /INDEFERIDO/.test(v);
   return true;});}
  if(q)lista=lista.filter(c=>(c.nomeUrna||'').toLowerCase().includes(q)||String(c.numero||'').includes(q)||(c.partido||'').toLowerCase().includes(q));
+ /* Ordenar alfabeticamente por nomeUrna */
+ lista.sort((a,b)=>(a.nomeUrna||'').localeCompare(b.nomeUrna||'','pt-BR',{sensitivity:'base'}));
  return lista;
 }
 /* Aplica página + render comum aos dois caminhos (API e snapshot) */
@@ -171,7 +174,7 @@ async function buscar(p){
   }
  }
 }
-const NOME_CARGO={'1':'Presidente','3':'Governador','5':'Senador','6':'Deputado Federal','7':'Deputado Estadual','9':'Vice-Presidente','11':'Suplente de Senador','12':'1º Suplente de Senador','13':'2º Suplente de Senador','14':'Delegado'};
+const NOME_CARGO={'1':'Presidente','3':'Governador','5':'Senador','6':'Deputado Federal','7':'Deputado Estadual','8':'Deputado Distrital','9':'Vice-Presidente','11':'Suplente de Senador','12':'1º Suplente de Senador','13':'2º Suplente de Senador','14':'Delegado'};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function brl(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function card(c,i){
