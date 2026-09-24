@@ -458,6 +458,14 @@ async function handleApi(req, res, url) {
           (c.partido || '').toLowerCase().includes(busca)
         );
       }
+      
+      // Ordenar alfabeticamente por nomeUrna (ou nome)
+      lista.sort((a, b) => {
+        const na = (a.nomeUrna || a.nome || '').localeCompare(b.nomeUrna || b.nome || '', 'pt-BR', { sensitivity: 'base' });
+        if (na !== 0) return na;
+        return String(a.numero || '').localeCompare(String(b.numero || ''));
+      });
+
       /* Paginação (aceita pagina/porPagina e os aliases page/pageSize do front) */
       const pagina = Math.max(1, parseInt(q.pagina || q.page || '1', 10));
       const porPagina = Math.min(2000, Math.max(10, parseInt(q.porPagina || q.pageSize || '100', 10)));
