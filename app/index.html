@@ -629,7 +629,7 @@ function renderCandList(){
   document.getElementById('cand-list').innerHTML=sheetLista.map(c=>{
     const isSel=sel&&String(sel.sq)===String(c.sq);
     const f=fotoUrl(c);
-    return '<button class="co'+(isSel?' sel':'')+'" onclick="escolher(\''+esc(c.sq)+'\')"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'<span>'+esc((c.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(c.nomeUrna)+'</h4><p>'+esc(c.partido)+(c.coligacao?' · '+esc(c.coligacao):'')+'</p></div><span class="nm">'+esc(c.numero)+'</span></button>';
+    return '<button class="co'+(isSel?' sel':'')+'" onclick="escolher(\''+esc(c.sq)+'\')"><div class="av">'+(f?'<img src="'+esc(f)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'<span>'+esc((c.nomeUrna||'?').slice(0,2).toUpperCase())+'</span></div><div class="ei"><h4>'+esc(c.nomeUrna)+'</h4><p>'+esc(c.partido)+'</p></div><span class="nm">'+esc(c.numero)+'</span></button>';
   }).join('')||'<p class="sh-info">Nenhum candidato encontrado com esse filtro.</p>';
 }
 function escolher(sq){

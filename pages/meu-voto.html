@@ -256,7 +256,9 @@
             Anote num lugar seguro — ele é a única forma de consultar, manter ou revogar seu voto depois.
           </div>
 
-          <button class="btn btn-accent btn-block" id="btn-votar" disabled style="margin-top:var(--space-md);">
+          <button class="btn btn-accent btn-block" id="btn-votar" disabled style="margin-top:var(--space-md);"
+                  data-loading="true"
+                  title="Registre seu voto de confiança. Aparecerá um código único de 20 dígitos para você anotar.">
             🗳️ Expressar Confiança
           </button>
           <div id="consent-note" style="display:none; margin-top:var(--space-sm); color:var(--text-secondary); font-size:14px;">
@@ -291,16 +293,19 @@
           <div class="code-input-group">
             <input type="text" id="code-input" class="code-input"
                    placeholder="Cole seu código (XXXX-XXXX-XXXX-XXXX)" autocomplete="off">
-            <button class="btn btn-secondary btn-sm" id="btn-ver" style="white-space:nowrap;">
+            <button class="btn btn-secondary btn-sm" id="btn-ver" style="white-space:nowrap;"
+                    title="Cole o código de voto de 20 dígitos para ver seu status atual, reafirmar ou revogar">
               👁 Ver meu voto
             </button>
           </div>
 
           <div class="vote-actions-row" id="vote-actions" style="display:none;">
-            <button class="btn btn-primary btn-sm" id="btn-manter" disabled>
+            <button class="btn btn-primary btn-sm" id="btn-manter" disabled
+                    title="Reafirme seu voto atual para reiniciar a contagem de decaimento (peso máximo)">
               🔄 Reafirmar confiança
             </button>
-            <button class="btn btn-danger btn-sm" id="btn-revogar" disabled>
+            <button class="btn btn-danger btn-sm" id="btn-revogar" disabled
+                    title="Revogar seu voto - retirar a confiança do político, ação definitiva">
               ↩ Revogar meu voto
             </button>
           </div>

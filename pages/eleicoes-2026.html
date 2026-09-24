@@ -178,7 +178,9 @@ function card(c,i){
  const sit=(c.situacao||'').toUpperCase();
  const cls=sit.includes('INDEF')?'red':(sit.includes('DEFERIDO')?'ok':'amb');
  return `<div class="card" onclick="abrirIdx(${i})" style="cursor:pointer;transition:transform 0.15s ease">
- <div style="display:flex;gap:12px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="" style="width:50px;height:50px;border-radius:12px;object-fit:cover">`:`<div class="av" style="width:50px;height:50px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold)">${(c.nomeUrna||c.nomeCivil||'?')[0]}</div>`}
+ <div style="display:flex;gap:12px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="" style="width:50px;height:50px;border-radius:12px;object-fit:cover">`:`<div class="av" style="width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold);font-size:20px;line-height:1;
+      background-image:url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNTA"');
+      background-size:cover;background-position:center;'>${(c.nomeUrna||c.nomeCivil||'?')[0]}</div>`}
  <div style="flex:1"><b style="font-size:14.5px">${c.nomeUrna||c.nomeCivil||'—'}</b><div class="muted" style="margin-top:2px">${c.numero||''} · <b>${c.partido||''}</b> · ${c.uf||''}${c.idade?' · '+c.idade+' anos':''}${c.ocupacao?' · '+esc(c.ocupacao):''}</div>
  <div style="display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap">
  <span class="badge ${cls}" style="display:inline-block">${c.situacao||'—'}</span>
