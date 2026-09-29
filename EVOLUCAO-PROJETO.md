@@ -21,3 +21,11 @@
 1. **Quórum e Tipo de Votação:** Distinção clara entre votações Simbólicas ("fica como está") e Nominais (voto individual registrado).
 2. **Dossiê Cívico:** Cruzamento das últimas 30 votações nominais + presença + índice de integridade.
 3. **Mandato Revogável:** Conscientização de que 70% dos votos de origem podem revogar o mandato (mecanismo de responsabilidade política contínua).
+
+---
+
+## 4. Evolução Recente: Janelas Agrupadas e Progressive Disclosure (Página de Votações)
+* **Reorganização Visual (`pages/votacoes.html`):**
+  * **Janelas Modulares com Ícones Informativos `ⓘ`:** As funcionalidades de acompanhamento de parlamentares, cobrança de promessas, dossiê cívico e mapa de calor foram divididas em cartões/painéis dedicados, cada um equipado com um botão explicativo `ⓘ` para instrução em tempo de execução.
+  * **Exibição Progressiva (Progressive Disclosure):** Por padrão, a listagem de votações dos últimos 10 dias agora exibe de forma enxuta apenas as **2 votações mais recentes**, reduzindo a carga cognitiva inicial. O usuário pode clicar no botão *"📖 Ver todas da janela / últimos 10 dias"* para expandir instantaneamente todas as votações disponíveis.
+  * **Links e Acessibilidade:** Validação completa e testes locais de responsividade em Desktop e Mobile. O projeto encontra-se sincronizado no GitHub e disponível para produção e testes via web.
