@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Radar Político · MudaBrasil</title>
+<title>Radar Político · MeuVoto</title>
 <meta name="description" content="Radar Político: dados públicos reais de deputados federais e senadores — projetos apresentados, como votou, comissões, contatos e links oficiais (Câmara, Senado, TSE, Portal da Transparência, CNJ).">
-<link rel="canonical" href="https://xbrancox.github.io/MudaBrZclone280826/pages/parlamentares.html">
-<meta property="og:title" content="Radar Político · MudaBrasil">
+<link rel="canonical" href="https://xbrancox.github.io/votabrasil/pages/parlamentares.html">
+<meta property="og:title" content="Radar Político · MeuVoto">
 <meta property="og:description" content="Dados públicos reais de deputados e senadores: projetos, votações, comissões, contatos e links oficiais.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://xbrancox.github.io/MudaBrZclone280826/pages/parlamentares.html">
-<meta property="og:image" content="https://xbrancox.github.io/MudaBrZclone280826/og-image.png">
-<meta property="og:site_name" content="MudaBrasil">
+<meta property="og:url" content="https://xbrancox.github.io/votabrasil/pages/parlamentares.html">
+<meta property="og:image" content="https://xbrancox.github.io/votabrasil/og-image.png">
+<meta property="og:site_name" content="MeuVoto">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://xbrancox.github.io/MudaBrZclone280826/og-image.png">
+<meta name="twitter:image" content="https://xbrancox.github.io/votabrasil/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -130,6 +130,12 @@ a.badge:hover{filter:brightness(1.25)}
  .fontes{grid-template-columns:1fr}
 }
 </style>
+
+<style id="mb-modal-fix2">
+.overlay{align-items:flex-start !important;justify-content:center !important;overflow-y:auto !important;padding:88px 14px 56px !important;box-sizing:border-box !important}
+.overlay>.modal{margin:0 auto !important;transform:none !important;max-height:none !important;flex:0 0 auto !important}
+.mbFecharFim{display:block;margin:22px auto 6px;background:#12305c;color:#fff;border:1px solid #2b5ea7;border-radius:10px;padding:10px 26px;font-size:14px;cursor:pointer}
+</style>
 </head>
 <body>
 
@@ -242,7 +248,7 @@ a.badge:hover{filter:brightness(1.25)}
    onde não há (patrimônio TSE, processos CNJ), texto puro.
    ============================================================ */
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const MB=window.MudaBrasil||{},API=MB.API_BASE||'';
+const MB=window.MeuVoto||{},API=MB.API_BASE||'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
 const V=(x,fb)=>(x===0?0:(x||fb||'—'));
@@ -901,6 +907,10 @@ carregaTseIdx();
   const t0=Date.now();const tenta=()=>{if(POL.find(x=>x.id===id))abrirFicha(id);
     else if(Date.now()-t0<8000)setTimeout(tenta,300)};
   setTimeout(tenta,400)})();
+</script>
+
+<script id="mb-modal-fix2-js">
+(function(){var IDS=["mFicha","mProc","mCmp","mForm","mVerif","mVotos"];function fechar(ov){var cb=ov.querySelector("[class*=close],[class*=fechar],[aria-label*=Fechar],[title*=Fechar],[onclick*=none],[onclick*=fechar],[onclick*=close]");if(cb&&cb!==ov&&!cb.hasAttribute("data-mb-fechar-fim")){cb.click();return;}ov.classList.remove("open","show","active","on");if(ov.style&&ov.style.display)ov.style.display="none";document.body.classList.remove("modal-open","no-scroll");}function ensure(ov){var box=ov.querySelector(".modal")||ov.firstElementChild;if(!box)return;if(!box.querySelector("[data-mb-fechar-fim]")){var b=document.createElement("button");b.type="button";b.className="mbFecharFim";b.setAttribute("data-mb-fechar-fim","1");b.textContent="\u2716 Fechar";b.addEventListener("click",function(){fechar(ov);});box.appendChild(b);}}function fixAll(){IDS.forEach(function(id){if(id==="mCmp")return;var ov=document.getElementById(id);if(ov)ensure(ov);});}document.addEventListener("DOMContentLoaded",fixAll);window.addEventListener("load",fixAll);if(window.MutationObserver){document.addEventListener("DOMContentLoaded",function(){IDS.forEach(function(id){if(id==="mCmp")return;var ov=document.getElementById(id);if(!ov)return;new MutationObserver(function(){ensure(ov);}).observe(ov,{childList:true,subtree:true});});});}})();
 </script>
 </body>
 </html>

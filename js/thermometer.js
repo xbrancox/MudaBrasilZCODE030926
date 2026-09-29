@@ -1,5 +1,5 @@
 /* ============================================================
-   VOTABRASIL - TERMÔMETRO DE CONFIANÇA (revogação do voto)
+   MEUVOTO - TERMÔMETRO DE CONFIANÇA (revogação do voto)
    ------------------------------------------------------------
    Regra "tudo real": só dados oficiais. O antigo bloco DEMO com
    nomes sintéticos foi removido — sem backend acessível a tela
@@ -26,9 +26,9 @@
 
   /* Base da API: absoluta em file:// (config.local.js aponta p/ Railway),
      relativa ('') quando servido por http(s) na mesma origem do backend. */
-  const API = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
-    ? window.VotaBrasil.API_BASE
-    : 'https://mudabrasil-redesign-production.up.railway.app';
+  const API = (window.MeuVoto && typeof window.MeuVoto.API_BASE === 'string')
+    ? window.MeuVoto.API_BASE
+    : 'https://mudabrasil-production-79eb.up.railway.app';
 
   /* ---------- ESTADO ---------- */
   let mode = 'demo';
@@ -231,7 +231,10 @@
   /* ---------- AÇÕES DE VOTO ---------- */
   async function confirmVote() {
     if (!selectedId || mode !== 'real') return;
-    setButtonLoading('btn-votar', true, 'Registrando...');
+    const btn = $('btn-votar');
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = '⏳ Registrando…';
     try {
       let uf = null;
       try { uf = (JSON.parse(localStorage.getItem(LS_LOCAL) || '{}') || {}).uf || null; } catch (_) {}
@@ -247,7 +250,8 @@
     } catch (e) {
       alert('Não foi possível registrar seu voto: ' + e.message);
     } finally {
-      setButtonLoading('btn-votar', false);
+      btn.disabled = false;
+      btn.textContent = original;
       updateButtons();
     }
   }
@@ -317,7 +321,6 @@
     const code = codeFromInput();
     if (!code) { alert('Informe seu código para revogar.'); return; }
     if (!confirm('Tem certeza que deseja REVOGAR seu voto de confiança? Esta ação é irreversível.')) return;
-    setButtonLoading('btn-revogar', true, 'Revogando...');
     try {
       const res = await fetchWithTimeout(API + '/api/voto/revogar', 6000, { method: 'POST', body: JSON.stringify({ code }) });
       const data = await res.json();
@@ -327,15 +330,12 @@
       await refreshThermometer();
     } catch (e) {
       alert('Não foi possível revogar: ' + e.message);
-    } finally {
-      setButtonLoading('btn-revogar', false);
     }
   }
 
   async function reaffirmMyVote() {
     const code = codeFromInput();
     if (!code) { alert('Informe seu código para reafirmar.'); return; }
-    setButtonLoading('btn-manter', true, 'Reafirmando...');
     try {
       const res = await fetchWithTimeout(API + '/api/voto/manter', 6000, { method: 'POST', body: JSON.stringify({ code }) });
       const data = await res.json();
@@ -344,8 +344,6 @@
       await refreshThermometer();
     } catch (e) {
       alert('Não foi possível reafirmar: ' + e.message);
-    } finally {
-      setButtonLoading('btn-manter', false);
     }
   }
 

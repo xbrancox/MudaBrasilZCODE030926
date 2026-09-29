@@ -2,18 +2,18 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Eleições 2026 · Candidatos · VotaBrasil</title>
+<title>Eleições 2026 · Candidatos · MeuVoto</title>
 <meta name="description" content="Candidatos reais das Eleições Gerais 2026 com número de urna, partido, coligação e situação de julgamento — dados oficiais do TSE.">
-<link rel="canonical" href="https://VotaBrasil-redesign-production.up.railway.app/pages/eleicoes-2026.html">
-<meta property="og:title" content="Eleições 2026 · Candidatos · VotaBrasil">
+<link rel="canonical" href="https://MeuVoto-redesign-production.up.railway.app/pages/eleicoes-2026.html">
+<meta property="og:title" content="Eleições 2026 · Candidatos · MeuVoto">
 <meta property="og:description" content="Candidatos reais das Eleições Gerais 2026 com número de urna, partido, coligação e situação de julgamento — dados oficiais do TSE.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://VotaBrasil-redesign-production.up.railway.app/pages/eleicoes-2026.html">
-<meta property="og:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
-<meta property="og:site_name" content="VotaBrasil">
+<meta property="og:url" content="https://MeuVoto-redesign-production.up.railway.app/pages/eleicoes-2026.html">
+<meta property="og:image" content="https://MeuVoto-redesign-production.up.railway.app/og-image.png">
+<meta property="og:site_name" content="MeuVoto">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
+<meta name="twitter:image" content="https://MeuVoto-redesign-production.up.railway.app/og-image.png">
 
 <link rel="icon" type="image/x-icon" href="../images/logo/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="../images/logo/favicon-32x32.png">
@@ -26,8 +26,8 @@
 <style>
 :root{--bg:#061a3a;--card:#0d2242;--card2:#123059;--line:rgba(127,176,245,.22);--ink:#fff;--muted:#94A3B8;--gold:#FFD700;--blueL:#4a90f0;--green:#2ECC71;--red:#E74C3C;--r:14px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,sans-serif;padding:20px}
-.wrap{max-width:1180px;margin:0 auto}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px}
 h1{font-family:Montserrat;font-weight:900;font-size:26px;margin:8px 0}
 .kick{color:var(--gold);font:800 11px Manrope;letter-spacing:.2em;text-transform:uppercase}
 .muted{color:var(--muted);font-size:12.5px}
@@ -59,19 +59,7 @@ input,select{background:var(--card2);border:1px solid var(--line);border-radius:
 #aviso{display:none;background:rgba(255,215,0,.08);border:1px solid var(--gold);border-radius:12px;padding:12px;margin:12px 0;font-size:13px}
 @media(max-width:900px){.filtros{grid-template-columns:1fr 1fr}}
 </style>
-<style>
-/* ===== CABEÇALHO PADRÃO VOTABRASIL ===== */
-header.topo{position:sticky;top:0;z-index:50;display:flex;gap:12px;align-items:center;padding:12px 20px;background:#061a3add;backdrop-filter:blur(8px);border-bottom:1px solid #1d3a66;flex-wrap:wrap}
-header.topo .lg{display:flex;gap:10px;align-items:center;text-decoration:none}
-header.topo .lg .ic{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7ed957,#2ECC71);display:flex;align-items:center;justify-content:center;color:#061a3a;font-size:18px}
-header.topo .lg b{font-family:Montserrat;font-size:17px;color:#fff}
-header.topo .lg small{display:block;color:#9fb0c8;font-size:11px}
-header.topo nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
-header.topo nav a{color:#eaf1fb;text-decoration:none;padding:8px 12px;border-radius:999px;font-size:13px}
-header.topo nav a:hover{background:#123059}
-header.topo nav a.on{background:#FFD700;color:#061a3a;font-weight:800}
-@media(max-width:960px){header.topo nav{display:none}}
-</style>
+<!-- Cabeçalho uniforme injetado por site-header.js -->
   <script src="../js/site-header.js?v=3"></script>
 </head>
 <body>
@@ -85,12 +73,11 @@ header.topo nav a.on{background:#FFD700;color:#061a3a;font-weight:800}
 <div class="filtros">
 <input id="q" placeholder="🔎 Nome ou número…"/>
 <select id="cargo">
-<option value="1">Presidente</option>
-<option value="3">Governador</option>
-<option value="5">Senador</option>
 <option value="6">Deputado Federal</option>
 <option value="7">Deputado Estadual</option>
-<option value="8">Deputado Distrital</option>
+<option value="5">Senador</option>
+<option value="3">Governador</option>
+<option value="1">Presidente</option>
 </select>
 <select id="uf"></select>
 <select id="sit">
@@ -111,8 +98,8 @@ header.topo nav a.on{background:#FFD700;color:#061a3a;font-weight:800}
 </div>
 <div class="overlay" id="mDet"><div class="modal"><div id="detBody"></div><button class="btn" style="width:100%;margin-top:12px" onclick="fechar()">Fechar</button></div></div>
 <script>
-/* API_BASE: mesma origem (vazio) ou configurado pelo host */
-const API=(window.VotaBrasil&&typeof window.VotaBrasil.API_BASE==='string')?window.VotaBrasil.API_BASE:'';
+/* FIX: API_BASE pode ser '' (mesma origem) — não usar ||, que trocaria '' pela URL de produção */
+const API=(window.MeuVoto&&typeof window.MeuVoto.API_BASE==='string')?window.MeuVoto.API_BASE:'https://MeuVoto-redesign-production.up.railway.app';
 const UFS=['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 const $=s=>document.querySelector(s);
 $('#uf').innerHTML=UFS.map(u=>`<option value="${u}" ${u==='SP'?'selected':''}>${u}</option>`).join('');
@@ -131,8 +118,6 @@ async function buscarEstatico(){
   if(S==='INDEFERIDO')return /INDEFERIDO/.test(v);
   return true;});}
  if(q)lista=lista.filter(c=>(c.nomeUrna||'').toLowerCase().includes(q)||String(c.numero||'').includes(q)||(c.partido||'').toLowerCase().includes(q));
- /* Ordenar alfabeticamente por nomeUrna */
- lista.sort((a,b)=>(a.nomeUrna||'').localeCompare(b.nomeUrna||'','pt-BR',{sensitivity:'base'}));
  return lista;
 }
 /* Aplica página + render comum aos dois caminhos (API e snapshot) */
@@ -174,16 +159,14 @@ async function buscar(p){
   }
  }
 }
-const NOME_CARGO={'1':'Presidente','3':'Governador','5':'Senador','6':'Deputado Federal','7':'Deputado Estadual','8':'Deputado Distrital','9':'Vice-Presidente','11':'Suplente de Senador','12':'1º Suplente de Senador','13':'2º Suplente de Senador','14':'Delegado'};
+const NOME_CARGO={'1':'Presidente','3':'Governador','5':'Senador','6':'Deputado Federal','7':'Deputado Estadual','9':'Vice-Presidente','11':'Suplente de Senador','12':'1º Suplente de Senador','13':'2º Suplente de Senador','14':'Delegado'};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function brl(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function card(c,i){
  const sit=(c.situacao||'').toUpperCase();
  const cls=sit.includes('INDEF')?'red':(sit.includes('DEFERIDO')?'ok':'amb');
  return `<div class="card" onclick="abrirIdx(${i})" style="cursor:pointer;transition:transform 0.15s ease">
- <div style="display:flex;gap:12px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="" style="width:50px;height:50px;border-radius:12px;object-fit:cover">`:`<div class="av" style="width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold);font-size:20px;line-height:1;
-      background-image:url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNTA"');
-      background-size:cover;background-position:center;'>${(c.nomeUrna||c.nomeCivil||'?')[0]}</div>`}
+ <div style="display:flex;gap:12px;align-items:center">${c.foto?`<img class="av" src="${c.foto}" alt="" style="width:50px;height:50px;border-radius:12px;object-fit:cover">`:`<div class="av" style="width:50px;height:50px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#1a1400;background:var(--gold)">${(c.nomeUrna||c.nomeCivil||'?')[0]}</div>`}
  <div style="flex:1"><b style="font-size:14.5px">${c.nomeUrna||c.nomeCivil||'—'}</b><div class="muted" style="margin-top:2px">${c.numero||''} · <b>${c.partido||''}</b> · ${c.uf||''}${c.idade?' · '+c.idade+' anos':''}${c.ocupacao?' · '+esc(c.ocupacao):''}</div>
  <div style="display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap">
  <span class="badge ${cls}" style="display:inline-block">${c.situacao||'—'}</span>
@@ -203,7 +186,7 @@ function abrir(c){
  <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Bens Declarados ${createTooltip('Bens declarados à Justiça Eleitoral no momento da candidatura. Valor total declarado.')}</small><b>${bens.length} (Total: ${c.bensTotal?'R$ '+Number(c.bensTotal).toLocaleString('pt-BR'):'R$ 0'})</b></div>
  <div class="stat" style="background:var(--card2);padding:10px;border-radius:10px"><small style="color:var(--muted);display:block">Fonte Oficial</small><b>DivulgaCand / TSE</b></div>
  </div>
- <p class="muted" style="font-size:12.5px;margin-bottom:14px;line-height:1.5">📊 <b>Transparência Eleitoral 2026:</b> O Fundo Especial de Financiamento de Campanha (FEFC) é regulamentado pela Justiça Eleitoral. Dados públicos extraídos diretamente dos portais do TSE e integrados unificadamente no MudaBrasil.</p>
+ <p class="muted" style="font-size:12.5px;margin-bottom:14px;line-height:1.5">📊 <b>Transparência Eleitoral 2026:</b> O Fundo Especial de Financiamento de Campanha (FEFC) é regulamentado pela Justiça Eleitoral. Dados públicos extraídos diretamente dos portais do TSE e integrados unificadamente no MeuVoto.</p>
  <h4 style="font-size:14px;color:var(--gold);margin-bottom:8px">🏛️ Detalhes de Bens Declarados (${bens.length})</h4>
  <div style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
  ${bens.length?bens.map(b=>`<div style="background:var(--card2);padding:8px 12px;border-radius:8px;font-size:12.5px">${esc(b.descricao||b.tipo||'Bem')} — <b style="color:var(--gold)">R$ ${Number(b.valor||0).toLocaleString('pt-BR')}</b></div>`).join(''):renderEmptyState('fa-solid fa-file-invoice-dollar','Nenhum bem declarado à Justiça Eleitoral.')}
@@ -211,6 +194,41 @@ function abrir(c){
  $('#mDet').classList.add('open');
 }
 function fechar(){$('#mDet').classList.remove('open')}
+</script>
+<script id="vb-ele-fix">
+(function(){
+  if(document.getElementById('vb-ele-fix-run'))return;
+  var mk=document.createElement('i');mk.id='vb-ele-fix-run';mk.style.display='none';document.documentElement.appendChild(mk);
+  var _fetch=window.fetch;
+  window.fetch=function(u,o){
+    var p=_fetch.apply(this,arguments);
+    try{
+      if(typeof u==='string' && u.indexOf('/api/candidatos-tse')>-1){
+        return p.then(function(r){return r.json().then(function(j){
+          if(j&&j.candidatos&&j.candidatos.sort){j.candidatos.sort(function(a,b){return String(a.nomeUrna||'').localeCompare(String(b.nomeUrna||''),'pt-BR',{numeric:true});});}
+          return new Response(JSON.stringify(j),{status:r.status,headers:{'Content-Type':'application/json'}});
+        });});
+      }
+    }catch(e){}
+    return p;
+  };
+  function selUF(){return [].slice.call(document.querySelectorAll('select')).filter(function(s){return [].slice.call(s.options).some(function(o){return o.text.trim()==='DF'||o.value==='DF';});})[0];}
+  function selCargo(){return [].slice.call(document.querySelectorAll('select')).filter(function(s){return [].slice.call(s.options).some(function(o){return /Deputado Estadual|Deputado Distrital/.test(o.text);});})[0];}
+  function sync(){
+    var uf=selUF(),cg=selCargo();if(!uf||!cg)return;
+    var op=[].slice.call(cg.options).filter(function(o){return /Deputado Estadual|Deputado Distrital/.test(o.text);})[0];
+    if(!op)return;
+    if(uf.value==='DF'){op.text='Deputado Distrital (DF)';op.value='8';}
+    else{op.text='Deputado Estadual';op.value='7';}
+  }
+  document.addEventListener('change',sync);
+  window.addEventListener('DOMContentLoaded',function(){
+    var inp=[].slice.call(document.querySelectorAll('input')).filter(function(i){return (i.placeholder||'').indexOf('Nome')>-1;})[0];
+    if(inp)inp.value='';
+    sync();
+    setTimeout(function(){var b=[].slice.call(document.querySelectorAll('button')).filter(function(x){return /Buscar/i.test(x.textContent);})[0];if(b)b.click();},400);
+  });
+})();
 </script>
 </body>
 </html>

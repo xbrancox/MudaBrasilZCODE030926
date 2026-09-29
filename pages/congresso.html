@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PLs no Congresso · VotaBrasil</title>
+<title>PLs no Congresso · MeuVoto</title>
 <meta name="description" content="Opine nos Projetos de Lei em tramitação no Congresso Nacional: ementa, autor real e a opinião da população em cada PL.">
-<link rel="canonical" href="https://VotaBrasil-redesign-production.up.railway.app/pages/congresso.html">
-<meta property="og:title" content="PLs no Congresso · VotaBrasil">
+<link rel="canonical" href="https://MeuVoto-redesign-production.up.railway.app/pages/congresso.html">
+<meta property="og:title" content="PLs no Congresso · MeuVoto">
 <meta property="og:description" content="Opine nos Projetos de Lei em tramitação no Congresso Nacional: ementa, autor real e a opinião da população em cada PL.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://VotaBrasil-redesign-production.up.railway.app/pages/congresso.html">
-<meta property="og:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
-<meta property="og:site_name" content="VotaBrasil">
+<meta property="og:url" content="https://MeuVoto-redesign-production.up.railway.app/pages/congresso.html">
+<meta property="og:image" content="https://MeuVoto-redesign-production.up.railway.app/og-image.png">
+<meta property="og:site_name" content="MeuVoto">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
+<meta name="twitter:image" content="https://MeuVoto-redesign-production.up.railway.app/og-image.png">
 
 <link rel="icon" type="image/x-icon" href="../images/logo/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="../images/logo/favicon-32x32.png">
@@ -30,23 +30,11 @@
 body{background:radial-gradient(1200px 600px at 80% -10%,#0d2b57 0%,var(--bg) 55%) fixed var(--bg);color:var(--txt);font-family:Manrope,system-ui,sans-serif}
 h1,h2,h3,h4{font-family:Montserrat,sans-serif}
 a{color:var(--gold)}
-header{position:sticky;top:0;z-index:50;display:flex;gap:12px;align-items:center;padding:12px 20px;background:#061a3add;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.lg{display:flex;gap:10px;align-items:center}
-.lg .ic{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7ed957,#2ECC71);display:flex;align-items:center;justify-content:center;color:#061a3a;font-size:18px}
-.lg b{font-family:Montserrat;font-size:17px}
-.lg small{display:block;color:#9fb0c8;font-size:11px}
-nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
-nav a{color:var(--txt);text-decoration:none;padding:8px 12px;border-radius:999px;font-size:13px}
-nav a:hover{background:var(--c2)} nav a.on{background:var(--gold);color:#061a3a;font-weight:800}
-.hact{display:flex;gap:8px;align-items:center}
+/* Cabeçalho uniforme injetado por site-header.js — regras locais removidas */
 .badge{border:1px solid var(--green);color:var(--green);border-radius:999px;padding:6px 12px;font-size:12px}
 .btn{border-radius:999px;padding:9px 16px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}
 .btn.az{background:var(--c2);color:var(--txt);border:1px solid var(--line)}
 .btn.gold{background:var(--gold);color:#061a3a}
-.ham{display:none;background:none;border:none;color:var(--txt);font-size:20px;cursor:pointer}
-.mnav{display:none;flex-direction:column;background:var(--c1);border-bottom:1px solid var(--line);padding:10px 16px}
-.mnav a{color:var(--txt);text-decoration:none;padding:10px 4px;border-bottom:1px dashed var(--line);font-size:14px}
-@media(max-width:960px){nav{display:none}.ham{display:block}.mnav.open{display:flex}}
 main{max-width:1150px;margin:0 auto;padding:24px 16px 100px}
 .hero p{color:#b9c7dd;max-width:760px;margin-top:6px}
 [data-tip]{position:relative;cursor:help;border-bottom:1px dotted var(--grey)}
@@ -163,7 +151,7 @@ h2{margin:26px 0 10px}
   <div class="card" id="dna" style="margin-top:12px"><div class="vazio">Vote em matérias na Urna (inclusive nas JÁ VOTADAS) e clique pra descobrir quem vota como você.</div></div>
 </main>
 
-<footer>© 2026 VotaBrasil · Protótipo demonstrativo, sem valor jurídico. · <a href="../privacidade.html">Privacidade</a> · <a href="../termos.html">Termos</a></footer>
+<footer>© 2026 MeuVoto · Protótipo demonstrativo, sem valor jurídico. · <a href="../privacidade.html">Privacidade</a> · <a href="../termos.html">Termos</a></footer>
 <button id="fab" onclick="document.getElementById('urna').scrollIntoView({behavior:'smooth'})">🗳️ Votar nas PLs</button>
 
 <div id="popup"><div class="box">
@@ -173,7 +161,7 @@ h2{margin:26px 0 10px}
 </div></div>
 
 <script>
-const API=(window.VotaBrasil&&typeof window.VotaBrasil.API_BASE==='string')?window.VotaBrasil.API_BASE:'https://mudabrasil-redesign-production.up.railway.app';
+const API=(window.MeuVoto&&typeof window.MeuVoto.API_BASE==='string')?window.MeuVoto.API_BASE:'https://mudabrasil-production-79eb.up.railway.app';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 let PLS=[],VOT=[],VOTOS={},MAPVOT={},POVO={},temaAtivo='',perAtivo=30,pular=[],fila=[],ultimaKey='';
@@ -371,7 +359,7 @@ document.addEventListener('click',e=>{
 ['u-num','u-tema','u-parl'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',()=>renderUrna())});
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-compartilhar]');if(!b)return;
- window.open('https://twitter.com/intent?text='+encodeURIComponent(b.dataset.compartilhar+' · #VotaBrasil'),'_blank')});
+ window.open('https://twitter.com/intent?text='+encodeURIComponent(b.dataset.compartilhar+' · #MeuVoto'),'_blank')});
 $('#busca').addEventListener('input',aplicaFiltro);
 if(!LS.get('mb_popup_congresso',0))$('#popup').style.display='flex';
 $('#popup-ok').onclick=()=>{LS.set('mb_popup_congresso',1);$('#popup').style.display='none'};
@@ -408,7 +396,7 @@ $('#popup-ok').onclick=()=>{LS.set('mb_popup_congresso',1);$('#popup').style.dis
     <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px;align-items:start">
       <div>
         <div style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">
-          <img src="../icon.svg" alt="VotaBrasil" width="120" height="120" style="border-radius:0;display:block">
+          <img src="../icon.svg" alt="MeuVoto" width="120" height="120" style="border-radius:0;display:block">
         </div>
         <p style="color:#94a3b8;font-size:14px;margin:12px 0;line-height:1.5">Plataforma cívica de opinião e participação para um Brasil com mais transparência, voz e poder de voto real.</p>
         <p style="color:#FFD700;font-weight:800;font-size:15px">"Seu voto coloca, seu voto tira."</p>
@@ -433,8 +421,8 @@ $('#popup-ok').onclick=()=>{LS.set('mb_popup_congresso',1);$('#popup').style.dis
       </div>
     </div>
     <div style="max-width:1400px;margin:30px auto 0;border-top:1px solid #1d3a66;padding-top:20px;display:flex;justify-content:space-between;color:#94a3b8;font-size:12px;flex-wrap:wrap;gap:10px">
-      <span>© 2026 VotaBrasil. Protótipo demonstrativo.</span>
-      <span>votabrasil.app</span>
+      <span>© 2026 MeuVoto. Protótipo demonstrativo.</span>
+      <span>meuvoto.app.br</span>
     </div>
   </footer>
 </body>

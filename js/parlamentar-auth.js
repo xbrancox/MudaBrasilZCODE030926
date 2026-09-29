@@ -1,5 +1,5 @@
 /* ============================================================
-   VOTABRASIL — AUTENTICAÇÃO DE ELEITORES (UI)
+   MEUVOTO — AUTENTICAÇÃO DE ELEITORES (UI)
    Login via Google OAuth ou Telefone (SMS OTP)
    ============================================================ */
 
@@ -13,9 +13,9 @@
 
   /* Base do backend: funciona em file:// e GitHub Pages (fallback Railway).
      NUNCA usar || com API_BASE — '' (mesma origem) é valor válido. */
-  const API_AUTH = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
-    ? window.VotaBrasil.API_BASE
-    : 'https://mudabrasil-redesign-production.up.railway.app';
+  const API_AUTH = (window.MeuVoto && typeof window.MeuVoto.API_BASE === 'string')
+    ? window.MeuVoto.API_BASE
+    : 'https://mudabrasil-production-79eb.up.railway.app';
 
   const state = {
     session: loadSession(),

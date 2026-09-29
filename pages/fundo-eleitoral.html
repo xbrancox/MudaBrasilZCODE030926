@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fundo Eleitoral 2026 · VotaBrasil</title>
-<link rel="canonical" href="https://mudabrasil-redesign-production.up.railway.app/pages/fundo-eleitoral.html">
-<meta property="og:title" content="Fundo Eleitoral 2026 · VotaBrasil">
+  <title>Fundo Eleitoral 2026 · MeuVoto</title>
+<link rel="canonical" href="https://mudabrasil-production-79eb.up.railway.app/pages/fundo-eleitoral.html">
+<meta property="og:title" content="Fundo Eleitoral 2026 · MeuVoto">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://mudabrasil-redesign-production.up.railway.app/pages/fundo-eleitoral.html">
-<meta property="og:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
-<meta property="og:site_name" content="VotaBrasil">
+<meta property="og:url" content="https://mudabrasil-production-79eb.up.railway.app/pages/fundo-eleitoral.html">
+<meta property="og:image" content="https://mudabrasil-production-79eb.up.railway.app/og-image.png">
+<meta property="og:site_name" content="MeuVoto">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://mudabrasil-redesign-production.up.railway.app/og-image.png">
+<meta name="twitter:image" content="https://mudabrasil-production-79eb.up.railway.app/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../icon.svg">
   <meta name="description" content="Dados públicos do TSE: quanto o Fundo Especial de Financiamento de Campanha (FEFC) destinou a cada partido nas Eleições 2026, e quando os repasses por candidato serão publicados.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +40,6 @@
 .fx-cotas{margin-top:8px;color:var(--mb-text-muted);font-size:12.5px;line-height:1.6}
 .fx-empty{text-align:center;padding:34px 16px;color:var(--mb-text-2);font-size:14.5px;line-height:1.7}
 .fx-empty .big{font-size:38px;display:block;margin-bottom:10px}
-@media(max-width:960px){header nav{display:none}.ham{display:block}.mnav.open{display:flex}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="../config.local.js?v=2"></script>
@@ -117,9 +116,9 @@
   /* ===== FUNDO ELEITORAL — dados públicos TSE via API ===== */
   var FX = (function () {
     'use strict';
-    var BASE = (window.VotaBrasil && typeof window.VotaBrasil.API_BASE === 'string')
-      ? window.VotaBrasil.API_BASE
-      : 'https://mudabrasil-redesign-production.up.railway.app';
+    var BASE = (window.MeuVoto && typeof window.MeuVoto.API_BASE === 'string')
+      ? window.MeuVoto.API_BASE
+      : 'https://mudabrasil-production-79eb.up.railway.app';
     var DADOS = null;
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }

@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VotaBrasil - Meu Voto</title>
+  <title>MeuVoto - Meu Voto</title>
 <meta name="description" content="Confira seu voto de confiança pelo código secreto e acompanhe o peso dele no termômetro.">
-<link rel="canonical" href="https://VotaBrasil-redesign-production.up.railway.app/pages/meu-voto.html">
-<meta property="og:title" content="Meu Voto · VotaBrasil">
+<link rel="canonical" href="https://MeuVoto-redesign-production.up.railway.app/pages/meu-voto.html">
+<meta property="og:title" content="Meu Voto · MeuVoto">
 <meta property="og:description" content="Confira seu voto de confiança pelo código secreto e acompanhe o peso dele no termômetro.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://VotaBrasil-redesign-production.up.railway.app/pages/meu-voto.html">
-<meta property="og:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
-<meta property="og:site_name" content="VotaBrasil">
+<meta property="og:url" content="https://MeuVoto-redesign-production.up.railway.app/pages/meu-voto.html">
+<meta property="og:image" content="https://MeuVoto-redesign-production.up.railway.app/og-image.png">
+<meta property="og:site_name" content="MeuVoto">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://VotaBrasil-redesign-production.up.railway.app/og-image.png">
+<meta name="twitter:image" content="https://MeuVoto-redesign-production.up.railway.app/og-image.png">
 
 <link rel="icon" type="image/x-icon" href="../images/logo/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="../images/logo/favicon-32x32.png">
@@ -27,8 +27,7 @@
   <style>
 
 
-@media(max-width:960px){header nav{display:none}.ham{display:block}.mnav.open{display:flex}}
-    /* Estilos específicos para a página Meu Voto */
+    /* Estilos específicos da página Meu Voto (sidebar removida — cabeçalho vem do site-header.js) */
     .vote-tabs {
       display: flex;
       gap: 4px;
@@ -174,20 +173,7 @@
 
   
 
-  <aside class="sidebar" id="sidebar">
-    <ul>
-      <li><a href="../index.html">🏠 Início</a></li>
-      <li><a href="candidatos.html">🗳️ Políticos</a></li>
-      <li><a href="meu-voto.html" style="color:var(--accent-500);">✋ Meu Voto</a></li>
-      <li><a href="proposta.html">📖 Proposta</a></li>
-      <li><a href="comunidade.html">👥 Comunidade</a></li>
-    </ul>
-    <div class="login-area">
-      <button class="btn btn-secondary btn-sm" onclick="showLoginForm()">Entrar na sua conta</button>
-    </div>
-  </aside>
-
-  <main class="main-content">
+  <main>
     <section class="reveal">
       <h1>✋ Meu Voto</h1>
       <p style="max-width:720px; margin:0 auto var(--space-md);">
@@ -256,9 +242,7 @@
             Anote num lugar seguro — ele é a única forma de consultar, manter ou revogar seu voto depois.
           </div>
 
-          <button class="btn btn-accent btn-block" id="btn-votar" disabled style="margin-top:var(--space-md);"
-                  data-loading="true"
-                  title="Registre seu voto de confiança. Aparecerá um código único de 20 dígitos para você anotar.">
+          <button class="btn btn-accent btn-block" id="btn-votar" disabled style="margin-top:var(--space-md);">
             🗳️ Expressar Confiança
           </button>
           <div id="consent-note" style="display:none; margin-top:var(--space-sm); color:var(--text-secondary); font-size:14px;">
@@ -293,19 +277,16 @@
           <div class="code-input-group">
             <input type="text" id="code-input" class="code-input"
                    placeholder="Cole seu código (XXXX-XXXX-XXXX-XXXX)" autocomplete="off">
-            <button class="btn btn-secondary btn-sm" id="btn-ver" style="white-space:nowrap;"
-                    title="Cole o código de voto de 20 dígitos para ver seu status atual, reafirmar ou revogar">
+            <button class="btn btn-secondary btn-sm" id="btn-ver" style="white-space:nowrap;">
               👁 Ver meu voto
             </button>
           </div>
 
           <div class="vote-actions-row" id="vote-actions" style="display:none;">
-            <button class="btn btn-primary btn-sm" id="btn-manter" disabled
-                    title="Reafirme seu voto atual para reiniciar a contagem de decaimento (peso máximo)">
+            <button class="btn btn-primary btn-sm" id="btn-manter" disabled>
               🔄 Reafirmar confiança
             </button>
-            <button class="btn btn-danger btn-sm" id="btn-revogar" disabled
-                    title="Revogar seu voto - retirar a confiança do político, ação definitiva">
+            <button class="btn btn-danger btn-sm" id="btn-revogar" disabled>
               ↩ Revogar meu voto
             </button>
           </div>
@@ -400,7 +381,7 @@
   <div class="modal" id="login-modal">
     <div class="modal-content">
       <span class="close" onclick="this.closest('.modal').style.display='none'">×</span>
-      <h2>Login na Conta VotaBrasil</h2>
+      <h2>Login na Conta MeuVoto</h2>
       <form onsubmit="event.preventDefault(); alert('Login simulado!'); this.closest('.modal').style.display='none';">
         <label>Usuário</label>
         <input type="text" placeholder="Seu usuário" required>
@@ -438,7 +419,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2026 VotaBrasil. Plataforma cívica de revogação do voto.</p>
+      <p>&copy; 2026 MeuVoto. Plataforma cívica de revogação do voto.</p>
     </div>
   </footer>
 
